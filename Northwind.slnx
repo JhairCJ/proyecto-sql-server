@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Northwind.OLTP/Northwind.OLTP.sqlproj">
+    <Build />
+    <Deploy />
+  </Project>
+</Solution>
