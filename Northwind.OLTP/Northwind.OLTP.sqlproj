@@ -289,6 +289,6 @@
       <AnsiNulls>On</AnsiNulls>
       <QuotedIdentifier>On</QuotedIdentifier>
     </Build>
-    <Build Include="dbo\OLAP\DW y Dimensiones.sql" />
+    <Build Include="dbo\OLAP\DW y dimensiones.sql" />
   </ItemGroup>
 </Project>
