@@ -1,3 +1,4 @@
+-- Ejecutar en SQL Server los 1. y 2.
 -- 1. Crear la nueva base de datos para el Data Warehouse
 CREATE DATABASE Northwind_DW;
 GO
@@ -74,5 +75,14 @@ CREATE TABLE Dim_Tiempo (
 
     Trimestre INT,
     Anio INT
+);
+GO
+
+CREATE TABLE Dim_Transportista (
+    Transportista_SK INT IDENTITY(1,1) PRIMARY KEY,
+    ShipperID INT NOT NULL,
+
+    NombreEmpresa NVARCHAR(40),
+    Telefono NVARCHAR(24)
 );
 GO
