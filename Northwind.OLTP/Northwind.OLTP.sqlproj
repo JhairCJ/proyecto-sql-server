@@ -127,6 +127,7 @@
     <Folder Include="dbo\Views\" />
     <Folder Include="dbo\Stored Procedures\" />
     <Folder Include="Scripts" />
+    <Folder Include="Scripts\Control" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="dbo\Tables\Employees.sql">
@@ -291,9 +292,12 @@
     </Build>
     <None Include="Scripts\DW y dimensiones.sql" />
     <None Include="Scripts\Fact.sql" />
+    <None Include="Scripts\Control\GetLastPackageRowVersion.sql" />
+    <None Include="Scripts\Control\PackageConfig.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Scripts\Esquema_y_tablas.sql" />
     <None Include="Scripts\Indices_Fact.sql" />
+    <None Include="Scripts\Control\UpdateLastPackageRowVersion.sql" />
   </ItemGroup>
 </Project>
