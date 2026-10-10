@@ -1,5 +1,5 @@
 -- Ejecutar en SQL Server los 1. y 2.
--- 1. Crear la nueva base de datos para el Data Warehouse
+-- 1.Crear la nueva base de datos para el Data Warehouse
 CREATE DATABASE Northwind_DW;
 GO
 
