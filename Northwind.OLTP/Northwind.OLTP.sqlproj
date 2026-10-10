@@ -292,4 +292,7 @@
     <None Include="Scripts\DW y dimensiones.sql" />
     <None Include="Scripts\Fact.sql" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Scripts\Esquema_y_tablas.sql" />
+  </ItemGroup>
 </Project>
