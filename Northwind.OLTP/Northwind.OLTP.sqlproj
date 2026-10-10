@@ -126,7 +126,7 @@
     <Folder Include="dbo\Tables\" />
     <Folder Include="dbo\Views\" />
     <Folder Include="dbo\Stored Procedures\" />
-    <Folder Include="dbo\OLAP" />
+    <Folder Include="Scripts" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="dbo\Tables\Employees.sql">
@@ -289,6 +289,6 @@
       <AnsiNulls>On</AnsiNulls>
       <QuotedIdentifier>On</QuotedIdentifier>
     </Build>
-    <Build Include="dbo\OLAP\DW y dimensiones.sql" />
+    <None Include="Scripts\DW y dimensiones.sql" />
   </ItemGroup>
 </Project>
