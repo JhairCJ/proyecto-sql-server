@@ -300,4 +300,7 @@
     <None Include="Scripts\Indices_Fact.sql" />
     <None Include="Scripts\Control\UpdateLastPackageRowVersion.sql" />
   </ItemGroup>
+  <ItemGroup>
+    <PostDeploy Include="Scripts\Control\VerificarPackages.sql" />
+  </ItemGroup>
 </Project>
