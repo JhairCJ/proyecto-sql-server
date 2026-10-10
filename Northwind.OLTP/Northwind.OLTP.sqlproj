@@ -290,5 +290,6 @@
       <QuotedIdentifier>On</QuotedIdentifier>
     </Build>
     <None Include="Scripts\DW y dimensiones.sql" />
+    <None Include="Scripts\Fact.sql" />
   </ItemGroup>
 </Project>
