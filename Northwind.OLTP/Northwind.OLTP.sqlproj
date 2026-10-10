@@ -294,5 +294,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Scripts\Esquema_y_tablas.sql" />
+    <None Include="Scripts\Indices_Fact.sql" />
   </ItemGroup>
 </Project>
