@@ -67,4 +67,58 @@ CREATE TABLE std.Producto
 );
 GO
 
---Danitza has el 12 y 14
+
+
+CREATE TABLE std.Transportista
+(
+    ShipperID INT NOT NULL,
+
+    CompanyName NVARCHAR(40) NULL,
+    Phone NVARCHAR(24) NULL,
+
+    SourceRowVersion BINARY(8) NULL,
+
+    CONSTRAINT PK_STD_Transportista
+        PRIMARY KEY (ShipperID)
+);
+GO
+
+CREATE TABLE std.Ventas
+(
+    OrderID INT NOT NULL,
+    ProductID INT NOT NULL,
+
+    CustomerID NCHAR(5) NULL,
+    EmployeeID INT NULL,
+    ShipperID INT NULL,
+
+    OrderDate DATETIME NULL,
+    RequiredDate DATETIME NULL,
+    ShippedDate DATETIME NULL,
+
+    UnitPrice MONEY NOT NULL,
+    Quantity SMALLINT NOT NULL,
+    Discount REAL NOT NULL,
+
+    OrderRowVersion BINARY(8) NULL,
+    OrderDetailRowVersion BINARY(8) NULL,
+
+    CONSTRAINT PK_STD_Ventas
+        PRIMARY KEY (OrderID, ProductID)
+);
+GO
+
+CREATE TABLE dbo.PackageConfig
+(
+    PackageName NVARCHAR(100) NOT NULL,
+
+    LastRowVersion BINARY(8) NOT NULL
+        CONSTRAINT DF_PackageConfig_RowVersion
+        DEFAULT (0x0000000000000000),
+
+    LastSuccessfulLoad DATETIME2 NULL,
+
+    CONSTRAINT PK_PackageConfig
+        PRIMARY KEY (PackageName)
+);
+GO
