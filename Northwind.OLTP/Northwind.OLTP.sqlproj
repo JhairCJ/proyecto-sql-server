@@ -299,6 +299,7 @@
     <None Include="Scripts\Esquema_y_tablas.sql" />
     <None Include="Scripts\Indices_Fact.sql" />
     <None Include="Scripts\Control\UpdateLastPackageRowVersion.sql" />
+    <None Include="Scripts\DW_Merge.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Scripts\Control\VerificarPackages.sql" />
