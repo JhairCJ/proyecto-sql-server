@@ -107,3 +107,11 @@ CREATE TABLE std.Ventas
         PRIMARY KEY (OrderID, ProductID)
 );
 GO
+
+
+IF COL_LENGTH('std.Empleado', 'SupervisorName') IS NULL
+BEGIN
+    ALTER TABLE std.Empleado
+    ADD SupervisorName NVARCHAR(60) NULL;
+END;
+GO
