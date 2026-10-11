@@ -204,3 +204,232 @@ BEGIN
 
 END;
 GO
+
+-- CREACION DEL DW MERGE Dim_Tiempo
+
+CREATE OR ALTER PROCEDURE dbo.DW_LoadDimTiempo
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    ;WITH Fechas AS
+    (
+        SELECT CAST(OrderDate AS DATE) AS Fecha
+        FROM std.Ventas
+        WHERE OrderDate IS NOT NULL
+
+        UNION
+
+        SELECT CAST(RequiredDate AS DATE)
+        FROM std.Ventas
+        WHERE RequiredDate IS NOT NULL
+
+        UNION
+
+        SELECT CAST(ShippedDate AS DATE)
+        FROM std.Ventas
+        WHERE ShippedDate IS NOT NULL
+    )
+
+    INSERT INTO dbo.Dim_Tiempo
+    (
+        Tiempo_SK,
+        Fecha,
+
+        Dia,
+        NombreDia,
+
+        Mes,
+        NombreMes,
+
+        Trimestre,
+        Anio
+    )
+
+    SELECT
+        YEAR(F.Fecha) * 10000
+        + MONTH(F.Fecha) * 100
+        + DAY(F.Fecha) AS Tiempo_SK,
+
+        F.Fecha,
+
+        DAY(F.Fecha),
+        DATENAME(WEEKDAY, F.Fecha),
+
+        MONTH(F.Fecha),
+        DATENAME(MONTH, F.Fecha),
+
+        DATEPART(QUARTER, F.Fecha),
+        YEAR(F.Fecha)
+
+    FROM Fechas F
+
+    WHERE NOT EXISTS
+    (
+        SELECT 1
+        FROM dbo.Dim_Tiempo DT
+        WHERE DT.Fecha = F.Fecha
+    );
+
+END;
+GO
+
+-- CREACION DEL DW MERGE Fact_Ventas
+
+CREATE OR ALTER PROCEDURE dbo.DW_MergeFactVentas
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    MERGE dbo.Fact_Ventas AS D
+
+    USING
+    (
+        SELECT
+            V.OrderID,
+
+            DC.Cliente_SK,
+            DE.Empleado_SK,
+            DP.Producto_SK,
+            DTR.Transportista_SK,
+
+            /* Fecha Pedido */
+            YEAR(V.OrderDate) * 10000
+            + MONTH(V.OrderDate) * 100
+            + DAY(V.OrderDate)
+                AS FechaPedido_SK,
+
+            /* Fecha Requerida */
+            CASE
+                WHEN V.RequiredDate IS NULL
+                    THEN NULL
+                ELSE
+                    YEAR(V.RequiredDate) * 10000
+                    + MONTH(V.RequiredDate) * 100
+                    + DAY(V.RequiredDate)
+            END AS FechaRequerida_SK,
+
+            /* Fecha Envío */
+            CASE
+                WHEN V.ShippedDate IS NULL
+                    THEN NULL
+                ELSE
+                    YEAR(V.ShippedDate) * 10000
+                    + MONTH(V.ShippedDate) * 100
+                    + DAY(V.ShippedDate)
+            END AS FechaEnvio_SK,
+
+            V.Quantity,
+            V.UnitPrice,
+            V.Discount,
+
+            /* Importe sin descuento */
+            CAST(
+                V.Quantity * V.UnitPrice
+                AS DECIMAL(18,2)
+            ) AS ImporteBruto,
+
+            /* Monto descontado */
+            CAST(
+                V.Quantity
+                * V.UnitPrice
+                * V.Discount
+                AS DECIMAL(18,2)
+            ) AS ImporteDescuento,
+
+            /* Total después del descuento */
+            CAST(
+                V.Quantity
+                * V.UnitPrice
+                * (1 - V.Discount)
+                AS DECIMAL(18,2)
+            ) AS ImporteNeto
+
+        FROM std.Ventas V
+
+        INNER JOIN dbo.Dim_Cliente DC
+            ON DC.CustomerID = V.CustomerID
+
+        INNER JOIN dbo.Dim_Empleado DE
+            ON DE.EmployeeID = V.EmployeeID
+
+        INNER JOIN dbo.Dim_Producto DP
+            ON DP.ProductID = V.ProductID
+
+        LEFT JOIN dbo.Dim_Transportista DTR
+            ON DTR.ShipperID = V.ShipperID
+
+        WHERE V.OrderDate IS NOT NULL
+
+    ) AS S
+
+    ON
+        D.OrderID = S.OrderID
+        AND D.Producto_SK = S.Producto_SK
+
+    WHEN MATCHED THEN
+        UPDATE SET
+
+            D.Cliente_SK         = S.Cliente_SK,
+            D.Empleado_SK        = S.Empleado_SK,
+            D.Transportista_SK   = S.Transportista_SK,
+
+            D.FechaPedido_SK     = S.FechaPedido_SK,
+            D.FechaRequerida_SK  = S.FechaRequerida_SK,
+            D.FechaEnvio_SK      = S.FechaEnvio_SK,
+
+            D.Cantidad           = S.Quantity,
+            D.PrecioUnitario     = S.UnitPrice,
+            D.Descuento          = S.Discount,
+
+            D.ImporteBruto       = S.ImporteBruto,
+            D.ImporteDescuento   = S.ImporteDescuento,
+            D.ImporteNeto        = S.ImporteNeto
+
+    WHEN NOT MATCHED BY TARGET THEN
+        INSERT
+        (
+            Cliente_SK,
+            Empleado_SK,
+            Producto_SK,
+            Transportista_SK,
+
+            FechaPedido_SK,
+            FechaRequerida_SK,
+            FechaEnvio_SK,
+
+            OrderID,
+
+            Cantidad,
+            PrecioUnitario,
+            Descuento,
+
+            ImporteBruto,
+            ImporteDescuento,
+            ImporteNeto
+        )
+
+        VALUES
+        (
+            S.Cliente_SK,
+            S.Empleado_SK,
+            S.Producto_SK,
+            S.Transportista_SK,
+
+            S.FechaPedido_SK,
+            S.FechaRequerida_SK,
+            S.FechaEnvio_SK,
+
+            S.OrderID,
+
+            S.Quantity,
+            S.UnitPrice,
+            S.Discount,
+
+            S.ImporteBruto,
+            S.ImporteDescuento,
+            S.ImporteNeto
+        );
+
+END;
+GO
