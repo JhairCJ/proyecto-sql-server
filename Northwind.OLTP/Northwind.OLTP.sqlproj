@@ -128,6 +128,7 @@
     <Folder Include="dbo\Stored Procedures\" />
     <Folder Include="Scripts" />
     <Folder Include="Scripts\Control" />
+    <Folder Include="Scripts\Procedures" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="dbo\Tables\Employees.sql">
@@ -303,5 +304,6 @@
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Scripts\Control\VerificarPackages.sql" />
+    <None Include="Scripts\Procedures\GetLastPackageRowVersion.sql" />
   </ItemGroup>
 </Project>
