@@ -305,5 +305,6 @@
   <ItemGroup>
     <PostDeploy Include="Scripts\Control\VerificarPackages.sql" />
     <None Include="Scripts\Procedures\GetLastPackageRowVersion.sql" />
+    <None Include="Scripts\Procedures\UpdateLastPackageRowVersion.sql" />
   </ItemGroup>
 </Project>
