@@ -127,3 +127,42 @@ Las pruebas de corte de este segmento simulan escrituras sucesivas alrededor de 
 La [guía de empleados y productos](05-extraccion-empleados-productos.md) contiene conceptos, preparación, consulta en SSMS, pruebas y compilación en Visual Studio. No se cargó staging ni se construyeron paquetes SSIS en esta etapa. Se mantiene retirada la planificación del repositorio; no se hizo commit ni push.
 
 Progreso: **8 de 41**. Próxima unidad recomendada: **2.5 y 2.6**, transportistas y ventas.
+
+## Numeración de las guías
+
+Por petición del usuario, las guías paso a paso se numeraron desde 01 para indicar su orden de lectura. Se actualizaron sus enlaces y el README. No se renombraron objetos SQL.
+
+| Nombre anterior | Nombre final | Responsabilidad |
+| --- | --- | --- |
+| guia-practica.md | 01-guia-practica.md | Conceptos iniciales y recorrido |
+| entorno.md | 02-entorno.md | Herramientas, servicios y configuración comprobada |
+| pruebas-aisladas.md | 03-pruebas-aisladas.md | Preparación y ejecución de pruebas |
+| extraccion-clientes.md | 04-extraccion-clientes.md | Marcas y clientes |
+| extraccion-empleados-productos.md | 05-extraccion-empleados-productos.md | Relaciones de empleados y productos |
+| Nuevo | 06-extraccion-transportistas-ventas.md | Transportistas y granularidad de ventas |
+
+validacion.md conserva su nombre como registro de resultados, y evidencias/README.md explica los archivos locales. La eliminación de la planificación, el segmento anterior y la numeración 01–05 se publicaron con autorización expresa del usuario en el commit **4fda102**, rama northwind. El segmento 05 siguiente queda como cambios locales posteriores a ese commit.
+
+## Segmento 05 — Transportistas y ventas
+
+Tareas **2.5 y 2.6**. Se crearon GetShipperChangesByRowVersion y GetSalesChangesByRowVersion y se incluyeron como Build en Northwind.OLTP. Ventas combina exclusivamente Orders/OrderDetails, con identidad OrderID/ProductID, ShipVia como ShipperID y precio del detalle vendido. Se preservan referencias y fechas NULL. Todas las marcas contribuyentes deben estar dentro del corte, y cualquier cambio de cabecera o detalle puede seleccionar la línea.
+
+| Escenario | Resultado ejecutado | Evidencia local en `evidencias/segmento-05/` |
+| --- | --- | --- |
+| Compilación y publicación | Compila sin errores, 19 advertencias heredadas SQL71502; ocho procedimientos publicados únicamente en Northwind_Test | `compilacion.txt`, `despliegue.txt` |
+| Transportistas | 3 identidades únicas y columnas compatibles con std.Transportista; actualización con teléfono NULL | `Shipper.txt` |
+| Alta y límites | Alta posterior al corte excluida y recuperada en el siguiente intervalo; inferior excluido/superior incluido | `Shipper.txt` |
+| Ventas de referencia | 2.155 líneas únicas, 830 pedidos, 51.317 unidades; todas las columnas comparadas con consulta independiente en ambos sentidos | `Sales.txt` |
+| Pedido 10248 | Productos 11/42/72, 27 unidades y bruto 440,00 | `Sales.txt` |
+| Precio de catálogo | Actualizar Products.UnitPrice no selecciona ventas ni altera el precio vendido | `Sales.txt` |
+| Cabecera y detalle | Fechas/cliente/empleado/transportista en cabecera seleccionan sus tres líneas; cambiar precio/cantidad/descuento en detalle selecciona una línea | `Sales.txt` |
+| Cambios posteriores | Cabecera posterior difiere líneas y las recupera; detalle posterior difiere solo su línea y la recupera | `Sales.txt` |
+| Ausencias | Cliente, empleado, transportista y tres fechas NULL conservan las tres líneas del pedido | `Sales.txt` |
+| Intervalos | Vacíos sin filas; negativos, invertidos y NULL rechazados específicamente con 51104 | `Shipper.txt`, `Sales.txt` |
+| Originales y limpieza | Originales sin diferencias antes/después; todas las columnas comerciales de Orders, OrderDetails, Products y Shippers de copia coinciden en ambos sentidos con origen, excluida rowversion | `originales-antes.txt`, `originales-despues.txt`, `limpieza.txt` |
+
+Se corrigió un conflicto de intercalación de las tablas temporales de prueba con COLLATE DATABASE_DEFAULT y se volvieron a ejecutar ambos fixtures: cuatro grupos Passed de transportistas y ocho de ventas. No se cambió la intercalación de las bases. El parser de PowerShell de publicación pasó; los ejemplos de la guía y sus enlaces locales se comprobaron. Los cambios de datos se revirtieron; rowversion y el IDENTITY de la alta de prueba avanzan solamente en la copia.
+
+Las pruebas de corte usan escrituras sucesivas dentro de un fixture, sin afirmar una nueva comprobación de múltiples sesiones ni una instantánea global. std.Ventas conserva por ahora MONEY/REAL como el origen; tipos decimales y cálculo de importes del DW corresponden a tareas posteriores. No se cargaron staging, hechos ni paquetes SSIS.
+
+La [guía 06](06-extraccion-transportistas-ventas.md) explica conceptos, columnas, pasos PowerShell/SSMS/Visual Studio, resultados y recuperación. Progreso: **10 de 41**. Próxima unidad recomendada: **2.7**, mapa de tablas, claves y extractores, antes del proyecto DW.

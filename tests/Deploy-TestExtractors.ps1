@@ -21,7 +21,8 @@ IF DB_NAME()<>N'Northwind_Test' OR NOT EXISTS
 '@
     [void]$command.ExecuteNonQuery()
     foreach($name in @('RowVersionToBigInt','BigIntToRowVersion','GetDatabaseRowVersion',
-        'GetCustomerChangesByRowVersion','GetEmployeeChangesByRowVersion','GetProductChangesByRowVersion')) {
+        'GetCustomerChangesByRowVersion','GetEmployeeChangesByRowVersion','GetProductChangesByRowVersion',
+        'GetShipperChangesByRowVersion','GetSalesChangesByRowVersion')) {
         $file=Join-Path $PSScriptRoot "..\Northwind.OLTP\dbo\Stored Procedures\$name.sql"
         $sql=Get-Content -LiteralPath $file -Raw
         $command.CommandText=[regex]::Replace($sql,'(?i)CREATE\s+PROCEDURE','CREATE OR ALTER PROCEDURE')

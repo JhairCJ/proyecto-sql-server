@@ -40,7 +40,7 @@ Las lecturas de los procedimientos se ejecutan con **READ COMMITTED**: no public
 & '.\tests\Deploy-TestExtractors.ps1'
 ```
 
-3. Comprueba seis mensajes `Publicado en Northwind_Test: dbo...`: RowVersionToBigInt, BigIntToRowVersion, GetDatabaseRowVersion GetCustomerChangesByRowVersion, GetEmployeeChangesByRowVersion y GetProductChangesByRowVersion.
+3. Comprueba ocho mensajes `Publicado en Northwind_Test: dbo...`: RowVersionToBigInt, BigIntToRowVersion, GetDatabaseRowVersion GetCustomerChangesByRowVersion, GetEmployeeChangesByRowVersion, GetProductChangesByRowVersion, GetShipperChangesByRowVersion y GetSalesChangesByRowVersion.
 
 **Resultado esperado / comprobación:** se crean o actualizan únicamente esos procedimientos en la copia marcada Northwind_Test; no se publica un dacpac completo, no se modifica NorthWind ni se reinician datos o marcas. Repetir el script actualiza las definiciones sin recrear la base.
 
@@ -79,7 +79,7 @@ EXEC dbo.GetCustomerChangesByRowVersion @startRow = @Fin, @endRow = @Fin;
 
 **Requisitos / programa:** PowerShell 7.6.5 y copias estables de referencia. No ejecutes otros fixtures a la vez. Los datos de prueba se escriben mediante conexiones restringidas de Northwind.TestTools.psm1.
 
-**Preparado:** las pruebas ya pasaron. Los fixtures SQL se revierten; la prueba de varias sesiones confirma dos cambios dentro de la copia y restaura los nombres originales en su limpieza. Los rowversions de la copia avanzan, como es esperado.
+Los fixtures SQL se revierten; la prueba de varias sesiones confirma dos cambios dentro de la copia y restaura los nombres originales en su limpieza. Los rowversions de la copia avanzan, como es esperado.
 
 1. Desde la raíz del repositorio, ejecuta:
 
@@ -103,8 +103,6 @@ foreach ($tabla in $resultado.Tables) { $tabla }
 
 **Errores y recuperación:** fixtures RT001/RT002/RT003 o clasificaciones RV_CLASS1/RV_CLASS2 preexistentes deben investigarse; no se sobrescriben. Si hay un error de conexión o SQL distinto del timeout deliberado, la prueba falla y no se declara PASS. La limpieza revierte la transacción pendiente y restaura los nombres de VINET/ALFKI. No reinicies las marcas del DW para recuperar una prueba de origen.
 
-## 5. Evidencia y próxima etapa
+## 5. Volver al recorrido principal
 
-La [validación](validacion.md) registra escenarios y resultados. Los logs crudos están localmente en `docs/evidencias/segmento-03` y se excluyen de Git. Se preservaron los datos, marcas y definiciones de los procedimientos de NorthWind durante la suite.
-
-Siguiente segmento recomendado: empleados y productos (2.3 y 2.4), con relaciones opcionales y atributos dependientes. Todavía no se han corregido esos extractores ni construido los paquetes de carga.
+Esta prueba verifica el extractor de clientes; no carga staging ni la dimensión. Para ejecutar lo disponible del proyecto, vuelve a [01](01-guia-practica.md). Los resultados de desarrollo están en [validacion.md](validacion.md).

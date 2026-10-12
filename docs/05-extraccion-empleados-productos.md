@@ -40,10 +40,10 @@ Set-Location -LiteralPath 'C:\Proyectos\proyecto-sql-server'
 & '.\tests\Deploy-TestExtractors.ps1'
 ```
 
-2. Comprueba seis mensajes `Publicado en Northwind_Test: dbo...`: dos conversiones, el corte y los extractores de clientes, empleados y productos.
+2. Comprueba ocho mensajes `Publicado en Northwind_Test: dbo...`: dos conversiones, el corte y los extractores de clientes, empleados, productos, transportistas y ventas.
 3. En SSMS, actualiza Northwind_Test > Programmability / Programación > Stored Procedures / Procedimientos almacenados para verlos.
 
-**Resultado:** solo se actualizan esos seis procedimientos en la copia marcada. Repetirlo no recrea las bases. Si falta la copia o su marca, sigue la preparación de pruebas; si falta permiso, revisa la cuenta Windows. El usuario restringido NorthwindFixture se utiliza para datos de prueba, no para publicar procedimientos.
+**Resultado:** solo se actualizan esos ocho procedimientos en la copia marcada. Repetirlo no recrea las bases. Si falta la copia o su marca, sigue la preparación de pruebas; si falta permiso, revisa la cuenta Windows. El usuario restringido NorthwindFixture se utiliza para datos de prueba, no para publicar procedimientos.
 
 ## 5. Consultar empleados y productos en SSMS
 
@@ -95,4 +95,4 @@ Se probaron empleados sin territorios y con varios, sin supervisor y con supervi
 
 **Resultado comprobado:** compilación sin errores; persisten las 19 advertencias SQL71502 heredadas de referencias a Order Details. La [guía inicial](01-guia-practica.md) explica la configuración SSDT y cómo resolver un proyecto incompatible. La publicación de esta etapa se hace con la ficha 4, sobre la copia.
 
-La organización conserva la separación OLTP, staging, DW y ETL de la referencia BikeStores. El [registro de validación](validacion.md) resume lo ejecutado. No necesitas repetir estos pasos para que complete esta etapa: sirven para aprender y reproducirla. El siguiente segmento es transportistas y ventas.
+La organización conserva la separación OLTP, staging, DW y ETL de la referencia BikeStores. El [registro de validación](validacion.md) resume lo ejecutado. Estas son pruebas específicas de extractores; no pueblan el DW. Vuelve al [recorrido principal](01-guia-practica.md) para ejecutar lo disponible del proyecto.
