@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [string]$Server = 'localhost',
-    [ValidateSet('Northwind_DW_Test')]
+    [ValidateSet('Northwind_DW', 'Northwind_DW_Test')]
     [string]$WarehouseDatabase = 'Northwind_DW_Test'
 )
 
@@ -44,8 +44,10 @@ WHERE class = 0
   AND name = N''NorthwindPracticeTestDatabase''
   AND CONVERT(nvarchar(128), value) = N''Northwind_DW'';';
 EXEC sys.sp_executesql @sql, N'@isMarkedTest bit OUTPUT', @isMarkedTest OUTPUT;
-IF @isMarkedTest = 0
-    THROW 51202, 'La base no está marcada como copia aislada de Northwind_DW.', 1;
+IF @database = N'Northwind_DW_Test' AND @isMarkedTest = 0
+    THROW 51202, 'Northwind_DW_Test debe estar marcada como copia aislada.', 1;
+IF @database = N'Northwind_DW' AND @isMarkedTest = 1
+    THROW 51203, 'Northwind_DW está marcada como copia de prueba; se rechazó el acceso.', 1;
 
 IF SUSER_ID(@principal) IS NULL
 BEGIN

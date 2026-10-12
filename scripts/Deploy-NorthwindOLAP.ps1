@@ -2,14 +2,19 @@
 param(
     [string]$AnalysisServer = 'localhost',
     [string]$WarehouseServer = 'localhost',
-    [ValidateSet('Northwind_DW_Test')]
+    [ValidateSet('Northwind_DW', 'Northwind_DW_Test')]
     [string]$WarehouseDatabase = 'Northwind_DW_Test',
-    [ValidateSet('NorthwindOLAP_Test')]
+    [ValidateSet('NorthwindOLAP', 'NorthwindOLAP_Test')]
     [string]$ModelDatabase = 'NorthwindOLAP_Test'
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+$expectedModelDatabase = if ($WarehouseDatabase -eq 'Northwind_DW') { 'NorthwindOLAP' } else { 'NorthwindOLAP_Test' }
+if ($ModelDatabase -ne $expectedModelDatabase) {
+    throw 'Use Northwind_DW/NorthwindOLAP together, or Northwind_DW_Test/NorthwindOLAP_Test together.'
+}
 
 $root = Join-Path $PSScriptRoot '..'
 & (Join-Path $PSScriptRoot 'Configure-NorthwindOLAPAccess.ps1') -Server $WarehouseServer -WarehouseDatabase $WarehouseDatabase

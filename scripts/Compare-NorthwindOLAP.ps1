@@ -1,10 +1,10 @@
 ﻿[CmdletBinding()]
 param(
     [string]$SqlServer = 'localhost',
-    [ValidateSet('Northwind_DW_Test')]
+    [ValidateSet('Northwind_DW', 'Northwind_DW_Test')]
     [string]$WarehouseDatabase = 'Northwind_DW_Test',
     [string]$AnalysisServer = 'localhost',
-    [ValidateSet('NorthwindOLAP_Test')]
+    [ValidateSet('NorthwindOLAP', 'NorthwindOLAP_Test')]
     [string]$ModelDatabase = 'NorthwindOLAP_Test',
     [string]$Category = 'Beverages',
     [int]$Year = 1996,
@@ -14,6 +14,11 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+$expectedModelDatabase = if ($WarehouseDatabase -eq 'Northwind_DW') { 'NorthwindOLAP' } else { 'NorthwindOLAP_Test' }
+if ($ModelDatabase -ne $expectedModelDatabase) {
+    throw 'Use Northwind_DW/NorthwindOLAP together, or Northwind_DW_Test/NorthwindOLAP_Test together.'
+}
 
 if ([string]::IsNullOrWhiteSpace($EvidenceDirectory)) {
     $EvidenceDirectory = Join-Path $PSScriptRoot '../docs/evidencias/olap'

@@ -12,18 +12,7 @@ $model = 'NorthwindOLAP_Test'
 $tools = Join-Path $PSScriptRoot 'Northwind.TestTools.psm1'
 Import-Module $tools -Force
 
-$vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
-$installations = & $vswhere -all -products '*' -property installationPath
-$installation = $installations | Where-Object {
-    Test-Path -LiteralPath (Join-Path $_ 'MSBuild/Business Intelligence Semantic Model/1.0/Microsoft.AnalysisServices.VSHostBuilder.targets')
-} | Select-Object -First 1
-if (-not $installation) {
-    throw 'Instala Visual Studio con la extensión Analysis Services Projects.'
-}
-$assemblyDirectory = Join-Path $installation 'Common7/IDE/CommonExtensions/Microsoft/SSAS'
-if (-not ('Microsoft.AnalysisServices.AdomdClient.AdomdConnection' -as [type])) {
-    Add-Type -Path (Join-Path $assemblyDirectory 'Microsoft.AnalysisServices.AdomdClient.dll')
-}
+& (Join-Path $PSScriptRoot '../scripts/Import-NorthwindAnalysisServices.ps1') -Adomd
 
 function Invoke-DaxRow([string]$Query) {
     $connection = [Microsoft.AnalysisServices.AdomdClient.AdomdConnection]::new(
