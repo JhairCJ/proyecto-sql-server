@@ -1,14 +1,14 @@
 # 01. Ejecutar el proyecto
 
-**Requisitos:** SQL Server local, SSMS, PowerShell, Visual Studio con SSDT y bases NorthWind/Northwind_DW existentes. La carga comercial al DW, SSIS, SSAS y el job siguen pendientes.
+**Requisitos:** SQL Server local, SSMS, PowerShell, Visual Studio 2026 con SSDT y bases NorthWind/Northwind_DW existentes. SSIS, SSAS y job todavía pendientes.
 
 ## 1. Abrir y compilar
 
-En Visual Studio: **Archivo > Abrir > Proyecto o solución > Northwind.slnx**. En el Explorador de soluciones, clic derecho en la solución > **Compilar**.
+En Visual Studio: **Archivo > Abrir > Proyecto o solución > Northwind.slnx**. Clic derecho en la solución > **Compilar**.
 
-**Resultado:** proyectos Northwind.OLTP y Northwind.DW compilados sin errores. [Configuración](02-entorno.md).
+**Resultado:** Northwind.OLTP y Northwind.DW sin errores. [Configuración](02-entorno.md).
 
-## 2. Preparar y publicar
+## 2. Preparar y cargar
 
 En PowerShell, desde la carpeta que contiene Northwind.slnx:
 
@@ -16,24 +16,23 @@ En PowerShell, desde la carpeta que contiene Northwind.slnx:
 & '.\tests\Prepare-TestDatabases.ps1'
 & '.\tests\Deploy-TestExtractors.ps1'
 & '.\scripts\Publish-NorthwindWarehouse.ps1'
+& '.\scripts\Load-NorthwindWarehouse.ps1'
+& '.\scripts\Compare-NorthwindWarehouse.ps1'
 ```
 
-**Resultado:** Northwind_Test con datos operativos y ocho procedimientos; Northwind_DW_Test con esquema, miembros desconocidos, controles y calendario poblado. [Preparación](03-pruebas-aisladas.md). [DW](05-preparar-dw.md).
+**Resultado:** Northwind_Test con datos operativos; Northwind_DW_Test con dimensiones y ventas pobladas; cinco entidades «Confirmado» y todas las comparaciones True. [Preparación](03-pruebas-aisladas.md). [Carga](06-cargar-datos.md).
 
-## 3. Ejecutar y comprobar
+## 3. Comprobar en SSMS
 
-En SSMS: **Conectar > Motor de base de datos**, servidor **localhost**, **Autenticación de Windows**. Abre **Nueva consulta**, pega el bloque completo y pulsa **F5**:
+Conecta al motor **localhost**, **Autenticación de Windows**. Abre **Nueva consulta**, pega y pulsa **F5**:
 
 ```sql
-USE Northwind_Test;
-DECLARE @cut TABLE(DBTS bigint);
-INSERT @cut EXEC dbo.GetDatabaseRowVersion;
-DECLARE @fin bigint=(SELECT DBTS FROM @cut);
-EXEC dbo.GetSalesChangesByRowVersion 0,@fin;
 USE Northwind_DW_Test;
-SELECT COUNT(*) AS Dias,MIN(Fecha) AS Desde,MAX(Fecha) AS Hasta
-FROM dbo.Dim_Tiempo WHERE Tiempo_SK<>0;
-SELECT COUNT(*) AS VentasCargadas FROM dbo.Fact_Ventas;
+SELECT COUNT(*) AS Lineas,COUNT(DISTINCT OrderID) AS Pedidos,
+ SUM(CONVERT(bigint,Cantidad)) AS Unidades,SUM(ImporteNeto) AS Neto
+FROM dbo.Fact_Ventas;
+SELECT OrderID,ProductID,Cantidad,ImporteNeto
+FROM dbo.Fact_Ventas WHERE OrderID=10248 ORDER BY ProductID;
 ```
 
-**Resultado de referencia:** 2.155 líneas extraídas; calendario 1996-07-04 a 1998-06-11, 708 días; cero ventas comerciales cargadas. La extracción no puebla Fact_Ventas. [Ejecutar todos los extractores](04-ejecutar-extraccion.md).
+**Referencia:** 2.155 líneas, 830 pedidos, 51.317 unidades, neto 1.265.792,76. Pedido 10248: productos 11/42/72, 27 unidades, neto 440,00.

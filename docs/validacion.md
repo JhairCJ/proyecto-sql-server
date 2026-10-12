@@ -194,3 +194,30 @@ Las comprobaciones de datos completos usan un fixture transaccional, no una carg
 Las guías operativas quedan en 01–05. Las antiguas guías por entidad 04-extraccion-clientes, 05-extraccion-empleados-productos y 06-extraccion-transportistas-ventas se sustituyeron por una sola guía de ejecución de extractores y [referencias técnicas](referencias/extraccion.md). El [mapa DW](referencias/modelo-dw.md) registra propietarios, renombres, tres fechas, claves, tipo 1, importes y correspondencia BikeStores. La guía [05](05-preparar-dw.md) contiene únicamente publicación/comprobación. Se verificaron sus consultas y enlaces locales; parser PowerShell sin errores.
 
 Progreso: **18 de 41**. Próxima sección funcional: **aplicación y carga de datos (grupo 4)**. No se hizo commit ni push de esta sección posterior a 72849d2.
+## Sección funcional: aplicación y carga transaccional
+
+El commit/push autorizado de la sección DW fue **79f8287**, publicado en northwind. Las tareas **4.1–4.4** se implementaron después y permanecen locales.
+
+El cargador real Load-NorthwindWarehouse.ps1 puebla las cinco entidades sobre las copias marcadas. DW_ApplyPackage une aplicación final, marca y fecha en una transacción local por entidad. Las cuatro dimensiones conservan sus claves; hechos se aplican por pedido/producto y resuelven siete referencias con validación explícita. El bloqueo de sesión protege staging durante todo el principal; las aplicaciones SQL usan el mismo recurso. GetLastPackageRowVersion detecta control ausente, marca no representable y destino vacío con avance; el cargador rechaza corte anterior.
+
+| Verificación ejecutada | Resultado | Evidencia local en evidencias/seccion-carga/ |
+| --- | --- | --- |
+| Compilación/publicación | Ambos SQL compilan sin errores; DW sin advertencias, referencia SSDT a master.dacpac 170 para bloqueos; publicación inicial y repetida sobre copia cargada | compilacion-solucion.txt, compilacion-publicacion.txt, republicacion/ |
+| Carga real inicial | Cliente 91, Empleado 9, Producto 77, Transportista 3, Ventas 2155; cinco entidades confirmadas | carga-inicial.txt |
+| Reconciliación independiente | 830 pedidos, 51317 unidades, bruto 1354458,59, descuento 88665,83, neto 1265792,76; cero referencias/importes inválidos y duplicados | reconciliacion.txt, pruebas-cargador.txt |
+| Cuatro dimensiones | Altas, cambio de atributos, repetición y conservación de todas las SK originales | pruebas-aplicacion.txt, pruebas-sobre-dw-cargado.txt |
+| Ventas | Pedido 10248: tres líneas, 27 unidades, neto 440; cambio a 28 unidades/neto 454; cabecera y tres fechas actualizadas; calendario extendido sin huecos; nulos legítimos 0/NULL; Venta_SK estable | pruebas-sobre-dw-cargado.txt |
+| Aplicación inválida | Referencia no resuelta 52407 revierte datos/control; diagnóstico incluye identidad de línea | pruebas-sobre-dw-cargado.txt |
+| Control incompatible | Destino vacío avanzado 52404, intervalo 52401, marca no representable 52411, proceso desconocido 52409, control ausente 52410, inicio modificado 52403, staging posterior 52405 y clave reservada 52408; datos/marcas/fechas preservados | pruebas-sobre-dw-cargado.txt |
+| Fallo después de aplicar | Trigger de prueba rechaza actualización de control 52520; atributos, claves, marca y fecha previos conservados; trigger retirado | pruebas-sobre-dw-cargado.txt, pruebas-cargador.txt |
+| Repetición real | Cero filas extraídas en las cinco entidades; comparación completa de claves, atributos, calendario, hechos/importes y marcas idéntica, excluida la nueva fecha de ejecución correcta | repeticion.txt, pruebas-cargador.txt |
+| Reintento incremental real | Cambiar ciudad en origen de prueba, fallar en control de Cliente, conservar cinco controles y detener dependientes; retirar fallo y cargar pendiente una sola vez con misma SK; restaurar ciudad y recargar | pruebas-cargador.txt |
+| Competencia | Otra conexión retiene bloqueo; segundo cargador falla antes de modificar staging, finales o controles, incluida fecha | pruebas-cargador.txt |
+| Regresión del modelo | Suite del DW aprobada antes de la carga persistente; fixtures completos revertidos | regresion-modelo.txt |
+| Originales | Captura de rowversion/conteos/procedimientos/control idéntica a la sección anterior; solo la copia operativa avanzó rowversion por fixtures | originales-despues.txt |
+
+Los fixtures SQL se revirtieron, incluidos calendario futuro y dimensiones nuevas. La prueba incremental restaura la ciudad operativa original de la copia y vuelve a sincronizar el DW. No quedan triggers de fallo. El DW de prueba queda comercialmente poblado, no vacío; controles conservan el último avance real. Las pruebas no escribieron NorthWind/Northwind_DW.
+
+La guía 01 ahora ejecuta el cargador y comprueba ventas; 06 contiene carga, repetición y recuperación indispensable. Los contratos de staging/transacciones quedan en referencias/carga.md. Se retiró Legacy/DW_MergeFactVentas.sql y su responsabilidad pasó al procedimiento declarativo compilado de hechos; proyectos y mapa actualizados.
+
+Progreso: **22 de 41**. SSIS, tabular y job siguen pendientes; el éxito del cargador PowerShell no se presenta como ejecución SSIS. La sección permanece sin commit/push posterior a 79f8287.

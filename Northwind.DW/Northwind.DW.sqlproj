@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -123,6 +123,8 @@
   <ItemGroup>
     <Build Include="dbo\Functions\DW_CalculateAmounts.sql" />
     <Build Include="dbo\Procedures\DW_LoadDimTiempo.sql" />
+    <Build Include="dbo\Procedures\DW_MergeFactVentas.sql" />
+    <Build Include="dbo\Procedures\DW_ApplyPackage.sql" />
     <Build Include="dbo\Procedures\DW_MergeDimCliente.sql" />
     <Build Include="dbo\Procedures\DW_MergeDimEmpleado.sql" />
     <Build Include="dbo\Procedures\DW_MergeDimProducto.sql" />
@@ -142,8 +144,12 @@
     <Build Include="std\Tables\Producto.sql" />
     <Build Include="std\Tables\Transportista.sql" />
     <Build Include="std\Tables\Ventas.sql" />
+    <ArtifactReference Include="$(DacPacRootPath)\Extensions\Microsoft\SQLDB\Extensions\SqlServer\170\SQLSchemas\master.dacpac">
+      <DatabaseVariableLiteralValue>master</DatabaseVariableLiteralValue>
+      <SuppressMissingDependenciesErrors>False</SuppressMissingDependenciesErrors>
+    </ArtifactReference>
     <PostDeploy Include="Deployment\Seed.sql" />
     <None Include="Deployment\Prepare-LegacyWarehouse.sql" />
-    <None Include="Legacy\DW_MergeFactVentas.sql" />
+
   </ItemGroup>
 </Project>

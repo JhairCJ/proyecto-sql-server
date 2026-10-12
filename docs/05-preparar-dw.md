@@ -24,4 +24,4 @@ SELECT PackageName,LastRowVersion,LastSuccessfulLoad FROM dbo.PackageConfig ORDE
 SELECT COUNT(*) AS VentasCargadas FROM dbo.Fact_Ventas;
 ```
 
-**Resultado inicial de referencia:** 708 días, 1996-07-04 a 1998-06-11; cliente/empleado desconocidos en SK 0; cinco controles con marca cero/fecha NULL; cero ventas. La carga de entidades comerciales requiere la sección de aplicación aún pendiente.
+**Resultado inicial de referencia:** 708 días, 1996-07-04 a 1998-06-11; cliente/empleado desconocidos en SK 0; cinco controles con marca cero/fecha NULL; cero ventas. Si ya ejecutaste la carga, se conservan sus ventas y controles. Continúa con [06. Cargar datos](06-cargar-datos.md).
