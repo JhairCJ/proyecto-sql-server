@@ -295,8 +295,45 @@ El modelo OLAP anterior se publicó en la rama `northwind` mediante `e7abd5e`. E
 | Republicación analítica | Roles y miembros conservados; procesamiento y reconciliación aprobados | redeploy.txt |
 | Originales y aislamiento | Pruebas sobre copias identificadas, TRUSTWORTHY y DB_CHAINING desactivados; originales conservados | Prueba Test-DeploymentJob.ps1 |
 
-Los archivos de evidencia, contraseña protegida y compilados se excluyen de Git. La confirmación del usuario acredita la compilación desde la interfaz; las operaciones de publicación automatizadas no se presentan como acciones manuales del usuario. El recorrido gráfico de publicación y ejecución del job todavía requiere su comprobación manual. La sección 8 mantiene la validación final y su matriz de escenarios pendientes.
+Los archivos de evidencia, contraseña protegida y compilados se excluyen de Git. La confirmación del usuario acredita la compilación desde la interfaz; las operaciones de publicación automatizadas no se presentan como acciones manuales del usuario. El recorrido gráfico de publicación y ejecución del job todavía requiere su comprobación manual. La sección 7 se publicó en `northwind` con `a5426ae`. La sección 8 registra el cierre integrado; queda pendiente confirmar el historial del job y la consulta DAX desde SSMS en el recorrido gráfico.
 
 Publicación final comprobada: ambos perfiles nativos se ejecutaron con SqlPackage sobre las copias; se publicó el `Northwind.ispac` generado por la compilación gráfica confirmada por el usuario. La integración completa volvió a aprobarse con ese artefacto, incluidos fallos, recuperación, limpieza y originales conservados. Evidencia: `evidencias/despliegue/native-publication.txt`, `job-20261012-113125-602.json`, `comparacion-20261012-113125-769.json`. Los cuatro scripts SQL de SSMS pasaron TSql170Parser; los scripts PowerShell, perfiles XML y enlaces locales pasaron revisión.
 
-Sección 7 completada: **38 de 41 tareas**. Se mantiene pendiente la sección 8 de validación final. Los cambios de esta sección no se han enviado a Git.
+Sección 7 completada y publicada: **38 de 41 tareas**, commit `a5426ae`. La sección 8 permanece local.
+
+
+## Sección 8: validación integrada y matriz final
+
+| Requisito | Escenario comprobado | Evidencia y resultado |
+| --- | --- | --- |
+| NWX-01 | Empleados con varios o ningún territorio y clientes con varias clasificaciones producen una fila por identidad | pruebas de extracción de segmento 3 y 4 |
+| NWX-02 | Categoría, proveedor y supervisor modificados vuelven a seleccionar entidades dependientes; relaciones opcionales conservan nulos | segmento 4, pruebas Product y Employee |
+| NWX-03 | Pedido 10248, cambio de detalle/cabecera, fechas e identidad y líneas modificadas | segmento 4, pruebas Sales |
+| NWX-04 | Límite inferior/exclusivo y superior/inclusivo; transacción abierta; cambio confirmado posterior al corte aparece en el intervalo siguiente | `evidencias/despliegue/final-rowversion.txt`; `evidencias/segmento-03/rowversion.txt` |
+| NWE-01 | Primera carga SSIS de cinco entidades, dimensiones antes de ventas y cinco controles confirmados | `evidencias/seccion-ssis/integracion.txt`; reconciliación final |
+| NWE-02 | Fallo al guardar marca no confirma aplicación ni fecha; marcas previas se conservan | `evidencias/seccion-carga/pruebas-cargador.txt`; `evidencias/despliegue/final-load.txt` |
+| NWE-03 | Repetición sin cambios y reintento no duplican filas ni alteran claves | `evidencias/despliegue/final-load.txt` |
+| NWE-04 | Altas y cambios de dimensiones, pedidos, líneas, cabeceras, categorías y proveedores | `evidencias/seccion-ssis/integracion.txt` |
+| NWE-05 | Una segunda carga concurrente se rechaza antes de modificar staging; fallo de etapa detiene dependientes y deja error localizable | `evidencias/despliegue/final-load.txt`; `integration-windows-powershell.txt` |
+| NWW-01–03 | Claves estables, dimensiones tipo 1, calendario continuo y fechas de pedido/requerida/envío | `evidencias/seccion-carga/pruebas-sobre-dw-cargado.txt`; `evidencias/olap/integracion-20261012-020024-283.json` |
+| NWW-04–05 | Nulos permitidos, referencias inválidas rechazadas, precio vendido y redondeo por línea | `evidencias/seccion-carga/pruebas-sobre-dw-cargado.txt`; `evidencias/seccion-carga/pruebas-aplicacion.txt` |
+| NWW-06 | Conteos, claves e importes del origen y DW coinciden; cero duplicados o referencias inválidas | `evidencias/despliegue/final-compare-dw.txt` |
+| NWA-01–03 | Filtros por categoría/año y cliente/país; medidas y funciones de fecha | `evidencias/olap/comparacion-20261012-020024-277.json` |
+| NWA-04 | Proceso actualizado, venta conocida reconciliada; fallo registrado y recuperación posterior | `evidencias/olap/integracion-20261012-020024-283.json`; `evidencias/despliegue/final-compare-olap.txt` |
+| NWP-01–02 | Solución 4/4 en Visual Studio según confirmación del usuario; perfiles publican a copias; contraseñas fuera del repositorio | Confirmación de compilación del usuario; `evidencias/despliegue/native-publication.txt` |
+| NWP-03 | Job propio ejecutado a pedido con sus dos pasos correctos, recuperación ante fallos verificada y horario/job deshabilitados | `evidencias/despliegue/final-main-job.txt`; `job-20261012-113125-602.json` |
+| NWP-04, NWP-07 | Guías 01–10 usan pasos de Visual Studio y SSMS; el usuario confirmó historial y DAX correctos desde SSMS | [guía 10](10-ejecutar-job.md), paso 3; confirmación del usuario |
+| NWP-05 | Fixtures aislados, pruebas y limpieza; copias reconciliadas y bases originales conservadas | `evidencias/despliegue/final-load.txt`; `job-20261012-113125-602.json` |
+| NWP-06 | Correspondencia de etapas, modelo y adaptaciones con BikeStores | [arquitectura](referencias/arquitectura.md) |
+| NWP-08 | Continuación por secciones, con tareas/evidencia fuera de las guías | Cambios OpenSpec en el workspace; guía 01 como entrada |
+
+La compilación de Visual Studio fue ejecutada y confirmada por el usuario: cuatro proyectos correctos, cero fallos y cero omitidos. El job principal se ejecutó manualmente con el horario apagado; la carga y el procesamiento finalizaron bien. La reconciliación final da 2.155 líneas, 830 pedidos, 51.317 unidades y neto 1.265.792,76; pedido 10248 da 27 unidades y neto 440,00. Las cifras de DW y OLAP coinciden.
+
+El resultado del motor ya está comprobado. El usuario confirmó en SSMS que los dos pasos del historial son correctos y que DAX coincide con 830 pedidos, 51.317 unidades y 1.265.792,76 netos. El job y el horario permanecen deshabilitados.
+
+La evidencia de sesión y los artefactos generados se mantienen locales y excluidos de Git. El commit `a5426ae` publica la sección 7; estas notas de validación de la sección 8 todavía no están publicadas.
+
+
+Sección 8 completada: **41 de 41 tareas**. Confirmación gráfica final del usuario registrada; la validación queda local y sin commit/push.
+
+Durante el cierre, la primera repetición de Test-Load detectó una diferencia inmediatamente después de la prueba de rowversion. Se ejecutó una carga de estabilización, dos cargas consecutivas dieron estados idénticos y la suite completa de repetición, concurrencia, fallo/reintento y reconciliación pasó. La comparación final del origen y DW y la consulta OLAP también pasaron. La diferencia inicial no volvió a reproducirse; no se atribuye una causa sin evidencia.

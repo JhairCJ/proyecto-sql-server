@@ -2,6 +2,8 @@
 
 Abre [01. Ejecutar el proyecto](docs/01-guia-practica.md). La práctica carga las copias de Northwind con SSIS y analiza las ventas con un modelo tabular SSAS. NorthwindBIJob ejecuta carga y procesamiento desde el servidor.
 
+Para seguir todo el proceso con detalle, abre la [guía paso a paso](<guia paso a paso.md>).
+
 | Guía | Uso |
 | --- | --- |
 | [01](docs/01-guia-practica.md) | Ejecutar el proyecto |
