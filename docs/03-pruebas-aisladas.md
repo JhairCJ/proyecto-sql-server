@@ -119,4 +119,4 @@ Los fixtures de este segmento no dejaron cambios comerciales persistentes. **Los
 
 La separación origen/DW corresponde a las responsabilidades de BikeStores, con destinos de prueba propios. Los proyectos y paquetes que construiremos utilizarán estas bases para sus escenarios de escritura. La ejecución bajo SSIS/Agent tendrá sus propias comprobaciones; esta conexión restringida corresponde al ejecutor de fixtures PowerShell.
 
-El contrato de `rowversion` y la extracción de clientes (2.1 y 2.2) ya se completaron: consulta [extracción de clientes](extraccion-clientes.md). Siguiente segmento recomendado: empleados y productos (2.3 y 2.4), con relaciones opcionales y cambios dependientes.
+El contrato de `rowversion` y la extracción de clientes (2.1 y 2.2) ya se completaron: consulta [extracción de clientes](04-extraccion-clientes.md). También se completaron [empleados y productos](05-extraccion-empleados-productos.md) (2.3 y 2.4), con relaciones opcionales y cambios dependientes. Siguiente segmento recomendado: transportistas y ventas (2.5 y 2.6).

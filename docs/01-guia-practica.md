@@ -44,12 +44,12 @@ Seguimos el diseño lógico de BikeStores: **OLTP → staging/DW → ETL de dime
 
 **Objetivo y motivo:** saber qué ejecuta cada etapa y distinguir lo instalado de lo pendiente.
 
-**Requisitos / programa:** Windows, Visual Studio Community 2026 18.10.3, SSMS 22.10.2. Las versiones y cuentas están en [entorno](entorno.md).
+**Requisitos / programa:** Windows, Visual Studio Community 2026 18.10.3, SSMS 22.10.2. Las versiones y cuentas están en [entorno](02-entorno.md).
 
 **Preparado:** motor, SSIS 170, SSAS tabular y Agent activos; SSDT y extensiones instalados; bases de prueba creadas en el segmento 02. **Pendiente:** catálogo SSISDB, proyectos DW/ETL/OLAP y job propio.
 
 1. Abre Inicio, busca **Servicios / Services** y abre la aplicación.
-2. Localiza **SQL Server (MSSQLSERVER)**, **SQL Server Integration Services 17.0**, **SQL Server Analysis Services (MSSQLSERVER)** y **SQL Server Agent (MSSQLSERVER)**. Los nombres visibles pueden estar traducidos; sus identificadores están en `entorno.md`.
+2. Localiza **SQL Server (MSSQLSERVER)**, **SQL Server Integration Services 17.0**, **SQL Server Analysis Services (MSSQLSERVER)** y **SQL Server Agent (MSSQLSERVER)**. Los nombres visibles pueden estar traducidos; sus identificadores están en `02-entorno.md`.
 3. Comprueba que el estado sea **En ejecución / Running**. Ya lo comprobé en esta computadora; no necesitas reiniciarlos.
 4. Para revisar extensiones, abre Visual Studio y entra en **Extensions > Manage Extensions / Extensiones > Administrar extensiones**. Busca entre las instaladas **SQL Server Integration Services Projects 2022+** (2.2) y **Microsoft Analysis Services Projects** (4.0.0).
 5. Si un proyecto SQL no se reconoce, abre **Visual Studio Installer**, selecciona **Modify / Modificar** en Community 2026 y revisa **Data storage and processing / Almacenamiento y procesamiento de datos**, incluyendo SSDT. En este equipo SSDT ya compiló el proyecto: no hace falta modificar la instalación.
@@ -137,7 +137,7 @@ SELECT COL_LENGTH('std.Empleado', 'SupervisorName') AS LongitudSupervisor;
 
 **Resultado esperado / verificación:** compilación sin errores y, en el estado inicial, 19 advertencias SQL71502 por referencias a `Order Details`. Ya se generó el dacpac mediante MSBuild, con registro en `evidencias/segmento-01/compilacion.txt`. Los pasos de compilación por proyecto siguen [SQL Database Projects](https://learn.microsoft.com/en-us/sql/tools/sql-database-projects/get-started?view=sql-server-ver17).
 
-**Errores y recuperación:** si el proyecto aparece incompatible, revisa SSDT con la ficha 3. Si MSBuild busca targets `v11.0` desde otra terminal, utiliza el comando de [entorno](entorno.md) con `VisualStudioVersion=18.0`. Las advertencias por nombres de tablas requieren corregir referencias durante la implementación; no justifican renombrar la tabla real improvisadamente. **Publicar** se explicará después de preparar el destino y revisar su script; el dacpac inicial no debe usarse todavía como una migración validada.
+**Errores y recuperación:** si el proyecto aparece incompatible, revisa SSDT con la ficha 3. Si MSBuild busca targets `v11.0` desde otra terminal, utiliza el comando de [entorno](02-entorno.md) con `VisualStudioVersion=18.0`. Las advertencias por nombres de tablas requieren corregir referencias durante la implementación; no justifican renombrar la tabla real improvisadamente. **Publicar** se explicará después de preparar el destino y revisar su script; el dacpac inicial no debe usarse todavía como una migración validada.
 
 ## 7. Conectarte a Analysis Services
 
@@ -158,12 +158,16 @@ SELECT COL_LENGTH('std.Empleado', 'SupervisorName') AS LongitudSupervisor;
 
 ## 8. Preparación de bases de prueba
 
-Ya están preparadas `Northwind_Test` y `Northwind_DW_Test`. Lee [bases de prueba aisladas](pruebas-aisladas.md) para reconocerlas en SSMS, repetir la preparación sin sobrescribir y ejecutar fixtures con guardas. No necesitas repetir la creación: se ejecutó y verificó automáticamente.
+Ya están preparadas `Northwind_Test` y `Northwind_DW_Test`. Lee [bases de prueba aisladas](03-pruebas-aisladas.md) para reconocerlas en SSMS, repetir la preparación sin sobrescribir y ejecutar fixtures con guardas. No necesitas repetir la creación: se ejecutó y verificó automáticamente.
 
 ## 9. Marcas y clientes
 
-Ya está corregido y probado el contrato de marcas y el extractor de clientes en Northwind_Test. Lee [marcas y extracción de clientes](extraccion-clientes.md) para entender los intervalos, consultar el resultado en SSMS y reproducir las pruebas.
+Ya está corregido y probado el contrato de marcas y el extractor de clientes en Northwind_Test. Lee [marcas y extracción de clientes](04-extraccion-clientes.md) para entender los intervalos, consultar el resultado en SSMS y reproducir las pruebas.
 
-## 10. Próximo segmento
+## 10. Empleados y productos
 
-Corregir empleados y productos con relaciones opcionales y cambios dependientes. Cuando pidas continuar, elegiré automáticamente el siguiente segmento verificable y explicaré cualquier acción requerida en los programas con objetivo, valores, pasos, resultado y comprobación.
+Ya están corregidos y probados ambos extractores. Lee [extracción de empleados y productos](05-extraccion-empleados-productos.md) para entender sus relaciones, consultar los resultados y repetir las pruebas.
+
+## 11. Próximo segmento
+
+Corregir transportistas y ventas con el contrato y la granularidad definidos. Cuando pidas continuar, elegiré automáticamente el siguiente segmento verificable y explicaré cualquier acción requerida en los programas con objetivo, valores, pasos, resultado y comprobación.

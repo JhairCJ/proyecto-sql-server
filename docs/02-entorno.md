@@ -52,7 +52,7 @@ La sesión actual usa `usuario Windows de la sesión`:
 
 La compatibilidad **160/170 de una base SQL** y el nivel **1700 del modelo SSAS** son propiedades diferentes. El motor 17 aloja NorthWind con nivel 160; esta comprobación no cambia esa propiedad. El proyecto apunta a SQL Server 2025, la versión del motor.
 
-En la captura del segmento 01 no existían `Northwind_Test`, `Northwind_DW_Test` ni bases analíticas SSAS. **Actualización del segmento 02:** ambas bases de prueba ya están creadas y verificadas; consulta [pruebas aisladas](pruebas-aisladas.md). El modelo SSAS sigue pendiente.
+En la captura del segmento 01 no existían `Northwind_Test`, `Northwind_DW_Test` ni bases analíticas SSAS. **Actualización del segmento 02:** ambas bases de prueba ya están creadas y verificadas; consulta [pruebas aisladas](03-pruebas-aisladas.md). El modelo SSAS sigue pendiente.
 
 ## Compilación inicial
 
@@ -68,6 +68,6 @@ Los scripts DW incluidos como `None` en OLTP no forman parte del esquema compila
 
 ## Evidencia y próximos requisitos
 
-La evidencia está en `evidencias/segmento-01`: `herramientas.json`, `visual-studio.json`, `servicios-ssas.json`, `permisos-procesamiento.txt`, `compilacion.txt` y `referencia-sql.txt`. La [validación](validacion.md) registra resultados y diferencias. La [guía inicial](guia-practica.md) explica cómo conectarse, abrir y compilar.
+La evidencia está en `evidencias/segmento-01`: `herramientas.json`, `visual-studio.json`, `servicios-ssas.json`, `permisos-procesamiento.txt`, `compilacion.txt` y `referencia-sql.txt`. La [validación](validacion.md) registra resultados y diferencias. La [guía inicial](01-guia-practica.md) explica cómo conectarse, abrir y compilar.
 
 No necesitas reinstalar componentes para estos segmentos. Las bases aisladas y herramientas de fixtures ya se prepararon en el segmento 02, usando PowerShell **7.6.5**. Antes del despliegue de paquetes se preparará SSISDB y, antes del procesamiento, la identidad que leerá el DW. Cada preparación tendrá instrucciones y una comprobación en su etapa. Si en otra máquina faltan componentes, seguir la ficha de revisión de herramientas de la guía y la [instalación oficial de SSDT](https://learn.microsoft.com/en-us/sql/ssdt/download-sql-server-data-tools-ssdt?view=sql-server-ver17).

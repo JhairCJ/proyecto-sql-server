@@ -2,7 +2,7 @@
 param([string]$Server = 'localhost')
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-# Solo publica cuatro procedimientos en el origen de prueba; no ejecuta un dacpac completo.
+# Solo publica los extractores implementados en el origen de prueba; no ejecuta un dacpac completo.
 $builder = [System.Data.SqlClient.SqlConnectionStringBuilder]::new()
 $builder['Data Source']=$Server
 $builder['Initial Catalog']='Northwind_Test'
@@ -20,7 +20,8 @@ IF DB_NAME()<>N'Northwind_Test' OR NOT EXISTS
     THROW 51002,'Despliegue rechazado: destino no es la copia de origen.',1;
 '@
     [void]$command.ExecuteNonQuery()
-    foreach($name in @('RowVersionToBigInt','BigIntToRowVersion','GetDatabaseRowVersion','GetCustomerChangesByRowVersion')) {
+    foreach($name in @('RowVersionToBigInt','BigIntToRowVersion','GetDatabaseRowVersion',
+        'GetCustomerChangesByRowVersion','GetEmployeeChangesByRowVersion','GetProductChangesByRowVersion')) {
         $file=Join-Path $PSScriptRoot "..\Northwind.OLTP\dbo\Stored Procedures\$name.sql"
         $sql=Get-Content -LiteralPath $file -Raw
         $command.CommandText=[regex]::Replace($sql,'(?i)CREATE\s+PROCEDURE','CREATE OR ALTER PROCEDURE')

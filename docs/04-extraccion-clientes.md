@@ -25,13 +25,13 @@ Se retiraron los joins demográficos, incluidos el join que comparaba una column
 
 Las lecturas de los procedimientos se ejecutan con **READ COMMITTED**: no publican valores sin confirmar. En el entorno actual pueden esperar a que una escritura confirme o revierta. SQL Server restaura el aislamiento del llamador al salir de un procedimiento; se probó que una conexión inicialmente READ COMMITTED conserva ese nivel después de obtener el corte y extraer clientes. No se promete corregir permanentemente una sesión que el llamador haya configurado explícitamente como READ UNCOMMITTED. Véase [aislamiento en procedimientos](https://learn.microsoft.com/en-us/sql/t-sql/statements/set-transaction-isolation-level-transact-sql?view=sql-server-ver17).
 
-## 2. Preparar los cuatro procedimientos en la copia
+## 2. Preparar los procedimientos en la copia
 
 **Objetivo y motivo:** probar el extractor actualizado sin publicar todavía en NorthWind.
 
-**Requisitos / programa:** PowerShell 7.6.5, SQL Server local en `localhost`, bases de prueba preparadas, autenticación Windows con permiso de alterar procedimientos en Northwind_Test. La preparación inicial está en [pruebas aisladas](pruebas-aisladas.md).
+**Requisitos / programa:** PowerShell 7.6.5, SQL Server local en `localhost`, bases de prueba preparadas, autenticación Windows con permiso de alterar procedimientos en Northwind_Test. La preparación inicial está en [pruebas aisladas](03-pruebas-aisladas.md).
 
-**Preparado:** los cuatro procedimientos ya se publicaron y verificaron en Northwind_Test. Los archivos están en el proyecto OLTP y la compilación pasó. **Pendiente:** publicación final en NorthWind y paquetes SSIS; la prueba real de conversiones a través de parámetros SSIS se hará en 5.1.
+**Preparado:** los procedimientos ya se publicaron y verificaron en Northwind_Test. Los archivos están en el proyecto OLTP y la compilación pasó. **Pendiente:** publicación final en NorthWind y paquetes SSIS; la prueba real de conversiones a través de parámetros SSIS se hará en 5.1.
 
 1. Abre PowerShell en la raíz donde clonaste el repositorio, por ejemplo `C:\Proyectos\proyecto-sql-server`. Sustituye esa ruta por tu carpeta real.
 2. Ejecuta:
@@ -40,7 +40,7 @@ Las lecturas de los procedimientos se ejecutan con **READ COMMITTED**: no public
 & '.\tests\Deploy-TestExtractors.ps1'
 ```
 
-3. Comprueba cuatro mensajes `Publicado en Northwind_Test: dbo...`: RowVersionToBigInt, BigIntToRowVersion, GetDatabaseRowVersion y GetCustomerChangesByRowVersion.
+3. Comprueba seis mensajes `Publicado en Northwind_Test: dbo...`: RowVersionToBigInt, BigIntToRowVersion, GetDatabaseRowVersion GetCustomerChangesByRowVersion, GetEmployeeChangesByRowVersion y GetProductChangesByRowVersion.
 
 **Resultado esperado / comprobación:** se crean o actualizan únicamente esos procedimientos en la copia marcada Northwind_Test; no se publica un dacpac completo, no se modifica NorthWind ni se reinician datos o marcas. Repetir el script actualiza las definiciones sin recrear la base.
 

@@ -12,7 +12,7 @@ Fecha: 11 de octubre de 2026. Tareas: **1.1, 1.2 y 1.4**. Consultas de lectura y
 | Identidad de lectura futura del modelo | Login explícito de cuenta de servicio SSAS ausente; acceso efectivo pendiente de preparar/probar | `permisos-procesamiento.txt` |
 | Compilación OLTP inicial | Salida 0; dacpac generado; 19 advertencias SQL71502, no una publicación validada | `compilacion.txt` |
 | Tablas, columnas, procedimientos, índices, relaciones DW, conteos y marcas | Captura nueva, no reutilización del supuesto del diseño | `referencia-sql.txt`, consulta en `consulta-referencia.txt` |
-| Guía inicial D9 | Fichas con estado preparado/pendiente, programas, pasos, valores, resultado y recuperación | `guia-practica.md` |
+| Guía inicial D9 | Fichas con estado preparado/pendiente, programas, pasos, valores, resultado y recuperación | `01-guia-practica.md` |
 
 Los archivos de evidencia están bajo `evidencias/segmento-01/`. La captura SQL usa conteos `COUNT_BIG(*)` sobre cada tabla; contiene definición de todos los procedimientos y metadatos de columnas, índices y relaciones DW. La consulta es de lectura. Las instrucciones de interfaz siguen documentación oficial enlazada en la guía; **no se afirma haber operado ni observado las ventanas de Visual Studio/SSMS**. Las conexiones y compilación se comprobaron mediante herramientas locales.
 
@@ -75,7 +75,7 @@ Validación de scripts: parser de PowerShell sin errores y pruebas reales SQL/Po
 
 La comparación exacta corresponde al instante inicial anterior a los fixtures. Las modificaciones de prueba avanzan rowversion en Northwind_Test incluso con rollback, por lo que esa copia deja de ser idéntica en marcas al original, aunque se conserve su contenido comercial. El diseño de extracción utilizará cortes del origen de prueba actual. No se copiaron marcas avanzadas de otro origen ni se reiniciaron controles.
 
-La [guía de pruebas](pruebas-aisladas.md) contiene fichas con programas, valores, pasos, resultados y recuperación. Esta etapa se ejecutó automáticamente; las instrucciones permiten aprender y reproducirla sin exigir que el usuario vuelva a crear las bases. No se modificó la solución de Visual Studio ni se publicaron proyectos.
+La [guía de pruebas](03-pruebas-aisladas.md) contiene fichas con programas, valores, pasos, resultados y recuperación. Esta etapa se ejecutó automáticamente; las instrucciones permiten aprender y reproducirla sin exigir que el usuario vuelva a crear las bases. No se modificó la solución de Visual Studio ni se publicaron proyectos.
 
 Tarea 1.3 completa. Progreso: **4 de 41**. Pendientes: corregir extractores y contratos, construir DW/ETL/OLAP y validar despliegues y job. Próxima unidad recomendada: **2.1 y 2.2**, marcas y clientes con casos de límites y transacciones pendientes en copias aisladas.
 
@@ -101,6 +101,29 @@ Parser PowerShell y pruebas de motor ejecutados sobre los scripts. El timeout de
 
 Se amplió el módulo con New-NorthwindTestConnection para compartir las guardas en pruebas de múltiples sesiones. Los procedimientos SQL restauran el nivel de aislamiento del llamador al salir; no se interpreta que SET dentro del prototipo alterase permanentemente una sesión RC. El problema corregido es la lectura interna READ UNCOMMITTED y el contrato sin validación.
 
-La [guía de esta etapa](extraccion-clientes.md) contiene explicación y fichas D9 de publicación en copia, consulta y pruebas. No requiere intervención manual para completar lo ya ejecutado. Todavía no hay ETL de clientes, aplicación de staging ni paquete SSIS comprobados.
+La [guía de esta etapa](04-extraccion-clientes.md) contiene explicación y fichas D9 de publicación en copia, consulta y pruebas. No requiere intervención manual para completar lo ya ejecutado. Todavía no hay ETL de clientes, aplicación de staging ni paquete SSIS comprobados.
 
 Progreso: **6 de 41**. Próxima unidad recomendada: **2.3 y 2.4**, empleados y productos con atributos dependientes y relaciones opcionales.
+
+## Segmento 04 — Empleados y productos
+
+Tareas **2.3 y 2.4**. Ambos extractores entregan las columnas de staging en su orden definido. Empleados conserva supervisor opcional sin joins de territorios; productos conserva categoría y proveedor opcionales. Un cambio en una relación selecciona las entidades dependientes, conservando sus marcas propias. Todos los contribuyentes presentes deben estar dentro del corte.
+
+| Escenario | Resultado ejecutado | Evidencia local en `evidencias/segmento-04/` |
+| --- | --- | --- |
+| Compilación OLTP | Sin errores; 19 advertencias SQL71502 heredadas | `compilacion.txt` |
+| Publicación acotada | Seis procedimientos implementados en Northwind_Test | `despliegue.txt` |
+| Empleados y contrato | 9 identidades únicas, INSERT EXEC compatible con std.Empleado; empleado sin supervisor conservado | `Employee.txt` |
+| Territorios | Empleados sin territorios y con varios conservados una vez; cambios de territorios no seleccionan empleados | `Employee.txt` |
+| Supervisor | Cambio de nombre selecciona supervisor y subordinados; marca propia de subordinados intacta; relación NULL conservada | `Employee.txt` |
+| Productos y contrato | 77 identidades únicas, INSERT EXEC compatible con std.Producto; categoría/proveedor ausentes conservados | `Product.txt` |
+| Dependencias | Renombre de categoría y nombre/país de proveedor seleccionan todos sus productos sin cambiar la marca propia | `Product.txt` |
+| Cortes | Supervisor, categoría o proveedor posterior al fin difiere la fila; siguiente intervalo la recupera. Producto posterior al corte también se recupera | `Employee.txt`, `Product.txt` |
+| Intervalos | Vacío sin filas; negativo, invertido y NULL rechazados específicamente con 51104 | `Employee.txt`, `Product.txt` |
+| Originales y rollback | Captura de originales idéntica antes/después; atributos probados y territorios sin diferencias respecto al origen; copia conserva 9 empleados, 77 productos y 49 asociaciones de territorios | `originales-antes.txt`, `originales-despues.txt`, `limpieza.txt` |
+
+Las pruebas de corte de este segmento simulan escrituras sucesivas alrededor de un corte capturado dentro del fixture; no se presentan como prueba de una instantánea global ni como nuevas pruebas de múltiples sesiones. Los fixtures revierten sus datos y las marcas de la copia avanzan normalmente. El parser del script PowerShell de publicación pasó.
+
+La [guía de empleados y productos](05-extraccion-empleados-productos.md) contiene conceptos, preparación, consulta en SSMS, pruebas y compilación en Visual Studio. No se cargó staging ni se construyeron paquetes SSIS en esta etapa. Se mantiene retirada la planificación del repositorio; no se hizo commit ni push.
+
+Progreso: **8 de 41**. Próxima unidad recomendada: **2.5 y 2.6**, transportistas y ventas.
