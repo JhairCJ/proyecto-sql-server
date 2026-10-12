@@ -1,12 +1,12 @@
 # 01. Ejecutar el proyecto
 
-**Requisitos:** SQL Server local, SSMS, PowerShell, Visual Studio 2026 con SSDT y bases NorthWind/Northwind_DW existentes. SSIS, SSAS y job todavía pendientes.
+**Requisitos:** SQL Server 2025 local con Integration Services, SSMS, PowerShell, Visual Studio 2026 con SSDT y SSIS Projects, Microsoft OLE DB Driver for SQL Server y bases NorthWind/Northwind_DW existentes.
 
 ## 1. Abrir y compilar
 
 En Visual Studio: **Archivo > Abrir > Proyecto o solución > Northwind.slnx**. Clic derecho en la solución > **Compilar**.
 
-**Resultado:** Northwind.OLTP y Northwind.DW sin errores. [Configuración](02-entorno.md).
+**Resultado:** Northwind.OLTP, Northwind.DW y Northwind.ETL sin errores. [Configuración](02-entorno.md).
 
 ## 2. Preparar y cargar
 
@@ -16,11 +16,12 @@ En PowerShell, desde la carpeta que contiene Northwind.slnx:
 & '.\tests\Prepare-TestDatabases.ps1'
 & '.\tests\Deploy-TestExtractors.ps1'
 & '.\scripts\Publish-NorthwindWarehouse.ps1'
-& '.\scripts\Load-NorthwindWarehouse.ps1'
+& '.\scripts\Build-NorthwindETL.ps1'
+& '.\scripts\Run-NorthwindETL.ps1'
 & '.\scripts\Compare-NorthwindWarehouse.ps1'
 ```
 
-**Resultado:** Northwind_Test con datos operativos; Northwind_DW_Test con dimensiones y ventas pobladas; cinco entidades «Confirmado» y todas las comparaciones True. [Preparación](03-pruebas-aisladas.md). [Carga](06-cargar-datos.md).
+**Resultado:** Northwind_Test con datos operativos; Northwind_DW_Test con dimensiones y ventas pobladas; DTSER_SUCCESS y todas las comparaciones True. [Preparación](03-pruebas-aisladas.md). [Ejecutar desde Visual Studio](07-ejecutar-ssis.md).
 
 ## 3. Comprobar en SSMS
 

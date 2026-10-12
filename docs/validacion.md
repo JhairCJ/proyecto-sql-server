@@ -221,3 +221,43 @@ Los fixtures SQL se revirtieron, incluidos calendario futuro y dimensiones nueva
 La guía 01 ahora ejecuta el cargador y comprueba ventas; 06 contiene carga, repetición y recuperación indispensable. Los contratos de staging/transacciones quedan en referencias/carga.md. Se retiró Legacy/DW_MergeFactVentas.sql y su responsabilidad pasó al procedimiento declarativo compilado de hechos; proyectos y mapa actualizados.
 
 Progreso: **22 de 41**. SSIS, tabular y job siguen pendientes; el éxito del cargador PowerShell no se presenta como ejecución SSIS. La sección permanece sin commit/push posterior a 79f8287.
+
+## Inicio de sección SSIS: bloqueo de herramientas
+
+La sección de aplicación se publicó mediante el commit **969e1be** en northwind. La sección SSIS empezó comprobando los ejecutores reales antes de crear paquetes comerciales.
+
+Se generó un paquete de diagnóstico con un Data Flow vacío y sin conexiones, SQL ni acceso a bases. El ejecutor del motor, 170/DTS/Binn/DTExec.exe versión 17.0.1000.7, lo ejecutó con DTSER_SUCCESS. El ejecutor de Visual Studio, CommonExtensions/Microsoft/SSIS/170/Binn/DTExec.exe versión 17.0.1016.0, falló antes de ejecutar con «Could not create DTS.Application because of error 0x80040154». Una prueba adicional del SDK privado produjo incompatibilidad IDTSApplication170. La carpeta 160 no contiene DTExec.exe; no se declaró probado un destino alternativo.
+
+tests/Test-SsisRuntime.ps1 reproduce la comprobación sin modificar datos y genera los registros locales SQLServer.txt y VisualStudio.txt en evidencias/seccion-ssis. La evidencia confirma el fallo del ejecutor del diseñador, no demuestra por sí sola el estado de todos los menús/editor de Visual Studio. No se atribuye todavía una causa raíz concreta.
+
+El registro de programas instalados identifica Microsoft SQL Server Integration Services Projects, versión 17.0.1016.0, y su instalador de mantenimiento. La guía 07 documenta su apertura, reparación manual y comprobación posterior. La reparación no se ejecutó. Conforme a D8, no se instalaron componentes ni se modificó el registro automáticamente. Los requisitos de herramientas se contrastaron con la ficha oficial de Microsoft:
+https://marketplace.visualstudio.com/items?itemName=SSIS.MicrosoftDataToolsIntegrationServices
+
+En ese punto las tareas 5.1–5.7 permanecían pendientes, con progreso **22 de 41**. El diagnóstico de la utilidad privada resultó insuficiente para concluir que el diseñador no podía ejecutar paquetes; la comprobación y el cierre siguientes sustituyen esa conclusión.
+
+## Sección funcional SSIS: ejecución nativa y recuperación
+
+El usuario ejecutó en Visual Studio su proyecto PruebaSSIS con destino SQL Server 2025 y proveedor MSOLEDBSQL.1. Se comprobó además ese paquete con el DTExec del motor, con DTSER_SUCCESS. SQLNCLI11 no está registrado y la utilidad privada DTExec de la extensión continúa fallando al crear DTS.Application; eso no invalida el diseñador ni el ejecutor del motor. No se realizó otra reparación, instalación ni modificación del registro.
+
+Northwind.ETL incorpora cinco paquetes independientes, dos conexiones de proyecto parametrizadas y CargarNorthwind con cinco grupos nativos de secuencia, dimensiones antes de Ventas. Todos ejecutan tareas Execute SQL y flujos OLE DB reales. El principal conserva la sesión de control entre grupos, verificada mediante CONTEXT_INFO. La alternativa Execute Package Task no compartió sesión física en la prueba y se descartó. Las marcas se enlazan como Int64 y las medidas transportan decimales. Cada ejecución tiene un registro nativo propio.
+
+| Comprobación | Resultado | Evidencia local en docs/evidencias/ssis/ |
+| --- | --- | --- |
+| Solución Visual Studio | Northwind.OLTP/DW/ETL: 3 proyectos correctos, 0 fallidos, 0 omitidos; configuración Debug mapea SSIS a Development. Advertencias SQL71502 heredadas del OLTP; mensajes de caché dbmdl bloqueada por la instancia abierta, sin error de compilación | solucion-build-final.txt |
+| Compilación nativa del proyecto | Consistencia correcta y exportación de los seis paquetes; ejecución del .ispac nativo con DTSER_SUCCESS | visual-studio-build.txt y bin/Development/Northwind.ispac |
+| Compilación desde fuentes | Build-NorthwindETL empaqueta fuentes editables sin regenerarlas; ejecución con parámetros reales de servidores, bases y carpeta de registro | bin/Development/Northwind.ETL.ispac e integracion.txt |
+| Carga inicial independiente | DW nuevo vacío: 2155 líneas, 830 pedidos, cinco controles confirmados; conteos/importes coinciden con cálculo independiente | integracion.txt, 8a5e956a/Northwind.ETL-*.log |
+| Repetición | Principal y cinco entradas independientes conservan todas las SK, atributos, medidas, staging y marcas | integracion.txt |
+| Incrementos reales | Cliente y pedido nuevos; detalle, descuento, cabecera, empleado, transportista, categoría/proveedor y ampliación de calendario; identidad estable y reconciliación | integracion.txt |
+| Fallo/reintento | Trigger exclusivo de fixture rechaza marca de Cliente: finales y cinco controles/fechas intactos; dependientes detenidos; retirada del trigger y reintento correcto | integracion.txt y registros OnError |
+| Competencia real | Principal retenido 20 segundos antes de staging; otras seis entradas rechazadas por DW ocupado, sin cambios de staging/finales/control; carga activa termina correctamente | integracion.txt y registros OnError |
+| Precisión SSIS | Inicio y fin reales conservan 9223372036854775807 en dos ejecuciones de Cliente; se restauran el procedimiento de corte y el control previos de la copia exclusiva | integracion.txt |
+| Registro | Inicio/fin y error identificables por ejecución; registro independiente evita que un bloqueo de archivo simule un rechazo de carga | 8a5e956a/Northwind.ETL-*.log |
+| Copias del usuario | Reconciliación posterior: 91/9/77/3 entidades, 2155 líneas, 830 pedidos, 51317 unidades, neto 1265792.76; 14 comprobaciones correctas | reconciliacion-final.txt |
+| Originales | NorthWind conserva 91 clientes, 830 pedidos y 2155 líneas; Northwind_DW sigue vacío con cinco marcas 0 y fechas NULL | originales-final.txt |
+
+Reproducción de integración: `& '.\tests\Test-SSIS.ps1'`. Cada ejecución crea destinos propios con sufijo aleatorio y conserva las bases y backups para inspección; no sustituye ni vacía las copias del usuario. La ejecución final usó Northwind_SSIS_OLTP_8a5e956a/Northwind_SSIS_DW_8a5e956a. Los triggers de fallo y la modificación temporal del procedimiento de corte se retiraron; pruebas previas incompletas también conservan sus bases identificadas. Las evidencias no se versionan.
+
+Las guías 01 y 07 ejecutan el proyecto; 08 contiene la preparación y publicación en catálogo con menús contrastados con la documentación de Microsoft. SSISDB no existe todavía en este equipo: creación del catálogo, publicación y ejecución desde SSISDB no se han realizado y quedan para la sección 7. La carga local funciona sin catálogo. Referencias de publicación: [asistente SSMS](https://learn.microsoft.com/en-us/sql/integration-services/ssis-quickstart-deploy-ssms?view=sql-server-ver17) y [catálogo](https://learn.microsoft.com/en-us/sql/integration-services/catalog/ssis-catalog?view=sql-server-ver17).
+
+Sección 5 completada: **29 de 41 tareas**. SSAS y despliegue/job pendientes. Cambios locales, sin commit ni push posterior a 969e1be.
