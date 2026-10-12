@@ -57,7 +57,7 @@ FROM dbo.PackageConfig ORDER BY PackageName;
 1. Abre PowerShell y sitúate en la carpeta del proyecto:
 
 ```powershell
-Set-Location -LiteralPath 'C:\Proyectos\practica-1-sql-server'
+Set-Location -LiteralPath 'C:\Proyectos\proyecto-sql-server'
 ```
 
 2. Ejecuta:

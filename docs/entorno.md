@@ -59,7 +59,7 @@ En la captura del segmento 01 no existían `Northwind_Test`, `Northwind_DW_Test`
 Se ejecutó:
 
 ```powershell
-& 'C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe' 'C:\Proyectos\practica-1-sql-server\Northwind.OLTP\Northwind.OLTP.sqlproj' /t:Build /p:VisualStudioVersion=18.0 /nologo /v:minimal
+& 'C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe' 'C:\Proyectos\proyecto-sql-server\Northwind.OLTP\Northwind.OLTP.sqlproj' /t:Build /p:VisualStudioVersion=18.0 /nologo /v:minimal
 ```
 
 Resultado: código de salida **0**, archivo `Northwind.OLTP\bin\Debug\Northwind.OLTP.dacpac` generado. Hay **19 advertencias SQL71502**, relacionadas con procedimientos heredados que referencian `[dbo].[Order Details]` mientras la tabla del proyecto se llama `[dbo].[OrderDetails]`. Esto permite compilar, pero deja referencias por corregir y verificar antes de publicar. No demuestra que los extractores o el DW funcionen.

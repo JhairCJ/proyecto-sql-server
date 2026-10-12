@@ -124,12 +124,12 @@ SELECT COL_LENGTH('std.Empleado', 'SupervisorName') AS LongitudSupervisor;
 
 **Objetivo y motivo:** comprobar la estructura del proyecto sin confundir compilación con publicación.
 
-**Requisitos / programa:** Visual Studio Community 2026, SSDT presente. Archivos en `C:\Proyectos\practica-1-sql-server`.
+**Requisitos / programa:** Visual Studio Community 2026, SSDT presente. Archivos en `C:\Proyectos\proyecto-sql-server`.
 
 **Preparado:** `Northwind.slnx` contiene solamente `Northwind.OLTP`. **Pendiente:** integración de DW, ETL y OLAP; todavía no aparecerán cuatro proyectos como en BikeStores.
 
 1. Abre Visual Studio. Selecciona **File > Open > Project/Solution / Archivo > Abrir > Proyecto o solución**.
-2. Elige `C:\Proyectos\practica-1-sql-server\Northwind.slnx`.
+2. Elige `C:\Proyectos\proyecto-sql-server\Northwind.slnx`.
 3. En **Solution Explorer / Explorador de soluciones**, expande `Northwind.OLTP`: `dbo/Tables` describe tablas, `dbo/Stored Procedures` procedimientos, `dbo/Views` vistas. `Scripts` contiene archivos auxiliares, incluidos los scripts actuales del DW.
 4. Haz clic derecho en `Northwind.OLTP`, abre **Properties / Propiedades** y comprueba **Target platform / Plataforma de destino: SQL Server 2025**. El proveedor Sql170 ya está configurado; no necesitas cambiarlo. La configuración de compilación usada es **Debug / Any CPU**.
 5. Haz clic derecho en el proyecto y selecciona **Build / Compilar**. Revisa **Output / Salida** y **Error List / Lista de errores** desde el menú **View / Ver**.
