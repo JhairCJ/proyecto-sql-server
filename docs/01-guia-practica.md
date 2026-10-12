@@ -37,3 +37,15 @@ FROM dbo.Fact_Ventas WHERE OrderID=10248 ORDER BY ProductID;
 ```
 
 **Referencia:** 2.155 líneas, 830 pedidos, 51.317 unidades, neto 1.265.792,76. Pedido 10248: productos 11/42/72, 27 unidades, neto 440,00.
+
+## 4. Procesar y consultar
+
+En PowerShell, desde la carpeta de `Northwind.slnx`:
+
+```powershell
+& '.\scripts\Deploy-NorthwindOLAP.ps1'
+& '.\scripts\Process-NorthwindOLAP.ps1'
+& '.\scripts\Compare-NorthwindOLAP.ps1'
+```
+
+**Resultado:** `PASS`, 830 pedidos y 51.317 unidades. [Guía OLAP](09-procesar-y-consultar-olap.md).

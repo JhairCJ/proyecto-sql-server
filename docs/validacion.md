@@ -261,3 +261,20 @@ Reproducción de integración: `& '.\tests\Test-SSIS.ps1'`. Cada ejecución crea
 Las guías 01 y 07 ejecutan el proyecto; 08 contiene la preparación y publicación en catálogo con menús contrastados con la documentación de Microsoft. SSISDB no existe todavía en este equipo: creación del catálogo, publicación y ejecución desde SSISDB no se han realizado y quedan para la sección 7. La carga local funciona sin catálogo. Referencias de publicación: [asistente SSMS](https://learn.microsoft.com/en-us/sql/integration-services/ssis-quickstart-deploy-ssms?view=sql-server-ver17) y [catálogo](https://learn.microsoft.com/en-us/sql/integration-services/catalog/ssis-catalog?view=sql-server-ver17).
 
 Sección 5 completada: **29 de 41 tareas**. SSAS y despliegue/job pendientes. Cambios locales, sin commit ni push posterior a 969e1be.
+
+## Sección funcional: modelo tabular OLAP
+
+Northwind.OLAP implementa el análisis tabular de BikeStores sobre `Northwind_DW_Test`. El proyecto se compiló y se desplegó en Analysis Services Tabular local. La guía [09](09-procesar-y-consultar-olap.md) prepara Visual Studio/SSAS, publica y procesa el modelo, reconcilia medidas y muestra consultas filtradas; [02](02-entorno.md) contiene los pasos de instalación y conexión.
+
+| Comprobación ejecutada | Resultado | Evidencia local en `evidencias/olap/` |
+| --- | --- | --- |
+| Compilación y despliegue | `Northwind.OLAP.smproj` compila; se publicó `NorthwindOLAP_Test` desde `Northwind_DW_Test` en `localhost` | `build-olap.txt`, `procesamientos/`, `NorthwindOLAP-*.log` |
+| Medidas y pedido conocido | 830 pedidos, 51.317 unidades, bruto 1.354.458,59, descuento 88.665,83, neto 1.265.792,76; pedido 10248: 1 pedido, 27 unidades, 440,00 bruto/neto | `comparacion-20261012-020024-277.json` |
+| Filtros | Beverages/1996 = 47.919,00 netos; Alemania/ALFKI = 6 pedidos y 4.273,00 netos | `comparacion-20261012-020024-277.json` |
+| Fechas alternativas | Venta de fixture: pedido en julio = 90, fecha requerida en agosto = 90, envío en septiembre = 90; envío sin fecha no se asigna a septiembre | `integracion-20261012-020024-283.json` |
+| Error de proceso y recuperación | Fallo real registrado como `FAILED`; origen restaurado; segundo procesamiento y reconciliación completados | `NorthwindOLAP-20261012-020011-186.log`, `integracion-20261012-020024-283.json` |
+| Aislamiento y limpieza | Filas temporales eliminadas, resultado vuelve a las cifras iniciales; Northwind_DW original sin cambios | `integracion-20261012-020024-283.json` |
+
+La prueba usó dos pedidos temporales en `Northwind_DW_Test`; se retiraron después del procesamiento y se verificó la limpieza. El login del servicio SSAS recibe `SELECT` únicamente sobre las seis tablas de esa copia. El proyecto OLAP se compila de forma independiente. Su inclusión en la compilación integral de los cuatro proyectos, SSISDB y el job se verifica en la siguiente sección de despliegue.
+
+Sección 6 completada: **34 de 41 tareas**. Los cambios OLAP permanecen locales, sin commit ni push posterior a `dc373de`.
