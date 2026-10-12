@@ -1,39 +1,25 @@
 # 02. Configurar el entorno
 
-## 1. Conectar al motor
+## 1. Conectar SQL Server
 
-En SSMS: **Conectar > Motor de base de datos**; servidor **localhost**, **Autenticación de Windows**. Si el servidor local falla por certificado, activa **Confiar en el certificado del servidor**.
+1. En **Inicio > Servicios**, comprueba que **SQL Server (MSSQLSERVER)** esté en ejecución.
+2. En SSMS: **Conectar > Motor de base de datos**, servidor `localhost`, **Autenticación de Windows**. Si aparece un error de certificado local, marca **Confiar en el certificado del servidor**.
+3. En **Bases de datos**, comprueba que existan `NorthWind` y `Northwind_DW`.
 
-En **Nueva consulta**, ejecuta:
+## 2. Abrir y compilar
 
-```sql
-SELECT SERVERPROPERTY('ProductVersion') AS VersionMotor;
-SELECT name,state_desc FROM sys.databases WHERE name IN(N'NorthWind',N'Northwind_DW');
-```
+1. En Visual Studio: **Archivo > Abrir > Proyecto o solución**, abre `Northwind.sln` desde la carpeta del repositorio.
+2. En **Ver > Explorador de soluciones**, deben aparecer `Northwind.OLTP`, `Northwind.DW`, `Northwind.ETL` y `Northwind.OLAP` sin «incompatible» ni «descargado».
+3. Selecciona **Compilar > Recompilar solución**; en **Ver > Salida**, selecciona **Compilación / Build**.
 
-**Resultado en este equipo:** motor 17.0.1000.7, ambas bases ONLINE. Si falta conexión, comprueba **Inicio > Servicios > SQL Server (MSSQLSERVER)** en ejecución.
+**Resultado:** `4 succeeded, 0 failed, 0 skipped`. La compilación SSIS de Visual Studio produce `Northwind.ETL\bin\Development\Northwind.ispac`.
 
-## 2. Abrir el repositorio en PowerShell
+Si falta soporte SQL, instala **Visual Studio Installer > Modificar > Almacenamiento y procesamiento de datos > SSDT**. Para ETL y OLAP, instala **SQL Server Integration Services Projects** y **Microsoft Analysis Services Projects** desde **Extensiones > Administrar extensiones**; reinicia Visual Studio cuando lo solicite. Instala **Microsoft OLE DB Driver for SQL Server** si falla el proveedor `MSOLEDBSQL.1`.
 
-```powershell
-Set-Location -LiteralPath 'C:\Users\Admin\Desktop\practica sql\practica sql server'
-Test-Path -LiteralPath '.\Northwind.slnx'
-```
+## 3. Conectar Analysis Services
 
-**Resultado:** True. En otra ubicación, reemplaza la ruta por tu carpeta del repositorio. Los comandos siguientes usan esta ventana; no se pegan en SSMS.
+1. En **Servicios**, comprueba **SQL Server Analysis Services (MSSQLSERVER)** en ejecución.
+2. En SSMS: **Conectar > Analysis Services**, servidor `localhost`, autenticación Windows.
+3. Si falta el servicio, abre el instalador de SQL Server > **Agregar características**, selecciona **Analysis Services**, modo **Tabular**, y agrega tu usuario como administrador.
 
-## 3. Configurar Visual Studio
-
-1. Abre **Northwind.slnx** en Visual Studio 2026. En `Northwind.OLTP` y `Northwind.DW`, configura **Propiedades > Plataforma de destino: SQL Server 2025** y **Debug / Any CPU**. En el Explorador de soluciones, haz clic derecho en cada proyecto y selecciona **Compilar**.
-2. Para el modelo tabular, abre **Extensiones > Administrar extensiones**, busca **Microsoft Analysis Services Projects** e instálala.
-3. Cierra y vuelve a abrir Visual Studio cuando el instalador lo solicite.
-
-**Resultado:** los dos proyectos SQL compilan y generan sus dacpac en `bin/Debug`. El OLTP conserva 19 advertencias SQL71502 heredadas. Si un proyecto es incompatible, comprueba **Visual Studio Installer > Modificar > Almacenamiento y procesamiento de datos > SSDT**.
-
-## 4. Preparar Analysis Services
-
-1. En **Servicios de Windows**, comprueba que **SQL Server (MSSQLSERVER)** y **SQL Server Analysis Services (MSSQLSERVER)** estén en ejecución.
-2. Si falta Analysis Services, abre **SQL Server Installation Center > Installation > New SQL Server stand-alone installation or add features to an existing installation**. Selecciona **Analysis Services**, configura el modo **Tabular** y agrega tu usuario a sus administradores.
-3. En SSMS, elige **Conectar > Analysis Services** y servidor `localhost`. El icono de la instancia en el Explorador de objetos debe indicar modo tabular.
-
-**Resultado:** ambos servicios están en ejecución y SSMS se conecta a una instancia tabular. Si el icono indica modo multidimensional, instala otra instancia en modo tabular; el modo se define durante la instalación. [Instalar Analysis Services](https://learn.microsoft.com/en-us/analysis-services/instances/install-windows/install-analysis-services?view=sql-analysis-services-2025) · [Instalar extensiones de SSDT](https://learn.microsoft.com/en-us/sql/ssdt/download-sql-server-data-tools-ssdt?view=sql-server-ver17).
+**Resultado:** conexión a Analysis Services Tabular. [Instalación de Analysis Services](https://learn.microsoft.com/en-us/analysis-services/instances/install-windows/install-analysis-services?view=sql-analysis-services-2025).

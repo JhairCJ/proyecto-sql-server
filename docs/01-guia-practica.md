@@ -1,51 +1,29 @@
 # 01. Ejecutar el proyecto
 
-**Requisitos:** SQL Server 2025 local con Integration Services, SSMS, PowerShell, Visual Studio 2026 con SSDT y SSIS Projects, Microsoft OLE DB Driver for SQL Server y bases NorthWind/Northwind_DW existentes.
-
 ## 1. Abrir y compilar
 
-En Visual Studio: **Archivo > Abrir > Proyecto o solución > Northwind.slnx**. Clic derecho en la solución > **Compilar**.
+En Visual Studio: **Archivo > Abrir > Proyecto o solución**, selecciona `Northwind.sln`. Después **Compilar > Recompilar solución**.
 
-**Resultado:** Northwind.OLTP, Northwind.DW y Northwind.ETL sin errores. [Configuración](02-entorno.md).
+**Resultado:** cuatro proyectos correctos y cero errores. Si falta alguno, sigue [02](02-entorno.md).
 
-## 2. Preparar y cargar
+## 2. Preparar las bases, solo una vez
 
-En PowerShell, desde la carpeta que contiene Northwind.slnx:
+Sigue [03. Copias y extractores](03-pruebas-aisladas.md) y [05. Preparar DW](05-preparar-dw.md). Si ya tienes las copias publicadas y cargadas, omite este paso.
 
-```powershell
-& '.\tests\Prepare-TestDatabases.ps1'
-& '.\tests\Deploy-TestExtractors.ps1'
-& '.\scripts\Publish-NorthwindWarehouse.ps1'
-& '.\scripts\Build-NorthwindETL.ps1'
-& '.\scripts\Run-NorthwindETL.ps1'
-& '.\scripts\Compare-NorthwindWarehouse.ps1'
-```
+## 3. Cargar y comprobar
 
-**Resultado:** Northwind_Test con datos operativos; Northwind_DW_Test con dimensiones y ventas pobladas; DTSER_SUCCESS y todas las comparaciones True. [Preparación](03-pruebas-aisladas.md). [Ejecutar desde Visual Studio](07-ejecutar-ssis.md).
+Ejecuta `CargarNorthwind.dtsx` desde Visual Studio siguiendo [07](07-ejecutar-ssis.md). Comprueba las ventas en SSMS con [06](06-cargar-datos.md).
 
-## 3. Comprobar en SSMS
+**Resultado:** 2.155 líneas, 830 pedidos, 51.317 unidades y neto 1.265.792,76 con los datos originales de Northwind.
 
-Conecta al motor **localhost**, **Autenticación de Windows**. Abre **Nueva consulta**, pega y pulsa **F5**:
+## 4. Publicar y consultar
 
-```sql
-USE Northwind_DW_Test;
-SELECT COUNT(*) AS Lineas,COUNT(DISTINCT OrderID) AS Pedidos,
- SUM(CONVERT(bigint,Cantidad)) AS Unidades,SUM(ImporteNeto) AS Neto
-FROM dbo.Fact_Ventas;
-SELECT OrderID,ProductID,Cantidad,ImporteNeto
-FROM dbo.Fact_Ventas WHERE OrderID=10248 ORDER BY ProductID;
-```
+Sigue [08. Publicar SSIS](08-publicar-ssis.md) y [09. Publicar y consultar OLAP](09-procesar-y-consultar-olap.md).
 
-**Referencia:** 2.155 líneas, 830 pedidos, 51.317 unidades, neto 1.265.792,76. Pedido 10248: productos 11/42/72, 27 unidades, neto 440,00.
+**Resultado:** paquete disponible en SSISDB y consultas DAX con los mismos totales.
 
-## 4. Procesar y consultar
+## 5. Ejecutar el ciclo completo
 
-En PowerShell, desde la carpeta de `Northwind.slnx`:
+Sigue [10. Ejecutar el job](10-ejecutar-job.md).
 
-```powershell
-& '.\scripts\Deploy-NorthwindOLAP.ps1'
-& '.\scripts\Process-NorthwindOLAP.ps1'
-& '.\scripts\Compare-NorthwindOLAP.ps1'
-```
-
-**Resultado:** `PASS`, 830 pedidos y 51.317 unidades. [Guía OLAP](09-procesar-y-consultar-olap.md).
+**Resultado:** carga y procesamiento correctos en el historial. Habilita el horario solo después de comprobar la ejecución manual.

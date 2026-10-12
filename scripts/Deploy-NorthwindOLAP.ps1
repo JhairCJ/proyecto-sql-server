@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [string]$AnalysisServer = 'localhost',
     [string]$WarehouseServer = 'localhost',
@@ -15,24 +15,7 @@ $root = Join-Path $PSScriptRoot '..'
 & (Join-Path $PSScriptRoot 'Configure-NorthwindOLAPAccess.ps1') -Server $WarehouseServer -WarehouseDatabase $WarehouseDatabase
 & (Join-Path $PSScriptRoot 'Build-NorthwindOLAP.ps1')
 
-$vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
-$installations = & $vswhere -all -products '*' -property installationPath
-$installation = $installations | Where-Object {
-    Test-Path -LiteralPath (Join-Path $_ 'MSBuild/Business Intelligence Semantic Model/1.0/Microsoft.AnalysisServices.VSHostBuilder.targets')
-} | Select-Object -First 1
-if (-not $installation) {
-    throw 'No se encontró una instalación de Visual Studio con Analysis Services Projects.'
-}
-$vsPath = Join-Path $installation 'Common7/IDE/CommonExtensions/Microsoft/SSAS'
-if (-not (Test-Path -LiteralPath (Join-Path $vsPath 'Microsoft.AnalysisServices.dll'))) {
-    throw 'Instala Analysis Services Projects para poder publicar el modelo.'
-}
-
-if (-not ('Microsoft.AnalysisServices.Server' -as [type])) {
-    Add-Type -Path (Join-Path $vsPath 'Microsoft.AnalysisServices.Core.dll')
-    Add-Type -Path (Join-Path $vsPath 'Microsoft.AnalysisServices.dll')
-    Add-Type -Path (Join-Path $vsPath 'Microsoft.AnalysisServices.Tabular.dll')
-}
+& (Join-Path $PSScriptRoot 'Import-NorthwindAnalysisServices.ps1') -Tabular
 
 $artifact = Join-Path $root 'Northwind.OLAP/bin/Northwind.OLAP.asdatabase'
 $databaseDefinition = Get-Content -LiteralPath $artifact -Raw | ConvertFrom-Json
@@ -55,6 +38,15 @@ try {
         if (-not $owned) {
             throw "Ya existe '$ModelDatabase' en Analysis Services y no pertenece a esta práctica; no se reemplazó."
         }
+
+        # createOrReplace treats omitted role properties as deletions. TOM's serializer
+        # preserves all supported role fields, including members, filters and annotations.
+        $roleDefinitions = [Collections.Generic.List[object]]::new()
+        foreach ($role in $existing.Model.Roles) {
+            $roleJson = [Microsoft.AnalysisServices.Tabular.JsonSerializer]::SerializeObject($role)
+            $roleDefinitions.Add(($roleJson | ConvertFrom-Json))
+        }
+        $databaseDefinition.model | Add-Member -MemberType NoteProperty -Name roles -Value $roleDefinitions.ToArray() -Force
     }
 
     $command = [ordered]@{

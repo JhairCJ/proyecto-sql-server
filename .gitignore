@@ -185,6 +185,8 @@ publish/
 
 # Publish Web Output
 *.[Pp]ublish.xml
+!/Northwind.OLTP/Properties/PublishProfiles/Northwind_Test.publish.xml
+!/Northwind.DW/Properties/PublishProfiles/Northwind_DW_Test.publish.xml
 *.azurePubxml
 # Note: Comment the next line if you want to checkin your web deploy settings,
 # but database connection strings (with potential passwords) will be unencrypted

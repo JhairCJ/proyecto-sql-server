@@ -10,6 +10,8 @@
     <Build />
   </Project>
   <Project Path="Northwind.OLAP/Northwind.OLAP.smproj" Type="6870E480-7721-4708-BFB8-9AE898AA21B3" Id="c687c03a-6a1a-4e5f-9514-af4238b81e10">
+    <BuildType Project="Development" />
+    <Platform Project="Default" />
     <Build />
     <Deploy />
   </Project>

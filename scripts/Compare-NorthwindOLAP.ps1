@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [string]$SqlServer = 'localhost',
     [ValidateSet('Northwind_DW_Test')]
@@ -9,24 +9,17 @@ param(
     [string]$Category = 'Beverages',
     [int]$Year = 1996,
     [string]$CustomerId = 'ALFKI',
-    [string]$EvidenceDirectory = (Join-Path $PSScriptRoot '../docs/evidencias/olap')
+    [string]$EvidenceDirectory
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
-$installations = & $vswhere -all -products '*' -property installationPath
-$installation = $installations | Where-Object {
-    Test-Path -LiteralPath (Join-Path $_ 'MSBuild/Business Intelligence Semantic Model/1.0/Microsoft.AnalysisServices.VSHostBuilder.targets')
-} | Select-Object -First 1
-if (-not $installation) {
-    throw 'Instala Visual Studio con la extensión Analysis Services Projects.'
+if ([string]::IsNullOrWhiteSpace($EvidenceDirectory)) {
+    $EvidenceDirectory = Join-Path $PSScriptRoot '../docs/evidencias/olap'
 }
-$assemblyDirectory = Join-Path $installation 'Common7/IDE/CommonExtensions/Microsoft/SSAS'
-if (-not ('Microsoft.AnalysisServices.AdomdClient.AdomdConnection' -as [type])) {
-    Add-Type -Path (Join-Path $assemblyDirectory 'Microsoft.AnalysisServices.AdomdClient.dll')
-}
+
+& (Join-Path $PSScriptRoot 'Import-NorthwindAnalysisServices.ps1') -Adomd
 
 function Invoke-DaxRow([string]$Query) {
     $connection = [Microsoft.AnalysisServices.AdomdClient.AdomdConnection]::new(

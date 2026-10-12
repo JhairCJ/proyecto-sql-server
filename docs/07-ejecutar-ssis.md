@@ -1,22 +1,12 @@
 # 07. Ejecutar SSIS
 
-## 1. Preparar las bases (solo la primera vez)
+## 1. Preparar las bases, solo la primera vez
 
-Si ya existen `Northwind_Test` y `Northwind_DW_Test`, y ya se ejecutaron los extractores y se publicó el DW, salta al paso 2. Estos comandos preparan el entorno y no se ejecutan antes de cada carga. Si aún no preparaste esas bases, ejecútalos una vez:
-
-En PowerShell, dentro de la carpeta de `Northwind.slnx`:
-
-```powershell
-& '.\tests\Prepare-TestDatabases.ps1'
-& '.\tests\Deploy-TestExtractors.ps1'
-& '.\scripts\Publish-NorthwindWarehouse.ps1'
-```
-
-Resultado: `Northwind_Test` y `Northwind_DW_Test` preparadas con extractores y DW publicados. Si ya estaban preparadas, los scripts las reutilizan.
+Completa [03](03-pruebas-aisladas.md) y [05](05-preparar-dw.md). Si ya tienes las copias y los proyectos SQL publicados, pasa al paso 2.
 
 ## 2. Abrir en Visual Studio
 
-1. **Archivo > Abrir > Proyecto o solución**: selecciona `Northwind.slnx`.
+1. **Archivo > Abrir > Proyecto o solución**: selecciona `Northwind.sln`.
 2. Abre **Ver > Explorador de soluciones** (atajo `Ctrl+Alt+L`). Expande `Northwind.ETL` y abre `Project.params`.
 3. Comprueba los valores predeterminados:
 
@@ -58,20 +48,8 @@ FROM dbo.PackageConfig ORDER BY PackageName;
 
 Resultado con Northwind original: **2155 líneas, 830 pedidos, 51317 unidades, neto 1265792.76**; cinco marcas con fecha. Ejecuta nuevamente el paquete: los conteos y el neto se mantienen.
 
-## 5. Compilar y ejecutar fuera de Visual Studio
+## 5. Localizar un error
 
-En PowerShell, desde la carpeta de `Northwind.slnx`:
-
-```powershell
-& '.\scripts\Build-NorthwindETL.ps1'
-& '.\scripts\Run-NorthwindETL.ps1'
-& '.\scripts\Compare-NorthwindWarehouse.ps1'
-```
-
-Resultado: `Northwind.ETL\bin\Development\Northwind.ETL.ispac`, `DTSER_SUCCESS` y todas las comparaciones `True`. Registro: `docs\evidencias\ssis\Northwind.ETL-*.log`.
-
-## 6. Localizar un error
-
-En Visual Studio abre **Progreso / Progress** del paquete y lee el primer error rojo. En PowerShell abre `docs\evidencias\ssis\Northwind.ETL-*.log` y busca `OnError`.
+En Visual Studio abre **Progreso / Progress** del paquete y lee el primer error rojo.
 
 Si aparece `SQLNCLI11 ... not registered`, cambia el proveedor a `MSOLEDBSQL.1`. Si falla una conexión, revisa los cuatro parámetros del paso 2 y **Probar conexión**. Si aparece `DW ocupado`, espera a que termine la otra carga y vuelve a ejecutar el principal.

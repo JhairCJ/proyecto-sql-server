@@ -1,26 +1,28 @@
-# 03. Preparar las copias y los procedimientos
+# 03. Preparar copias y publicar extractores
 
-**Requisitos:** localhost, NorthWind y Northwind_DW existentes, PowerShell en la raíz del repo y cuenta Windows con permisos de backup/restauración/publicación.
+## 1. Crear copias en SSMS, solo si faltan
 
-## 1. Crear o reutilizar copias
+1. Conecta al motor `localhost` con autenticación Windows.
+2. Clic derecho en `NorthWind` > **Tareas > Copia de seguridad**. Tipo **Completa**; guarda el `.bak` y pulsa **Aceptar**.
+3. Clic derecho en **Bases de datos > Restaurar base de datos**. Selecciona **Dispositivo**, agrega ese `.bak` y escribe `Northwind_Test` como **Base de datos de destino**.
+4. En **Archivos**, cambia las rutas de restauración de cada archivo para que usen nombres nuevos de `Northwind_Test`; no uses los archivos del original. Pulsa **Aceptar**.
+5. Repite con `Northwind_DW`, restaurando como `Northwind_DW_Test` y usando archivos distintos del original.
+6. En **Archivo > Abrir > Archivo**, abre `scripts/sql/Identify-NorthwindCopies.sql` y ejecuta con **F5**.
 
-```powershell
-& '.\tests\Prepare-TestDatabases.ps1'
-```
+**Resultado:** ambas copias aparecen en Bases de datos y el script indica «Copias identificadas». Si ya estaban preparadas, omite la restauración.
 
-**Resultado:** Created o Reused para Northwind_Test y Northwind_DW_Test. Si rechaza una copia sin marca, conserva el error; no la elimines ni cambies el destino al original.
+## 2. Publicar procedimientos desde Visual Studio
 
-## 2. Publicar extractores
+1. Abre `Northwind.sln` y compila.
+2. Clic derecho en `Northwind.OLTP` > **Publicar**.
+3. Pulsa **Cargar perfil**, abre `Northwind.OLTP/Properties/PublishProfiles/Northwind_Test.publish.xml`.
+4. Comprueba servidor `localhost` y destino `Northwind_Test`; pulsa **Generar script** para revisar el destino, luego **Publicar**.
 
-```powershell
-& '.\tests\Deploy-TestExtractors.ps1'
-```
+**Resultado:** publicación correcta en la copia.
 
-**Resultado:** ocho mensajes de publicación en Northwind_Test.
+## 3. Comprobar en SSMS
 
-## 3. Comprobar
-
-En SSMS, conectado al motor localhost, ejecuta:
+En **Nueva consulta**, ejecuta con **F5**:
 
 ```sql
 USE Northwind_Test;
@@ -29,4 +31,4 @@ SELECT COUNT(*) AS Lineas FROM dbo.OrderDetails;
 SELECT name FROM sys.procedures WHERE name LIKE N'%RowVersion%' ORDER BY name;
 ```
 
-**Resultado:** 91 clientes, 2.155 líneas y ocho procedimientos de soporte/extracción. Continúa con [04](04-ejecutar-extraccion.md) y [05](05-preparar-dw.md).
+**Resultado de referencia:** 91 clientes, 2.155 líneas y ocho procedimientos. Continúa con [05](05-preparar-dw.md).

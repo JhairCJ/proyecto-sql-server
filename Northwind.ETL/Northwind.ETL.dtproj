@@ -26,8 +26,7 @@
           </SSIS:Property>
           <SSIS:Property SSIS:Name="CreatorComputerName">
           </SSIS:Property>
-          <SSIS:Property SSIS:Name="Description">
-          </SSIS:Property>
+          <SSIS:Property SSIS:Name="Description">Northwind practice project managed by Publish-NorthwindETL.ps1.</SSIS:Property>
           <SSIS:Property SSIS:Name="FormatVersion">1</SSIS:Property>
         </SSIS:Properties>
         <SSIS:Packages>

@@ -1,6 +1,6 @@
 # Modelo y publicación del DW
 
-Northwind.DW es el propietario declarativo de los objetos del almacén. Northwind.OLTP contiene únicamente el origen. La solución Northwind.slnx compila ambos SQL; ETL/OLAP/job son responsabilidades posteriores, como en BikeStores.
+Northwind.DW es el propietario declarativo de los objetos del almacén. Northwind.OLTP contiene únicamente el origen. La solución Northwind.sln integra OLTP, DW, ETL y OLAP; SQL Server Agent coordina carga y procesamiento, como en BikeStores.
 
 | Tabla | Identidad comercial | Clave del DW | Relación con hechos |
 | --- | --- | --- | --- |
@@ -17,7 +17,7 @@ DW_LoadDimTiempo usa el rango de las tres fechas de staging o parámetros explí
 
 Regla monetaria por línea: bruto = ROUND(cantidad × precio,2); descuento monetario = ROUND(bruto × proporción normalizada a seis decimales,2); neto = bruto − descuento monetario. SQL ROUND aleja los empates de cero. Los totales suman resultados por línea. DW_CalculateAmounts aplica la regla; las verificaciones calculan una referencia independiente sobre OrderDetails. Freight no se repite y el precio de catálogo no interviene. Ejemplo: cantidad 10, precio 20, descuento 0,1 → 200/20/180. Precio 0,0050 por una unidad → bruto 0,01; bruto 1 con proporción 0,005000 → descuento 0,01.
 
-La transferencia REAL → decimal de BulkCopy puede truncar valores; la carga normaliza en SQL antes del transporte. Los paquetes deberán conservar esa conversión explícita; no se considera integración SSIS probada.
+La transferencia REAL → decimal de BulkCopy puede truncar valores; la carga normaliza en SQL antes del transporte. Los paquetes SSIS conservan esa conversión explícita; las pruebas comparan sus importes con una referencia SQL independiente.
 
 La migración deriva ProductID desde Dim_Producto antes de hacerla obligatoria, rechaza identidades ambiguas o importes incompatibles y convierte explícitamente los tipos. La publicación conserva BlockOnPossibleDataLoss=True, propiedades extendidas y opciones de base. No elimina objetos ajenos ni reinicia datos/marcas. Las opciones se basan en [SqlPackage Publish](https://learn.microsoft.com/en-us/sql/tools/sqlpackage/sqlpackage-publish).
 
@@ -33,6 +33,6 @@ La migración deriva ProductID desde Dim_Producto antes de hacerla obligatoria, 
 
 La publicación actualiza el procedimiento de hechos al contrato compilado. Publicar prepara esquema/calendario; Load-NorthwindWarehouse.ps1 puebla entidades comerciales mediante DW_ApplyPackage. El contrato de aplicación y recuperación está en [carga](carga.md).
 
-BikeStores: OLTP ↔ Northwind.OLTP; DW/staging/control ↔ Northwind.DW; ETL ↔ futura carga/paquetes; tabular ↔ futuro Northwind.OLAP; Agent ↔ futuro job propio. No hay tiendas equivalentes; Northwind usa transportistas.
+BikeStores: OLTP ↔ Northwind.OLTP; DW/staging/control ↔ Northwind.DW; ETL ↔ Northwind.ETL; tabular ↔ Northwind.OLAP; Agent ↔ NorthwindBIJob. No hay tiendas equivalentes; Northwind usa transportistas.
 
 [Guía de publicación](../05-preparar-dw.md). [Resultados](../validacion.md).

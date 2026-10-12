@@ -1,27 +1,30 @@
-# 05. Publicar el DW y poblar el calendario
-
-**Requisitos:** [03](03-pruebas-aisladas.md) completada; Visual Studio 2026/SSDT y SqlPackage de esa instalación; PowerShell en la raíz del repo.
+# 05. Preparar el DW y poblar el calendario
 
 ## 1. Publicar
 
-```powershell
-& '.\scripts\Publish-NorthwindWarehouse.ps1'
-```
+1. Completa [03](03-pruebas-aisladas.md).
+2. En SSMS: **Archivo > Abrir > Archivo**, abre `Northwind.DW/Deployment/Prepare-LegacyWarehouse.sql`. Selecciona `Northwind_DW_Test` en la lista de bases de la consulta y pulsa **F5**.
+3. En Visual Studio, clic derecho en `Northwind.DW` > **Publicar > Cargar perfil**; selecciona `Northwind.DW/Properties/PublishProfiles/Northwind_DW_Test.publish.xml`.
+4. Comprueba servidor `localhost`, destino `Northwind_DW_Test`, y pulsa **Publicar**.
 
-**Resultado:** mensaje «DW publicado en Northwind_DW_Test». Se prepara el esquema, los miembros desconocidos y el calendario. Repetirlo conserva datos y controles. Si falta SqlPackage, pasa su ruta mediante `-SqlPackagePath`; si falla la migración, revisa el mensaje y docs/evidencias/seccion-dw/publicacion.txt.
+**Resultado:** publicación correcta; datos y marcas existentes conservados.
 
-## 2. Comprobar en SSMS
+## 2. Poblar calendario
 
-Conecta al motor localhost con autenticación Windows y ejecuta:
+En SSMS, ejecuta con **F5**:
 
 ```sql
 USE Northwind_DW_Test;
+DECLARE @Desde date, @Hasta date;
+SELECT @Desde=MIN(Fecha), @Hasta=MAX(Fecha)
+FROM Northwind_Test.dbo.Orders
+CROSS APPLY (VALUES(CONVERT(date,OrderDate)),(CONVERT(date,RequiredDate)),
+                   (CONVERT(date,ShippedDate))) d(Fecha);
+EXEC dbo.DW_LoadDimTiempo @FechaInicio=@Desde,@FechaFin=@Hasta;
 SELECT COUNT(*) AS Dias,MIN(Fecha) AS Desde,MAX(Fecha) AS Hasta
 FROM dbo.Dim_Tiempo WHERE Tiempo_SK<>0;
-SELECT Cliente_SK,CustomerID FROM dbo.Dim_Cliente WHERE Cliente_SK=0;
-SELECT Empleado_SK,EmployeeID FROM dbo.Dim_Empleado WHERE Empleado_SK=0;
-SELECT PackageName,LastRowVersion,LastSuccessfulLoad FROM dbo.PackageConfig ORDER BY PackageName;
-SELECT COUNT(*) AS VentasCargadas FROM dbo.Fact_Ventas;
+SELECT PackageName,LastRowVersion,LastSuccessfulLoad
+FROM dbo.PackageConfig ORDER BY PackageName;
 ```
 
-**Resultado inicial de referencia:** 708 días, 1996-07-04 a 1998-06-11; cliente/empleado desconocidos en SK 0; cinco controles con marca cero/fecha NULL; cero ventas. Si ya ejecutaste la carga, se conservan sus ventas y controles. Continúa con [06. Cargar datos](06-cargar-datos.md).
+**Resultado de referencia:** 708 días, del 1996-07-04 al 1998-06-11; cinco controles. En una copia nueva, las marcas son cero y las fechas NULL. Continúa con [07. Ejecutar SSIS](07-ejecutar-ssis.md).

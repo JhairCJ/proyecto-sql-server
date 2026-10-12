@@ -1,58 +1,53 @@
-# 09. Procesar y consultar el modelo tabular
+# 09. Publicar, procesar y consultar OLAP
 
-**Requisitos:** `Northwind_DW_Test` cargada con la [guía 01](01-guia-practica.md), SSMS y Visual Studio con Analysis Services Projects. Para preparar servicios y extensión por primera vez, sigue [02, pasos 3–4](02-entorno.md#3-configurar-visual-studio). El primer comando requiere permisos para crear el login del servicio SSAS y concederle `SELECT` en las seis tablas de `Northwind_DW_Test`.
+## 1. Dar acceso al DW
 
-## 1. Publicar y procesar
+Con el DW cargado, en SSMS conectado al motor `localhost`, abre `scripts/sql/Configure-NorthwindOLAPAccess.sql` y ejecuta con **F5**.
 
-Abre PowerShell en la carpeta que contiene `Northwind.slnx`. Ejecuta:
+**Resultado:** la cuenta `NT SERVICE\MSSQLServerOLAPService` puede leer las seis tablas del modelo en `Northwind_DW_Test`.
 
-```powershell
-& '.\scripts\Deploy-NorthwindOLAP.ps1' -AnalysisServer localhost -WarehouseServer localhost -WarehouseDatabase Northwind_DW_Test -ModelDatabase NorthwindOLAP_Test
-& '.\scripts\Process-NorthwindOLAP.ps1' -AnalysisServer localhost -ModelDatabase NorthwindOLAP_Test -WarehouseServer localhost -WarehouseDatabase Northwind_DW_Test
-& '.\scripts\Compare-NorthwindOLAP.ps1'
-```
+## 2. Publicar desde Visual Studio
 
-**Resultado:** `PASS`; 830 pedidos, 51.317 unidades y pedido 10248 con 27 unidades y 440,00 bruto/neto.
+1. Abre `Northwind.sln`. Clic derecho en `Northwind.OLAP` > **Propiedades**.
+2. En **Implementación / Deployment**, comprueba **Servidor = localhost**, **Base de datos = NorthwindOLAP_Test**; acepta.
+3. Abre `Northwind.OLAP.bim`. En **Explorador del modelo tabular > Orígenes de datos**, comprueba que `NorthwindDW` use `localhost` y `Northwind_DW_Test`.
+4. Clic derecho en `Northwind.OLAP` > **Implementar / Deploy**. Espera el mensaje de implementación correcta.
 
-## 2. Consultar en SSMS
+**Resultado:** `NorthwindOLAP_Test` aparece en SSMS al conectar a **Analysis Services > localhost**.
 
-1. En **Conectar > Analysis Services**, escribe `localhost` y usa autenticación de Windows.
-2. En el modelo `NorthwindOLAP_Test`, elige **Nueva consulta > DAX**.
-3. Ejecuta la consulta con **F5**:
+## 3. Procesar desde SSMS
 
-```DAX
-EVALUATE
-ROW(
-    "Ventas netas",
-    CALCULATE([Ventas netas], Dim_Tiempo[Anio] = 1996, Dim_Producto[Categoria] = "Beverages")
-)
-```
+1. En SSMS: **Conectar > Analysis Services**, servidor `localhost`, autenticación Windows.
+2. Actualiza **Bases de datos**. Clic derecho en `NorthwindOLAP_Test` > **Procesar base de datos / Process Database**.
+3. Selecciona **Procesar completo / Process Full**, pulsa **Aceptar** y espera el resultado correcto.
 
-**Resultado:** `47.919,00`.
+Repite este paso después de cada nueva carga SSIS; si ejecutas el job de [10](10-ejecutar-job.md), su segundo paso ya procesa el modelo.
+
+## 4. Consultar
+
+Selecciona `NorthwindOLAP_Test` y abre **Nueva consulta > DAX**. Ejecuta con **F5**:
 
 ```DAX
 EVALUATE
-ROW(
-    "Pedidos",
-    CALCULATE([Pedidos distintos], Dim_Cliente[Pais] = "Germany", Dim_Cliente[CustomerID] = "ALFKI"),
-    "Ventas netas",
-    CALCULATE([Ventas netas], Dim_Cliente[Pais] = "Germany", Dim_Cliente[CustomerID] = "ALFKI")
-)
+ROW("Pedidos", [Pedidos distintos], "Unidades", [Unidades], "Neto", [Ventas netas])
 ```
 
-**Resultado:** 6 pedidos y `4.273,00` netos.
+**Resultado de referencia:** 830 pedidos, 51.317 unidades y neto 1.265.792,76.
 
-Los filtros de cliente/categoría usan sus atributos actuales (tipo 1). La fecha activa es la del pedido; para analizar por otras fechas, usa `[Ventas netas por fecha requerida]` o `[Ventas netas por fecha de envío]`. Un envío sin fecha no aparece en un mes real.
-
-## 3. Volver a procesar después de una carga
-
-Después de cada carga SSIS, vuelve a ejecutar el procesamiento y la comparación desde PowerShell:
-
-```powershell
-& '.\scripts\Process-NorthwindOLAP.ps1'
-& '.\scripts\Compare-NorthwindOLAP.ps1'
+```DAX
+EVALUATE
+ROW("Ventas netas", CALCULATE([Ventas netas],
+    Dim_Tiempo[Anio] = 1996, Dim_Producto[Categoria] = "Beverages"))
 ```
 
-**Resultado:** `PASS`. Registro en `docs\evidencias\olap\`.
+**Resultado:** 47.919,00.
 
-Referencias para instalar/configurar [Analysis Services en modo tabular](https://learn.microsoft.com/en-us/analysis-services/instances/install-windows/install-analysis-services?view=sql-analysis-services-2025), la [extensión de proyectos](https://learn.microsoft.com/en-us/sql/ssdt/download-sql-server-data-tools-ssdt?view=sql-server-ver17) y ejecutar [consultas DAX](https://learn.microsoft.com/en-us/dax/dax-queries).
+```DAX
+EVALUATE
+ROW("Pedidos", CALCULATE([Pedidos distintos],
+    Dim_Cliente[Pais] = "Germany", Dim_Cliente[CustomerID] = "ALFKI"),
+    "Ventas netas", CALCULATE([Ventas netas],
+    Dim_Cliente[Pais] = "Germany", Dim_Cliente[CustomerID] = "ALFKI"))
+```
+
+**Resultado:** 6 pedidos y 4.273,00 netos. Continúa con [10](10-ejecutar-job.md).

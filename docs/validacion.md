@@ -278,3 +278,25 @@ Northwind.OLAP implementa el análisis tabular de BikeStores sobre `Northwind_DW
 La prueba usó dos pedidos temporales en `Northwind_DW_Test`; se retiraron después del procesamiento y se verificó la limpieza. El login del servicio SSAS recibe `SELECT` únicamente sobre las seis tablas de esa copia. El proyecto OLAP se compila de forma independiente. Su inclusión en la compilación integral de los cuatro proyectos, SSISDB y el job se verifica en la siguiente sección de despliegue.
 
 Sección 6 completada: **34 de 41 tareas**. Los cambios OLAP permanecen locales, sin commit ni push posterior a `dc373de`.
+
+## Sección funcional: despliegue y job
+
+El modelo OLAP anterior se publicó en la rama `northwind` mediante `e7abd5e`. Esta sección permanece local. Las guías 01–10 usan Visual Studio y SSMS como recorrido principal; los comandos PowerShell apoyan automatización y pruebas.
+
+| Comprobación | Resultado | Evidencia |
+| --- | --- | --- |
+| Abrir solución y recompilar desde Visual Studio | Confirmado por el usuario: 4 succeeded, 0 failed, 0 skipped; 0 errores y 0 advertencias | Mensaje del usuario del 12-10-2026, compilación 11:14 |
+| Compilación completa desde segunda instancia CLI | No aprobada: esa instancia omite OLAP; el helper detecta el fallo, sin usar artefactos antiguos para declarar éxito | evidencias/despliegue/build-solution-final.txt |
+| Perfiles SQL nativos | XML y generación real de planes de publicación aprobados para las dos copias | profile-source.txt, profile-warehouse.txt |
+| Catálogo y publicación SSIS | SSISDB creado, proyecto propio con seis paquetes y cinco parámetros asociados al entorno | evidencias/despliegue/ |
+| Scripts SSMS repetidos | Configuración del entorno y creación del job ejecutadas dos veces correctamente; mismos objetos | verify-gui-scripts.ps1 |
+| Job principal manual | SSIS y procesamiento correctos; job y horario diario 02:00 deshabilitados | main-job.json |
+| Job repetible, fallos y recuperación | Mismo job al crearlo dos veces; fallo ETL impide etapa analítica y conserva marcas; fallo analítico registra error y se recupera; fixtures retirados | integration-windows-powershell.txt, job-20261012-111024-610.json |
+| Republicación analítica | Roles y miembros conservados; procesamiento y reconciliación aprobados | redeploy.txt |
+| Originales y aislamiento | Pruebas sobre copias identificadas, TRUSTWORTHY y DB_CHAINING desactivados; originales conservados | Prueba Test-DeploymentJob.ps1 |
+
+Los archivos de evidencia, contraseña protegida y compilados se excluyen de Git. La confirmación del usuario acredita la compilación desde la interfaz; las operaciones de publicación automatizadas no se presentan como acciones manuales del usuario. El recorrido gráfico de publicación y ejecución del job todavía requiere su comprobación manual. La sección 8 mantiene la validación final y su matriz de escenarios pendientes.
+
+Publicación final comprobada: ambos perfiles nativos se ejecutaron con SqlPackage sobre las copias; se publicó el `Northwind.ispac` generado por la compilación gráfica confirmada por el usuario. La integración completa volvió a aprobarse con ese artefacto, incluidos fallos, recuperación, limpieza y originales conservados. Evidencia: `evidencias/despliegue/native-publication.txt`, `job-20261012-113125-602.json`, `comparacion-20261012-113125-769.json`. Los cuatro scripts SQL de SSMS pasaron TSql170Parser; los scripts PowerShell, perfiles XML y enlaces locales pasaron revisión.
+
+Sección 7 completada: **38 de 41 tareas**. Se mantiene pendiente la sección 8 de validación final. Los cambios de esta sección no se han enviado a Git.

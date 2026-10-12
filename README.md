@@ -1,6 +1,6 @@
 # Northwind en SQL Server
 
-Abre [01. Ejecutar el proyecto](docs/01-guia-practica.md). La práctica carga las copias de Northwind con SSIS y analiza las ventas con un modelo tabular SSAS. El job programado queda pendiente.
+Abre [01. Ejecutar el proyecto](docs/01-guia-practica.md). La práctica carga las copias de Northwind con SSIS y analiza las ventas con un modelo tabular SSAS. NorthwindBIJob ejecuta carga y procesamiento desde el servidor.
 
 | Guía | Uso |
 | --- | --- |
@@ -13,8 +13,9 @@ Abre [01. Ejecutar el proyecto](docs/01-guia-practica.md). La práctica carga la
 | [07](docs/07-ejecutar-ssis.md) | Abrir, configurar y ejecutar SSIS |
 | [08](docs/08-publicar-ssis.md) | Publicar en el catálogo del servidor |
 | [09](docs/09-procesar-y-consultar-olap.md) | Publicar, procesar y consultar el modelo tabular |
+| [10](docs/10-ejecutar-job.md) | Ejecutar, comprobar y programar el job |
 
-[Extracción](docs/referencias/extraccion.md). [Modelo DW](docs/referencias/modelo-dw.md). [Modelo OLAP](docs/referencias/modelo-olap.md). [Contrato de carga](docs/referencias/carga.md). [SSIS](docs/referencias/ssis.md). [Verificaciones](docs/validacion.md).
+[Arquitectura y BikeStores](docs/referencias/arquitectura.md). [Extracción](docs/referencias/extraccion.md). [Modelo DW](docs/referencias/modelo-dw.md). [Modelo OLAP](docs/referencias/modelo-olap.md). [Contrato de carga](docs/referencias/carga.md). [SSIS](docs/referencias/ssis.md). [Verificaciones](docs/validacion.md).
 
 ```powershell
 git clone --branch northwind https://github.com/JhairCJ/proyecto-sql-server.git

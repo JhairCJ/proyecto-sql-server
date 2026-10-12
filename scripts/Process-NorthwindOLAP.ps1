@@ -1,33 +1,21 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [string]$AnalysisServer = 'localhost',
     [ValidateSet('NorthwindOLAP_Test')]
     [string]$ModelDatabase = 'NorthwindOLAP_Test',
     [string]$WarehouseServer = 'localhost',
     [string]$WarehouseDatabase = 'Northwind_DW_Test',
-    [string]$LogDirectory = (Join-Path $PSScriptRoot '../docs/evidencias/olap')
+    [string]$LogDirectory
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
-$installations = & $vswhere -all -products '*' -property installationPath
-$installation = $installations | Where-Object {
-    Test-Path -LiteralPath (Join-Path $_ 'MSBuild/Business Intelligence Semantic Model/1.0/Microsoft.AnalysisServices.VSHostBuilder.targets')
-} | Select-Object -First 1
-if (-not $installation) {
-    throw 'Instala Visual Studio con la extensión Analysis Services Projects.'
+if ([string]::IsNullOrWhiteSpace($LogDirectory)) {
+    $LogDirectory = Join-Path $PSScriptRoot '../docs/evidencias/olap'
 }
-$assemblyDirectory = Join-Path $installation 'Common7/IDE/CommonExtensions/Microsoft/SSAS'
-if (-not ('Microsoft.AnalysisServices.Server' -as [type])) {
-    foreach ($assembly in @('Microsoft.AnalysisServices.Core.dll', 'Microsoft.AnalysisServices.dll', 'Microsoft.AnalysisServices.Tabular.dll')) {
-        if (-not (Test-Path -LiteralPath (Join-Path $assemblyDirectory $assembly))) {
-            throw "No se encontró '$assembly' en Analysis Services Projects."
-        }
-        Add-Type -Path (Join-Path $assemblyDirectory $assembly)
-    }
-}
+
+& (Join-Path $PSScriptRoot 'Import-NorthwindAnalysisServices.ps1') -Tabular
 
 New-Item -ItemType Directory -Path $LogDirectory -Force | Out-Null
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss-fff'

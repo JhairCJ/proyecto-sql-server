@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param([string]$Configuration = 'Development')
 
 Set-StrictMode -Version Latest

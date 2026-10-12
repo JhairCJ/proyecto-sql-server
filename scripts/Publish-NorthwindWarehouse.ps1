@@ -2,10 +2,15 @@
 param(
     [string]$Server='localhost',
     [string]$SqlPackagePath='C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\Extensions\Microsoft\SQLDB\DAC\SqlPackage.exe',
-    [string]$EvidenceDirectory=(Join-Path $PSScriptRoot '..\docs\evidencias\seccion-dw')
+    [string]$EvidenceDirectory
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
+$EvidenceDirectory = if ([string]::IsNullOrWhiteSpace($EvidenceDirectory)) {
+    Join-Path $PSScriptRoot '..\docs\evidencias\seccion-dw'
+} else {
+    $EvidenceDirectory
+}
 $repo=Split-Path $PSScriptRoot -Parent
 if(-not(Test-Path -LiteralPath $SqlPackagePath)){throw 'Falta SqlPackage: indique -SqlPackagePath de su instalacion SSDT.'}
 $msbuild='C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe'

@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param([string]$ProjectDirectory)
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
@@ -14,6 +14,7 @@ $folder=(Resolve-Path -LiteralPath $ProjectDirectory).Path
 $project=[Microsoft.SqlServer.Dts.Runtime.Project]::CreateProject()
 try{
  $project.Name='Northwind.ETL'
+ $project.Description='Northwind practice project managed by Publish-NorthwindETL.ps1.'
  $project.ProtectionLevel=[Microsoft.SqlServer.Dts.Runtime.DTSProtectionLevel]::DontSaveSensitive
  $project.TargetServerVersion=[Microsoft.SqlServer.Dts.Runtime.DTSTargetServerVersion]::SQLServer2025
  $ns=[Xml.XmlNamespaceManager]::new([Xml.NameTable]::new());$ns.AddNamespace('s','www.microsoft.com/SqlServer/SSIS')
