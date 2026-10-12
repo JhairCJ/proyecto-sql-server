@@ -12,12 +12,12 @@ USE [SSISDB];
 SET NOCOUNT ON;
 
 DECLARE @Folder sysname = N'Northwind';
-DECLARE @Environment sysname = N'Northwind_Test';
+DECLARE @Environment sysname = N'Northwind';
 DECLARE @Project sysname = N'Northwind.ETL';
 DECLARE @SourceServer nvarchar(128) = N'localhost';
-DECLARE @SourceDatabase sysname = N'Northwind_Test';
+DECLARE @SourceDatabase sysname = N'NorthWind';
 DECLARE @WarehouseServer nvarchar(128) = N'localhost';
-DECLARE @WarehouseDatabase sysname = N'Northwind_DW_Test';
+DECLARE @WarehouseDatabase sysname = N'Northwind_DW';
 DECLARE @LogDirectory nvarchar(4000) = N'C:\ProgramData\NorthwindBI\Logs';
 
 DECLARE @FolderMarker nvarchar(256) = N'Northwind practice folder managed by Publish-NorthwindETL.ps1.';
@@ -42,28 +42,33 @@ DECLARE @VariableSensitive bit;
 DECLARE @VariableDescription nvarchar(4000);
 DECLARE @ParameterCount int;
 
-IF @SourceDatabase <> N'Northwind_Test'
-   OR @WarehouseDatabase <> N'Northwind_DW_Test'
-    THROW 51000, 'Use only the marked Northwind_Test and Northwind_DW_Test copies.', 1;
-IF DB_ID(N'Northwind_Test') IS NULL OR DB_ID(N'Northwind_DW_Test') IS NULL
-    THROW 51000, 'The marked Northwind test databases must exist before configuring SSISDB.', 1;
-IF NOT EXISTS (
-    SELECT 1 FROM [Northwind_Test].sys.extended_properties
-    WHERE class = 0 AND name = N'NorthwindPracticeTestDatabase'
-      AND CONVERT(nvarchar(128), value) = N'NorthWind'
+IF NOT (
+       (@Environment = N'Northwind' AND @SourceDatabase = N'NorthWind' AND @WarehouseDatabase = N'Northwind_DW')
+    OR (@Environment = N'Northwind_Test' AND @SourceDatabase = N'Northwind_Test' AND @WarehouseDatabase = N'Northwind_DW_Test')
 )
-    THROW 51000, 'Northwind_Test is not the marked source copy.', 1;
-IF NOT EXISTS (
-    SELECT 1 FROM [Northwind_DW_Test].sys.extended_properties
-    WHERE class = 0 AND name = N'NorthwindPracticeTestDatabase'
-      AND CONVERT(nvarchar(128), value) = N'Northwind_DW'
-)
-    THROW 51000, 'Northwind_DW_Test is not the marked warehouse copy.', 1;
+    THROW 51000, 'Use the matching production pair NorthWind/Northwind_DW or test pair Northwind_Test/Northwind_DW_Test.', 1;
+IF DB_ID(@SourceDatabase) IS NULL OR DB_ID(@WarehouseDatabase) IS NULL
+    THROW 51000, 'Both configured Northwind databases must exist before configuring SSISDB.', 1;
 
-IF EXISTS (SELECT 1 FROM sys.databases
-    WHERE name IN (N'Northwind_Test',N'Northwind_DW_Test')
-      AND (is_trustworthy_on=1 OR is_db_chaining_on=1))
-    THROW 51000, 'The Northwind copies must retain database isolation.', 1;
+IF @Environment = N'Northwind_Test'
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM [Northwind_Test].sys.extended_properties
+        WHERE class = 0 AND name = N'NorthwindPracticeTestDatabase'
+          AND CONVERT(nvarchar(128), value) = N'NorthWind'
+    )
+        THROW 51000, 'Northwind_Test is not the marked source copy.', 1;
+    IF NOT EXISTS (
+        SELECT 1 FROM [Northwind_DW_Test].sys.extended_properties
+        WHERE class = 0 AND name = N'NorthwindPracticeTestDatabase'
+          AND CONVERT(nvarchar(128), value) = N'Northwind_DW'
+    )
+        THROW 51000, 'Northwind_DW_Test is not the marked warehouse copy.', 1;
+    IF EXISTS (SELECT 1 FROM sys.databases
+        WHERE name IN (@SourceDatabase, @WarehouseDatabase)
+          AND (is_trustworthy_on=1 OR is_db_chaining_on=1))
+        THROW 51000, 'The Northwind test copies must retain database isolation.', 1;
+END;
 
 /* Preflight existing objects before making any changes. */
 SELECT @FolderCount = COUNT(*),

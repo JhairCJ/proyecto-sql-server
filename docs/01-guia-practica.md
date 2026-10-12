@@ -1,29 +1,23 @@
 # 01. Ejecutar el proyecto
 
-## 1. Abrir y compilar
+La ruta principal trabaja con las bases reales `NorthWind` y `Northwind_DW`. Si es una computadora nueva o no existen las bases, empieza por los pasos 01 y 02 de la [guía paso a paso](<guia paso a paso.md>). Las copias `_Test` se reservan para pruebas automatizadas.
 
-En Visual Studio: **Archivo > Abrir > Proyecto o solución**, selecciona `Northwind.sln`. Después **Compilar > Recompilar solución**.
+## 1. Preparar una vez
 
-**Resultado:** cuatro proyectos correctos y cero errores. Si falta alguno, sigue [02](02-entorno.md).
+En Visual Studio, recompila `Northwind.sln`. Publica los extractores de OLTP siguiendo [03](03-preparar-origen.md) y prepara el DW siguiendo [05](05-preparar-dw.md).
 
-## 2. Preparar las bases, solo una vez
+## 2. Ejecutar la carga desde Visual Studio
 
-Sigue [03. Copias y extractores](03-pruebas-aisladas.md) y [05. Preparar DW](05-preparar-dw.md). Si ya tienes las copias publicadas y cargadas, omite este paso.
+Abre `Northwind.ETL`, confirma `NorthWind` como origen y `Northwind_DW` como destino, y ejecuta `CargarNorthwind.dtsx` siguiendo [07](07-ejecutar-ssis.md).
 
-## 3. Cargar y comprobar
+## 3. Comprobar
 
-Ejecuta `CargarNorthwind.dtsx` desde Visual Studio siguiendo [07](07-ejecutar-ssis.md). Comprueba las ventas en SSMS con [06](06-cargar-datos.md).
+En SSMS, revisa la carga en [06](06-cargar-datos.md).
 
-**Resultado:** 2.155 líneas, 830 pedidos, 51.317 unidades y neto 1.265.792,76 con los datos originales de Northwind.
+**Resultado:** 2.155 líneas, 830 pedidos, 51.317 unidades y 1.265.792,76 netos. Repetir la carga mantiene esos totales si el origen no cambió.
 
-## 4. Publicar y consultar
+## 4. Publicar y automatizar
 
-Sigue [08. Publicar SSIS](08-publicar-ssis.md) y [09. Publicar y consultar OLAP](09-procesar-y-consultar-olap.md).
+Publica SSIS en [08](08-publicar-ssis.md), implementa y consulta el modelo en [09](09-procesar-y-consultar-olap.md), y prueba el job de [10](10-ejecutar-job.md).
 
-**Resultado:** paquete disponible en SSISDB y consultas DAX con los mismos totales.
-
-## 5. Ejecutar el ciclo completo
-
-Sigue [10. Ejecutar el job](10-ejecutar-job.md).
-
-**Resultado:** carga y procesamiento correctos en el historial. Habilita el horario solo después de comprobar la ejecución manual.
+**Destinos:** `NorthWind` (origen), `Northwind_DW` (almacén SQL), `NorthwindOLAP` (modelo de Analysis Services). No restaures ni reinicies las bases reales para repetir la práctica.

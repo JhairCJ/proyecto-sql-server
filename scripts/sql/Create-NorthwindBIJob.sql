@@ -16,9 +16,9 @@ DECLARE @AnalysisServer nvarchar(128) = N'localhost';
 DECLARE @JobName sysname = N'NorthwindBIJob'; -- NorthwindBIJob or NorthwindBIJob_Test
 DECLARE @Folder sysname = N'Northwind';
 DECLARE @Project sysname = N'Northwind.ETL';
-DECLARE @Environment sysname = N'Northwind_Test';
+DECLARE @Environment sysname = N'Northwind';
 DECLARE @Package sysname = N'CargarNorthwind.dtsx';
-DECLARE @ModelDatabase sysname = N'NorthwindOLAP_Test';
+DECLARE @ModelDatabase sysname = N'NorthwindOLAP';
 DECLARE @EveryNDays int = 1;
 DECLARE @StartTime char(8) = '02:00:00'; -- HH:mm:ss, local SQL Server Agent time
 DECLARE @EnableJob bit = 0;
@@ -29,6 +29,10 @@ DECLARE @ScheduleName sysname = @JobName + N' Schedule';
 DECLARE @JobOwner sysname = SUSER_SNAME();
 DECLARE @JobId uniqueidentifier;
 DECLARE @EnvironmentReferenceId bigint;
+DECLARE @ExpectedSourceDatabase sysname = CASE WHEN @JobName = N'NorthwindBIJob_Test' THEN N'Northwind_Test' ELSE N'NorthWind' END;
+DECLARE @ExpectedWarehouseDatabase sysname = CASE WHEN @JobName = N'NorthwindBIJob_Test' THEN N'Northwind_DW_Test' ELSE N'Northwind_DW' END;
+DECLARE @ConfiguredSourceDatabase sysname;
+DECLARE @ConfiguredWarehouseDatabase sysname;
 DECLARE @ReferenceCount int;
 DECLARE @ScheduleId int;
 DECLARE @ScheduleCount int;
@@ -42,10 +46,11 @@ DECLARE @AnalysisCommand nvarchar(max);
 DECLARE @Command nvarchar(max);
 DECLARE @ExistingDescription nvarchar(512);
 
-IF @JobName NOT IN (N'NorthwindBIJob', N'NorthwindBIJob_Test')
-    THROW 51000, 'Use NorthwindBIJob or NorthwindBIJob_Test for this practice job.', 1;
-IF @ModelDatabase <> N'NorthwindOLAP_Test'
-    THROW 51000, 'This practice job is restricted to NorthwindOLAP_Test.', 1;
+IF NOT (
+       (@JobName = N'NorthwindBIJob' AND @Environment = N'Northwind' AND @ModelDatabase = N'NorthwindOLAP')
+    OR (@JobName = N'NorthwindBIJob_Test' AND @Environment = N'Northwind_Test' AND @ModelDatabase = N'NorthwindOLAP_Test')
+)
+    THROW 51000, 'Use NorthwindBIJob with Northwind/NorthwindOLAP, or NorthwindBIJob_Test with Northwind_Test/NorthwindOLAP_Test.', 1;
 IF @EveryNDays NOT BETWEEN 1 AND 365
     THROW 51000, 'EveryNDays must be between 1 and 365.', 1;
 IF TRY_CONVERT(time(0), @StartTime) IS NULL
@@ -92,6 +97,19 @@ WHERE f.name = @Folder
 
 IF @ReferenceCount <> 1 OR @EnvironmentReferenceId IS NULL
     THROW 51000, 'No unique owned SSIS project/environment/package reference was found. Publish Northwind.ETL first.', 1;
+
+SELECT
+    @ConfiguredSourceDatabase = MAX(CASE WHEN v.name = N'SourceDatabase' THEN CONVERT(nvarchar(128), v.value) END),
+    @ConfiguredWarehouseDatabase = MAX(CASE WHEN v.name = N'WarehouseDatabase' THEN CONVERT(nvarchar(128), v.value) END)
+FROM [SSISDB].[catalog].[environment_variables] AS v
+JOIN [SSISDB].[catalog].[environments] AS e ON e.environment_id = v.environment_id
+JOIN [SSISDB].[catalog].[folders] AS f ON f.folder_id = e.folder_id
+WHERE f.name = @Folder AND e.name = @Environment
+  AND v.name IN (N'SourceDatabase', N'WarehouseDatabase');
+
+IF ISNULL(@ConfiguredSourceDatabase, N'') <> @ExpectedSourceDatabase
+   OR ISNULL(@ConfiguredWarehouseDatabase, N'') <> @ExpectedWarehouseDatabase
+    THROW 51000, 'The SSIS environment database values do not match the selected production or test job.', 1;
 
 IF (SELECT COUNT(DISTINCT subsystem)
     FROM [msdb].[dbo].[syssubsystems]

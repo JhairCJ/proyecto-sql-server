@@ -10,6 +10,6 @@
       DTS:Retain="True"
       DTS:ConnectRetryCount="1"
       DTS:ConnectRetryInterval="5"
-      DTS:ConnectionString="Data Source=localhost;Initial Catalog=Northwind_Test;Provider=MSOLEDBSQL.1;Integrated Security=SSPI;Trust Server Certificate=True;" />
+      DTS:ConnectionString="Data Source=localhost;Initial Catalog=NorthWind;Provider=MSOLEDBSQL.1;Integrated Security=SSPI;Trust Server Certificate=True;" />
   </DTS:ObjectData>
 </DTS:ConnectionManager>

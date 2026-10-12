@@ -6,10 +6,11 @@ param(
     [string]$JobName = 'NorthwindBIJob',
     [string]$Folder = 'Northwind',
     [string]$Project = 'Northwind.ETL',
-    [string]$Environment = 'Northwind_Test',
+    [ValidateSet('Northwind', 'Northwind_Test')]
+    [string]$Environment,
     [string]$Package = 'CargarNorthwind.dtsx',
-    [ValidateSet('NorthwindOLAP_Test')]
-    [string]$ModelDatabase = 'NorthwindOLAP_Test',
+    [ValidateSet('NorthwindOLAP', 'NorthwindOLAP_Test')]
+    [string]$ModelDatabase,
     [ValidateRange(1, 365)]
     [int]$EveryNDays = 1,
     [ValidatePattern('^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$')]
@@ -20,6 +21,18 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+if ([string]::IsNullOrWhiteSpace($Environment)) {
+    $Environment = if ($JobName -eq 'NorthwindBIJob_Test') { 'Northwind_Test' } else { 'Northwind' }
+}
+if ([string]::IsNullOrWhiteSpace($ModelDatabase)) {
+    $ModelDatabase = if ($JobName -eq 'NorthwindBIJob_Test') { 'NorthwindOLAP_Test' } else { 'NorthwindOLAP' }
+}
+if (-not (
+    ($JobName -eq 'NorthwindBIJob' -and $Environment -eq 'Northwind' -and $ModelDatabase -eq 'NorthwindOLAP') -or
+    ($JobName -eq 'NorthwindBIJob_Test' -and $Environment -eq 'Northwind_Test' -and $ModelDatabase -eq 'NorthwindOLAP_Test')
+)) {
+    throw 'Use NorthwindBIJob with Northwind/NorthwindOLAP, or NorthwindBIJob_Test with Northwind_Test/NorthwindOLAP_Test.'
+}
 $jobMarker = 'Northwind practice job managed by Create-NorthwindBIJob.ps1.'
 $scheduleName = "$JobName Schedule"
 $startDate = [int](Get-Date -Format 'yyyyMMdd')
@@ -105,6 +118,24 @@ if (([string]$catalogRow.folder_description).Trim() -cne 'Northwind practice fol
     ([string]$catalogRow.environment_description).Trim() -cne 'Northwind practice environment managed by Publish-NorthwindETL.ps1.' -or
     [string]$catalogRow.reference_type -cne 'R' -or [long]$catalogRow.package_count -ne 1) {
     throw 'Folder, proyecto, entorno o paquete SSIS no coincide con los objetos propios esperados; no se creó el job.'
+}
+
+$expectedSourceDatabase = if ($JobName -eq 'NorthwindBIJob_Test') { 'Northwind_Test' } else { 'NorthWind' }
+$expectedWarehouseDatabase = if ($JobName -eq 'NorthwindBIJob_Test') { 'Northwind_DW_Test' } else { 'Northwind_DW' }
+$environmentValues = Get-SqlTable 'SSISDB' @'
+SELECT v.name, CONVERT(nvarchar(4000), v.value) AS value
+FROM catalog.environment_variables AS v
+JOIN catalog.environments AS e ON e.environment_id = v.environment_id
+JOIN catalog.folders AS f ON f.folder_id = e.folder_id
+WHERE f.name = @Folder AND e.name = @Environment
+  AND v.name IN (N'SourceDatabase', N'WarehouseDatabase');
+'@ @{ '@Folder' = $Folder; '@Environment' = $Environment }
+$sourceValue = @($environmentValues.Rows | Where-Object { [string]$_.name -ceq 'SourceDatabase' })
+$warehouseValue = @($environmentValues.Rows | Where-Object { [string]$_.name -ceq 'WarehouseDatabase' })
+if ($sourceValue.Count -ne 1 -or $warehouseValue.Count -ne 1 -or
+    [string]$sourceValue[0].value -cne $expectedSourceDatabase -or
+    [string]$warehouseValue[0].value -cne $expectedWarehouseDatabase) {
+    throw "El entorno '$Environment' no apunta a '$expectedSourceDatabase' y '$expectedWarehouseDatabase'; no se creó el job."
 }
 
 $subsystems = Get-SqlTable 'msdb' @'

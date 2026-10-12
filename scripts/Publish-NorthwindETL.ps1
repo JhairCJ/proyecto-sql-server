@@ -3,12 +3,13 @@ param(
     [string]$Server = 'localhost',
     [string]$SourceServer = 'localhost',
     [string]$WarehouseServer = 'localhost',
-    [ValidateSet('Northwind_Test')]
-    [string]$SourceDatabase = 'Northwind_Test',
-    [ValidateSet('Northwind_DW_Test')]
-    [string]$WarehouseDatabase = 'Northwind_DW_Test',
+    [ValidateSet('NorthWind', 'Northwind_Test')]
+    [string]$SourceDatabase = 'NorthWind',
+    [ValidateSet('Northwind_DW', 'Northwind_DW_Test')]
+    [string]$WarehouseDatabase = 'Northwind_DW',
     [string]$Folder = 'Northwind',
-    [string]$Environment = 'Northwind_Test',
+    [ValidateSet('Northwind', 'Northwind_Test')]
+    [string]$Environment = 'Northwind',
     [string]$LogDirectory = 'C:\ProgramData\NorthwindBI\Logs'
 )
 
@@ -68,6 +69,23 @@ IF @marker IS NULL OR @marker <> @ExpectedMarker
     THROW 51303, 'La base no es la copia aislada esperada; no se publicó el proyecto.', 1;
 '@
     [void](Invoke-Sql 'master' $query @{ '@Database' = $Database; '@ExpectedMarker' = $ExpectedMarker } -TargetServer $TargetServer)
+}
+
+function Assert-ProductionDatabase([string]$Database, [string]$ExpectedName, [string]$TargetServer) {
+    if ($Database -cne $ExpectedName) {
+        throw "La ruta de producción solo admite '$ExpectedName'; se recibió '$Database'."
+    }
+    $query = @'
+DECLARE @targetDatabase sysname = @Database;
+IF DB_ID(@targetDatabase) IS NULL THROW 51304, 'No existe la base real configurada para la práctica.', 1;
+DECLARE @marker nvarchar(128);
+DECLARE @sql nvarchar(max) = N'SELECT @marker = CONVERT(nvarchar(128), value) FROM '
+    + QUOTENAME(@targetDatabase) + N'.sys.extended_properties WHERE class = 0 AND name = N''NorthwindPracticeTestDatabase'';';
+EXEC sys.sp_executesql @sql, N'@marker nvarchar(128) OUTPUT', @marker OUTPUT;
+IF @marker IS NOT NULL AND @marker <> @ExpectedMarker
+    THROW 51305, 'La base real tiene una marca de copia incompatible; no se publicó el proyecto.', 1;
+'@
+    [void](Invoke-Sql 'master' $query @{ '@Database' = $Database; '@ExpectedMarker' = $ExpectedName } -TargetServer $TargetServer)
 }
 
 function Ensure-Folder {
@@ -147,8 +165,18 @@ if ($Folder -notmatch '^[A-Za-z0-9_. -]{1,128}$' -or $Environment -notmatch '^[A
 }
 if ([string]::IsNullOrWhiteSpace($LogDirectory)) { throw 'LogDirectory no puede estar vacío.' }
 
-Assert-TestDatabase $SourceDatabase 'NorthWind' $SourceServer
-Assert-TestDatabase $WarehouseDatabase 'Northwind_DW' $WarehouseServer
+$isProduction = $SourceDatabase -ceq 'NorthWind' -and $WarehouseDatabase -ceq 'Northwind_DW' -and $Environment -ceq 'Northwind'
+$isTest = $SourceDatabase -ceq 'Northwind_Test' -and $WarehouseDatabase -ceq 'Northwind_DW_Test' -and $Environment -ceq 'Northwind_Test'
+if (-not ($isProduction -or $isTest)) {
+    throw 'Use the matching production pair NorthWind/Northwind_DW/Northwind or test pair Northwind_Test/Northwind_DW_Test/Northwind_Test.'
+}
+if ($isProduction) {
+    Assert-ProductionDatabase $SourceDatabase 'NorthWind' $SourceServer
+    Assert-ProductionDatabase $WarehouseDatabase 'Northwind_DW' $WarehouseServer
+} else {
+    Assert-TestDatabase $SourceDatabase 'NorthWind' $SourceServer
+    Assert-TestDatabase $WarehouseDatabase 'Northwind_DW' $WarehouseServer
+}
 
 $catalogExists = Invoke-Sql 'master' "SELECT CONVERT(bit, CASE WHEN DB_ID(N'SSISDB') IS NULL THEN 0 ELSE 1 END);" @{} -Scalar
 if (-not [bool]$catalogExists) {

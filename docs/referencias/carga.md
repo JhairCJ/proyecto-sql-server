@@ -1,12 +1,12 @@
 # Aplicación, staging y recuperación
 
-La carga ejecutable actual es scripts/Load-NorthwindWarehouse.ps1, sobre Northwind_Test → Northwind_DW_Test. Sigue la secuencia de BikeStores: extracción, staging, dimensiones, hechos y control. Los paquetes SSIS reutilizarán este contrato; su ejecución aún no está implementada.
+La ruta principal ejecuta `CargarNorthwind.dtsx` desde Visual Studio o SSISDB sobre `NorthWind` → `Northwind_DW`. Sigue la secuencia de BikeStores: extracción, staging, dimensiones, hechos y control. `scripts/Load-NorthwindWarehouse.ps1` y las copias `_Test` sirven para pruebas automatizadas aisladas.
 
 Las tablas std son permanentes en SQL Server, pero sus filas son preparación reconstruible. No son tablas temporales #. Cada intento reemplaza únicamente el staging de su entidad; dimensiones, hechos y controles permanecen. Staging puede quedar parcial si falla el transporte y se reconstruye al reintentar.
 
 ## Contrato por entidad
 
-1. Abrir conexiones restringidas a copias marcadas y retener un bloqueo exclusivo de sesión, recurso Northwind.Warehouse.Load, en el DW. Un intento competidor falla sin modificar staging.
+1. Abrir conexiones al origen configurado y al DW, y retener un bloqueo exclusivo de sesión, recurso Northwind.Warehouse.Load, en el DW. Un intento competidor falla sin modificar staging.
 2. Fijar el corte confirmado con GetDatabaseRowVersion. Leer el control con GetLastPackageRowVersion; no inventa procesos ni interpreta controles ausentes como cero. Rechaza valores BINARY(8) no representables y destino comercial vacío con avance.
 3. Extraer el intervalo (marca anterior, corte] y poblar std. Los cambios de dependencias pueden incluir una marca propia antigua. Por ello, la aplicación verifica que las marcas disponibles estén presentes y no superen el corte, sin exigir que todas sean mayores al inicio.
 4. Llamar DW_ApplyPackage @PackageName, @StartRow, @EndRow, con marcas BIGINT. Acepta Cliente/Empleado/Producto/Transportista/Ventas y compara el inicio con el control actual. Un inicio incompatible, corte inferior o marca modificada aborta la carga.

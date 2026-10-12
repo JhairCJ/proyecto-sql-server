@@ -4,28 +4,28 @@
 
 Con el DW cargado, en SSMS conectado al motor `localhost`, abre `scripts/sql/Configure-NorthwindOLAPAccess.sql` y ejecuta con **F5**.
 
-**Resultado:** la cuenta `NT SERVICE\MSSQLServerOLAPService` puede leer las seis tablas del modelo en `Northwind_DW_Test`.
+**Resultado:** la cuenta `NT SERVICE\MSSQLServerOLAPService` puede leer las seis tablas de `Northwind_DW`.
 
 ## 2. Publicar desde Visual Studio
 
 1. Abre `Northwind.sln`. Clic derecho en `Northwind.OLAP` > **Propiedades**.
-2. En **Implementación / Deployment**, comprueba **Servidor = localhost**, **Base de datos = NorthwindOLAP_Test**; acepta.
-3. Abre `Northwind.OLAP.bim`. En **Explorador del modelo tabular > Orígenes de datos**, comprueba que `NorthwindDW` use `localhost` y `Northwind_DW_Test`.
+2. En **Implementación / Deployment**, comprueba **Servidor = localhost**, **Base de datos = NorthwindOLAP**; acepta.
+3. Abre `Northwind.OLAP.bim`. En **Explorador del modelo tabular > Orígenes de datos**, comprueba que `NorthwindDW` use `localhost` y `Northwind_DW`.
 4. Clic derecho en `Northwind.OLAP` > **Implementar / Deploy**. Espera el mensaje de implementación correcta.
 
-**Resultado:** `NorthwindOLAP_Test` aparece en SSMS al conectar a **Analysis Services > localhost**.
+**Resultado:** `NorthwindOLAP` aparece en SSMS al conectar a **Analysis Services > localhost**.
 
 ## 3. Procesar desde SSMS
 
 1. En SSMS: **Conectar > Analysis Services**, servidor `localhost`, autenticación Windows.
-2. Actualiza **Bases de datos**. Clic derecho en `NorthwindOLAP_Test` > **Procesar base de datos / Process Database**.
+2. Actualiza **Bases de datos**. Clic derecho en `NorthwindOLAP` > **Procesar base de datos / Process Database**.
 3. Selecciona **Procesar completo / Process Full**, pulsa **Aceptar** y espera el resultado correcto.
 
 Repite este paso después de cada nueva carga SSIS; si ejecutas el job de [10](10-ejecutar-job.md), su segundo paso ya procesa el modelo.
 
 ## 4. Consultar
 
-Selecciona `NorthwindOLAP_Test` y abre **Nueva consulta > DAX**. Ejecuta con **F5**:
+Selecciona `NorthwindOLAP` y abre **Nueva consulta > DAX**. Ejecuta con **F5**:
 
 ```DAX
 EVALUATE

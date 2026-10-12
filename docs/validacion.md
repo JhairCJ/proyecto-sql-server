@@ -1,5 +1,9 @@
 # Registro de validación
 
+## Alcance de la validación y destino actual
+
+Las ejecuciones y evidencias históricas de este registro se hicieron con `Northwind_Test` y `Northwind_DW_Test`; no demuestran que se haya cargado el almacén real. La configuración principal del proyecto ahora apunta a `NorthWind`, `Northwind_DW` y `NorthwindOLAP`. Al revisar el equipo antes de este cambio, `NorthWind` estaba en línea con 830 pedidos y 2.155 líneas, y `Northwind_DW` estaba en línea pero sin hechos cargados. `NorthwindBIJob` y `NorthwindOLAP_Test` todavía apuntaban a las copias; no se modificaron las bases reales durante esta actualización de archivos. Para publicar y ejecutar el recorrido real, sigue [la guía paso a paso](<guia paso a paso.md>).
+
 ## Segmento 01 — Entorno y referencia inicial
 
 Fecha: 11 de octubre de 2026. Tareas: **1.1, 1.2 y 1.4**. Consultas de lectura y compilación local; no se publicaron esquemas ni se ejecutaron cargas en las bases del usuario.

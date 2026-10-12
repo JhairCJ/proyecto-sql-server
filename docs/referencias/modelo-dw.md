@@ -13,7 +13,7 @@ Northwind.DW es el propietario declarativo de los objetos del almacén. Northwin
 
 Cliente desconocido: SK 0, CustomerID ~UNK~. Empleado desconocido: SK 0, EmployeeID 0. Fecha desconocida: SK 0, 1900-01-01, excluida del calendario real. Los controles y miembros se crean solo si faltan. Las dimensiones son tipo 1: cambian atributos conservando SK, sin historia. Precio y descuento son DECIMAL(19,4)/DECIMAL(9,6), cantidad SMALLINT positiva. Las restricciones rechazan duplicados, precio negativo, descuento fuera de 0..1 y claves inexistentes.
 
-DW_LoadDimTiempo usa el rango de las tres fechas de staging o parámetros explícitos; genera días continuos, nombres españoles independientes de idioma/DATEFIRST y amplía sin duplicar. La publicación prepara el rango observado en Northwind_Test.
+DW_LoadDimTiempo usa el rango de las tres fechas de staging o parámetros explícitos; genera días continuos, nombres españoles independientes de idioma/DATEFIRST y amplía sin duplicar. La preparación de la práctica usa el rango observado en NorthWind.
 
 Regla monetaria por línea: bruto = ROUND(cantidad × precio,2); descuento monetario = ROUND(bruto × proporción normalizada a seis decimales,2); neto = bruto − descuento monetario. SQL ROUND aleja los empates de cero. Los totales suman resultados por línea. DW_CalculateAmounts aplica la regla; las verificaciones calculan una referencia independiente sobre OrderDetails. Freight no se repite y el precio de catálogo no interviene. Ejemplo: cantidad 10, precio 20, descuento 0,1 → 200/20/180. Precio 0,0050 por una unidad → bruto 0,01; bruto 1 con proporción 0,005000 → descuento 0,01.
 
@@ -31,7 +31,7 @@ La migración deriva ProductID desde Dim_Producto antes de hacerla obligatoria, 
 | OLTP/Scripts/DW_Merge.sql, procedimiento de hechos | Northwind.DW/dbo/Procedures/DW_MergeFactVentas.sql | Aplicación compilada, claves validadas y actualización por pedido/producto |
 | OLTP/PostDeploy VerificarPackages.sql | Retirado | El OLTP no consulta ni configura el DW al publicarse |
 
-La publicación actualiza el procedimiento de hechos al contrato compilado. Publicar prepara esquema/calendario; Load-NorthwindWarehouse.ps1 puebla entidades comerciales mediante DW_ApplyPackage. El contrato de aplicación y recuperación está en [carga](carga.md).
+La publicación actualiza el procedimiento de hechos al contrato compilado. Publicar prepara el esquema; poblar el calendario y ejecutar `CargarNorthwind.dtsx` en Visual Studio carga las entidades comerciales de `NorthWind` en `Northwind_DW`. Las pruebas automatizadas usan `Load-NorthwindWarehouse.ps1` y copias aisladas. El contrato de aplicación y recuperación está en [carga](carga.md).
 
 BikeStores: OLTP ↔ Northwind.OLTP; DW/staging/control ↔ Northwind.DW; ETL ↔ Northwind.ETL; tabular ↔ Northwind.OLAP; Agent ↔ NorthwindBIJob. No hay tiendas equivalentes; Northwind usa transportistas.
 

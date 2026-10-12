@@ -797,7 +797,7 @@
       <DTS:ObjectData>
         <SQLTask:SqlTaskData
           SQLTask:Connection="{1D8C7EF7-DAF1-4DE3-8127-36946FB9AFEF}"
-          SQLTask:SqlStatementSource="IF NOT EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'NorthwindPracticeTestDatabase' AND CONVERT(nvarchar(128),value)=N'Northwind_DW') THROW 51002,'SSIS: se requiere una copia de practica marcada.',1;DECLARE @r int;EXEC @r=sys.sp_getapplock @Resource=N'Northwind.Warehouse.Load',@LockMode=N'Exclusive',@LockOwner=N'Session',@LockTimeout=0;IF @r&lt;0 THROW 52402,'DW ocupado por otra carga; staging intacto.',1;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+          SQLTask:SqlStatementSource="IF DB_NAME()&lt;&gt;N'Northwind_DW' AND NOT EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'NorthwindPracticeTestDatabase' AND CONVERT(nvarchar(128),value)=N'Northwind_DW') THROW 51002,'SSIS: use Northwind_DW o una copia de practica identificada.',1;DECLARE @r int;EXEC @r=sys.sp_getapplock @Resource=N'Northwind.Warehouse.Load',@LockMode=N'Exclusive',@LockOwner=N'Session',@LockTimeout=0;IF @r&lt;0 THROW 52402,'DW ocupado por otra carga; staging intacto.',1;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
       </DTS:ObjectData>
     </DTS:Executable>
     <DTS:Executable
@@ -815,7 +815,7 @@
       <DTS:ObjectData>
         <SQLTask:SqlTaskData
           SQLTask:Connection="{36408304-1EEF-431A-A523-4229BE67C90E}"
-          SQLTask:SqlStatementSource="IF NOT EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'NorthwindPracticeTestDatabase' AND CONVERT(nvarchar(128),value)=N'NorthWind') THROW 51002,'SSIS: se requiere una copia de practica marcada.',1;EXEC dbo.GetDatabaseRowVersion;"
+          SQLTask:SqlStatementSource="IF DB_NAME()&lt;&gt;N'NorthWind' AND NOT EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'NorthwindPracticeTestDatabase' AND CONVERT(nvarchar(128),value)=N'NorthWind') THROW 51002,'SSIS: use NorthWind o una copia de practica identificada.',1;EXEC dbo.GetDatabaseRowVersion;"
           SQLTask:ResultType="ResultSetType_SingleRow" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
           <SQLTask:ResultBinding
             SQLTask:ResultName="0"

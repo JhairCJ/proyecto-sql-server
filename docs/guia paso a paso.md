@@ -1,150 +1,139 @@
-# Guía paso a paso para ejecutar Northwind
+# Guía paso a paso para ejecutar Northwind en las bases reales
 
-Esta guía explica el recorrido completo usando Visual Studio y SQL Server Management Studio (SSMS): desde abrir la solución hasta ejecutar el job y verificar las ventas. También explica cómo volver a empezar sin borrar datos y cómo restablecer las copias de práctica si realmente necesitas una carga limpia.
+Esta guía comienza en un equipo Windows sin las bases de la práctica. El recorrido principal trabaja con `NorthWind` y `Northwind_DW`; las copias `_Test` se reservan para pruebas automatizadas. Si ya tienes instalado alguno de los programas, no lo instales otra vez: comprueba su servicio y versión y sigue desde el primer paso que te falte.
 
-## Antes de comenzar
+| Nombre | Programa | Uso en esta práctica |
+| --- | --- | --- |
+| `NorthWind` | Motor de base de datos SQL Server | Origen de clientes, empleados, productos, transportistas y pedidos. Se restaura desde el archivo incluido en el proyecto. |
+| `Northwind_DW` | Motor de base de datos SQL Server | Almacén de datos. Se crea vacío y el proyecto DW crea su esquema. |
+| `SSISDB` | Catálogo de Integration Services en SQL Server | Guarda los paquetes publicados y sus parámetros de ejecución. |
+| `NorthwindOLAP` | Analysis Services, modo Tabular | Modelo analítico que lee `Northwind_DW`; no es una base del motor relacional. |
+| `NorthwindBIJob` | SQL Server Agent | Ejecuta la carga SSIS y después procesa `NorthwindOLAP`. |
 
-La solución se encuentra en la carpeta `practica sql server` y el archivo que debes abrir es `Northwind.sln`. Los cuatro proyectos son:
+## 01. Prepara los archivos e instala los programas
 
-| Proyecto | Función |
-| --- | --- |
-| `Northwind.OLTP` | Procedimientos que extraen los cambios desde Northwind. |
-| `Northwind.DW` | Tablas de staging, dimensiones, ventas y controles de carga. |
-| `Northwind.ETL` | Paquetes SSIS que mueven los datos al almacén. |
-| `Northwind.OLAP` | Modelo tabular que permite consultar las ventas con DAX. |
+Esta guía es para Windows. Haz las instalaciones con una cuenta administradora.
 
-La ejecución usa estas bases:
+1. Usa la carpeta completa que recibiste con el proyecto; confirma que estén `Northwind.sln` y `Files/NorthWind.bak`. Si la recibiste como ZIP, en el Explorador de archivos pulsa **Extraer todo** antes de abrirla. No descargues solo el archivo `.sln` ni crees una solución o proyectos nuevos.
+2. Si SQL Server aún no está instalado, descárgalo desde [Descargas de SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads). Para esta práctica local, selecciona **Developer**; no uses Express porque esta práctica necesita SQL Server Agent y Analysis Services. En el instalador, elige una instalación nueva y, en **Selección de características / Feature Selection**, marca **Database Engine Services** y **Integration Services**.
+3. En **Configuración de instancia / Instance Configuration**, elige **Instancia predeterminada / Default instance** (`MSSQLSERVER`). En **Configuración del motor de base de datos / Database Engine Configuration**, elige **Autenticación de Windows / Windows authentication** y pulsa **Agregar usuario actual / Add Current User**. Así podrás conectar con `localhost` y publicar desde tu sesión.
+4. En SQL Server Setup instala también **Analysis Services**. En **Configuración de Analysis Services**, selecciona el modo **Tabular** y agrega tu usuario de Windows como administrador. Usa la instancia predeterminada para conectar con `localhost`.
+5. Instala [SQL Server Management Studio (SSMS)](https://learn.microsoft.com/en-us/ssms/download-sql-server-management-studio-ssms/). Se usa para restaurar y crear bases, y para administrar SSISDB, Analysis Services y SQL Server Agent.
+6. Instala [Visual Studio 2026 Community](https://visualstudio.microsoft.com/vs/community/). Esta solución apunta a SQL Server 2025. En **Visual Studio Installer > Modificar**, marca **SQL Server Data Tools** dentro de **Almacenamiento y procesamiento de datos / Data storage and processing**.
+7. En Visual Studio, abre **Extensiones > Administrar extensiones**. Busca e instala **Microsoft Analysis Services Projects** y **SQL Server Integration Services Projects**. Cierra y vuelve a abrir Visual Studio cuando lo solicite.
+8. En la [página de descarga de Microsoft OLE DB Driver](https://learn.microsoft.com/en-us/sql/connect/oledb/download-oledb-driver-for-sql-server), abre **Previous releases** y descarga la versión **18.x x64**. Este proyecto usa el proveedor `MSOLEDBSQL.1` de la versión 18. La versión 19 se instala en paralelo, pero usa el nombre `MSOLEDBSQL19.1` y requeriría cambiar ambos administradores de conexión; no selecciones `SQLNCLI11`.
 
-| Base | Uso |
-| --- | --- |
-| `NorthWind` | Base operativa original; se conserva intacta. |
-| `Northwind_DW` | Almacén original; se conserva intacto. |
-| `Northwind_Test` | Copia de práctica del origen. |
-| `Northwind_DW_Test` | Copia de práctica del almacén. |
+**Resultado:** en **Inicio > Servicios** aparecen **SQL Server (MSSQLSERVER)**, **SQL Server Agent (MSSQLSERVER)** y **SQL Server Analysis Services (MSSQLSERVER)**; Integration Services quedó instalado como componente de SQL Server. SSMS conecta al **Motor de base de datos** y a **Analysis Services** usando servidor `localhost` y autenticación Windows. Para confirmar los pasos actuales de instalación, consulta [instalar SQL Server](https://learn.microsoft.com/en-us/sql/database-engine/install-windows/install-sql-server-from-the-installation-wizard-setup), [instalar Integration Services](https://learn.microsoft.com/en-us/sql/integration-services/install-windows/install-integration-services), [instalar Analysis Services](https://learn.microsoft.com/en-us/analysis-services/instances/install-windows/install-analysis-services) y [SSDT y sus extensiones](https://learn.microsoft.com/en-us/sql/ssdt/download-sql-server-data-tools-ssdt).
 
-Todas las publicaciones y cargas de esta guía deben apuntar a las bases que terminan en `_Test`. No selecciones `NorthWind` ni `Northwind_DW` como destino.
+## 02. Restaura NorthWind y crea Northwind_DW
 
-Necesitas SQL Server Database Engine, SQL Server Agent, Analysis Services instalado en modo **Tabular**, SSMS, Visual Studio con SSDT, las extensiones **SQL Server Integration Services Projects** y **Microsoft Analysis Services Projects**, y **Microsoft OLE DB Driver for SQL Server**. Para SSIS usa el proveedor `MSOLEDBSQL.1`; `SQLNCLI11` no está instalado en este equipo.
+Si una de estas bases ya existe y contiene datos, no la restaures encima ni la reemplaces.
 
-## Elige cómo empezar
+### 02.1 Restaura la base de origen NorthWind
 
-### A. Volver a abrir el proyecto después de cerrar Visual Studio o reiniciar Windows
+1. En el Explorador de archivos, confirma que exista `Files/NorthWind.bak` dentro de la carpeta del proyecto.
+2. En SSMS, conecta al **Motor de base de datos > localhost**. Haz clic derecho en el nombre del servidor > **Propiedades > Configuración de base de datos / Database Settings** y anota las rutas predeterminadas de **Datos** y **Copias de seguridad**.
+3. Copia `Files/NorthWind.bak` a la ruta predeterminada de copias de seguridad. SQL Server lee el archivo desde su propio servicio; restaurar directamente desde el Escritorio puede producir «Operating system error 5 (Access is denied)».
+4. En SSMS, clic derecho en **Bases de datos > Restaurar base de datos / Restore Database**. En **Origen / Source**, selecciona **Dispositivo / Device**, pulsa `...`, elige **Agregar / Add** y selecciona `NorthWind.bak` desde la carpeta de copias de seguridad.
+5. En **Destino / Destination**, escribe exactamente `NorthWind`. Abre **Archivos / Files**, marca **Reubicar todos los archivos a una carpeta / Relocate all files to folder** y selecciona la ruta de datos anotada en el paso 2. Si SSMS pide una carpeta para el archivo de registro, selecciona la ruta de registro predeterminada que muestra **Database Settings**.
+6. En **Opciones / Options**, deja desmarcada **Sobrescribir la base de datos existente (WITH REPLACE)**. Pulsa **Aceptar** y espera **Database restored successfully**.
 
-No restaures ni borres ninguna base. Continúa con los pasos 1 y 2 y luego usa la **opción 2 del paso 11** para ejecutar el ciclo completo desde SSMS. La carga incremental detecta qué cambió y se puede repetir.
+Si `NorthWind` ya aparece en **Bases de datos**, omite la restauración y verifica que sea la base Northwind de la práctica. Si no estás seguro de su contenido, detente; no la sobrescribas.
 
-### B. Preparar el proyecto por primera vez en otra computadora
+### 02.2 Crea la base vacía Northwind_DW
 
-Sigue los pasos del 1 al 10 para configurar y publicar por primera vez; después realiza el paso 11 para ejecutar y comprobar el proyecto. El equipo debe tener las dos bases originales `NorthWind` y `Northwind_DW`, además de los programas y servicios mencionados arriba.
+1. En el Explorador de objetos, clic derecho en **Bases de datos > Nueva base de datos / New Database**.
+2. En **Nombre de la base de datos / Database name**, escribe `Northwind_DW`.
+3. Abre **Opciones / Options**, selecciona la intercalación `Modern_Spanish_CI_AS` y deja las rutas y tamaños de archivos con los valores predeterminados.
+4. Pulsa **Aceptar**. No crees tablas manualmente ni restaures `NorthWind.bak` en `Northwind_DW`: la publicación del proyecto DW creará el esquema y sus datos iniciales.
 
-### C. Volver al estado inicial de las copias de práctica
+Si `Northwind_DW` ya existe, no la crees de nuevo ni la vacíes. El paso 07 explica cómo continuar si está vacía o si conserva tablas de una versión anterior de la práctica.
 
-Esto reemplaza el contenido de `Northwind_Test` y `Northwind_DW_Test`. No lo hagas para una ejecución normal. Confirma que las bases originales estén disponibles y que el job no se esté ejecutando. Haz el restablecimiento de copias del paso 12; luego repite los pasos 3 al 10 y termina con el paso 11. No borres ni restaures sobre las bases originales.
+### 02.3 Comprueba las bases
 
-## 1. Iniciar los servicios y abrir la solución
+En SSMS, abre **Nueva consulta**, selecciona el motor `localhost` y ejecuta con **F5**:
 
-### 1.1 Comprobar servicios de Windows
+```sql
+SELECT name,state_desc
+FROM sys.databases
+WHERE name IN (N'NorthWind',N'Northwind_DW');
 
-1. Abre **Inicio**, escribe **Servicios** y abre la aplicación.
-2. Busca **SQL Server (MSSQLSERVER)**. Debe tener estado **En ejecución / Running**. Si está detenido, clic derecho > **Iniciar / Start**.
-3. Busca **SQL Server Agent (MSSQLSERVER)**. Debe estar en ejecución para usar el job. Si está detenido, clic derecho > **Iniciar**.
-4. Busca **SQL Server Analysis Services (MSSQLSERVER)**. Debe estar en ejecución para publicar, procesar y consultar el modelo. Si está detenido, clic derecho > **Iniciar**.
+SELECT COUNT(*) AS Pedidos FROM NorthWind.dbo.Orders;
+SELECT COUNT(*) AS Lineas FROM NorthWind.dbo.OrderDetails;
+SELECT COUNT(*) AS TablasDW FROM Northwind_DW.sys.tables;
+```
 
-Si alguno de esos servicios no aparece, revisa la instalación de SQL Server antes de continuar. Analysis Services debe estar instalado como **Tabular**, no como Multidimensional.
+**Resultado de una instalación nueva:** ambas bases aparecen `ONLINE`; `NorthWind` tiene 830 pedidos y 2.155 líneas; `Northwind_DW` tiene 0 tablas. Si aparecen tablas del DW, conserva los datos y sigue la rama correspondiente del paso 07.
 
-### 1.2 Abrir y compilar
+## 03. Inicia servicios y confirma las bases
+
+1. Abre **Inicio**, busca **Servicios** y comprueba que estén iniciados **SQL Server (MSSQLSERVER)** y **SQL Server Analysis Services (MSSQLSERVER)**. Para crear o ejecutar el job, inicia también **SQL Server Agent (MSSQLSERVER)**.
+2. Abre SSMS. En **Conectar > Motor de base de datos**, usa servidor `localhost` y autenticación **Windows**. Si aparece el aviso del certificado local, marca **Confiar en el certificado del servidor**.
+3. En **Explorador de objetos > Bases de datos**, confirma que existan `NorthWind` y `Northwind_DW`.
+4. Abre **Nueva consulta** y ejecuta esta comprobación de solo lectura con **F5**:
+
+```sql
+SELECT name, state_desc
+FROM sys.databases
+WHERE name IN (N'NorthWind',N'Northwind_DW');
+
+SELECT COUNT(*) AS Pedidos FROM NorthWind.dbo.Orders;
+SELECT COUNT(*) AS Lineas FROM NorthWind.dbo.OrderDetails;
+SELECT COUNT(*) AS TablasDW FROM Northwind_DW.sys.tables;
+```
+
+**Resultado:** ambas bases aparecen `ONLINE`; `NorthWind` tiene 830 pedidos y 2.155 líneas. En una instalación nueva `Northwind_DW` tiene 0 tablas; si reutilizas un DW existente, aquí pueden aparecer tablas.
+
+## 04. Abre y recompila la solución
 
 1. Abre Visual Studio.
 2. Selecciona **Archivo > Abrir > Proyecto o solución**.
-3. Navega a la carpeta del repositorio y abre `Northwind.sln`.
-4. Abre **Ver > Explorador de soluciones**. Expande la solución y comprueba que aparezcan `Northwind.OLTP`, `Northwind.DW`, `Northwind.ETL` y `Northwind.OLAP`. Ninguno debe indicar **Incompatible** ni **Descargado**.
-5. Selecciona **Compilar > Recompilar solución / Build > Rebuild Solution**.
-6. Selecciona **Ver > Salida / View > Output** y, en la lista **Mostrar salida de**, elige **Compilación / Build**.
+3. Abre `Northwind.sln` dentro de la carpeta local donde guardaste el proyecto.
+4. Abre **Ver > Explorador de soluciones**. Debes ver los proyectos `Northwind.OLTP`, `Northwind.DW`, `Northwind.ETL` y `Northwind.OLAP` cargados.
+5. Selecciona **Compilar > Recompilar solución**.
+6. Abre **Ver > Salida** y, en la lista **Mostrar salida de**, selecciona **Compilación / Build**.
 
-**Resultado esperado:** `Rebuild All: 4 succeeded, 0 failed, 0 skipped`, sin errores. Visual Studio crea el paquete de publicación SSIS en `Northwind.ETL/bin/Development/Northwind.ispac`.
+**Resultado:** `Rebuild All: 4 succeeded, 0 failed, 0 skipped` y cero errores. Si un proyecto aparece descargado o incompatible, consulta [02. Configurar el entorno](02-entorno.md) antes de continuar.
 
-Si los proyectos ETL/OLAP no cargan, instala sus extensiones en **Extensiones > Administrar extensiones** y reinicia Visual Studio cuando lo pida. Si aparece un error sobre `SQLNCLI11`, conserva el controlador **Microsoft OLE DB Driver for SQL Server** y revisa que las conexiones usen `MSOLEDBSQL.1`.
+## 05. Publica los extractores en NorthWind
 
-## 2. Conectarse a SQL Server y Analysis Services
+1. En el Explorador de soluciones, haz clic derecho en `Northwind.OLTP` y elige **Publicar**.
+2. En la ventana de publicación, pulsa **Cargar perfil / Load Profile**.
+3. Selecciona `Northwind.OLTP/Properties/PublishProfiles/NorthWind.publish.xml`.
+4. Verifica que el servidor sea `localhost` y la base de destino `NorthWind`.
+5. Pulsa **Generar script / Generate Script**. Comprueba el destino indicado en la parte superior del script. El perfil bloquea cambios con posible pérdida de datos y no elimina objetos que no pertenezcan al proyecto.
+6. Regresa a la ventana de publicación y pulsa **Publicar / Publish**. Espera el mensaje de publicación correcta.
 
-### 2.1 Conexión al motor SQL
-
-1. Abre SSMS.
-2. En **Conectar al servidor**, elige **Tipo de servidor: Motor de base de datos**.
-3. Escribe `localhost` como nombre del servidor.
-4. Elige **Autenticación de Windows** y pulsa **Conectar**.
-5. En **Explorador de objetos > Bases de datos**, comprueba que existan `NorthWind` y `Northwind_DW`.
-
-Si SSMS muestra advertencia del certificado local, marca **Confiar en el certificado del servidor / Trust server certificate** y vuelve a conectar.
-
-### 2.2 Conexión a Analysis Services
-
-1. En el **Explorador de objetos**, pulsa **Conectar > Analysis Services**.
-2. Escribe `localhost`, deja **Autenticación de Windows** y conecta.
-3. Confirma que el servidor se identifica como instancia Tabular y que puedes expandir sus bases de datos.
-
-Las conexiones de Motor de base de datos y Analysis Services son conexiones distintas; usa el tipo correcto al abrir cada una.
-
-## 3. Crear o reutilizar las copias de práctica
-
-Si ya ves `Northwind_Test` y `Northwind_DW_Test` en el Explorador de objetos y son las copias marcadas de esta práctica, no las restaures otra vez. Continúa con 3.3 para confirmar la identificación.
-
-### 3.1 Crear copia `Northwind_Test`
-
-1. En SSMS, conectado al **Motor de base de datos**, expande **Bases de datos**.
-2. Clic derecho en `NorthWind` > **Tareas > Copia de seguridad**.
-3. Deja el tipo **Completa**. En **Destino**, agrega un archivo `.bak` en una carpeta donde la cuenta del servicio SQL Server pueda escribir y pulsa **Aceptar**.
-4. Cuando termine la copia, clic derecho en **Bases de datos** > **Restaurar base de datos**.
-5. En **Origen**, selecciona **Dispositivo**, pulsa el botón de exploración `...`, agrega el `.bak` recién creado y acepta.
-6. En **Destino**, escribe `Northwind_Test` como **Base de datos**.
-7. Abre la página **Archivos**. Cambia la ruta física de cada archivo restaurado para que tenga un nombre nuevo, por ejemplo `Northwind_Test.mdf` y `Northwind_Test_log.ldf`. No permitas que la ruta coincida con los archivos de `NorthWind`.
-8. Revisa que el nombre de destino diga exactamente `Northwind_Test` y pulsa **Aceptar**.
-
-### 3.2 Crear copia `Northwind_DW_Test`
-
-Repite el procedimiento anterior usando `Northwind_DW` como base de origen, el nombre `Northwind_DW_Test` como destino y archivos físicos propios, por ejemplo `Northwind_DW_Test.mdf` y `Northwind_DW_Test_log.ldf`.
-
-### 3.3 Identificar y aislar las copias
-
-1. En SSMS selecciona **Archivo > Abrir > Archivo** y abre `scripts/sql/Identify-NorthwindCopies.sql` dentro del repositorio.
-2. Comprueba que la conexión activa sea el motor `localhost`.
-3. Pulsa **Ejecutar / Execute (F5)**.
-4. Lee los mensajes y resultados de las dos bases.
-
-**Resultado esperado:** el script informa que las copias están identificadas. Este paso comprueba el nombre y los objetos esperados, agrega la marca de práctica cuando falta, mantiene `TRUSTWORTHY` y `DB_CHAINING` apagados y configura el usuario restringido que necesitan las pruebas. Si el script dice que la base no es la copia esperada, detente; no cambies el nombre de destino a la base original para evitar la guarda.
-
-## 4. Publicar los extractores de Northwind
-
-Los extractores son procedimientos almacenados del proyecto `Northwind.OLTP`. Se publican en la copia operativa, no en `NorthWind`.
-
-1. En Visual Studio, localiza el proyecto `Northwind.OLTP` en el Explorador de soluciones.
-2. Clic derecho en `Northwind.OLTP` > **Publicar / Publish**.
-3. En la ventana de publicación, pulsa **Cargar perfil / Load Profile** y abre `Northwind.OLTP/Properties/PublishProfiles/Northwind_Test.publish.xml`.
-4. Confirma el servidor `localhost` y la base destino `Northwind_Test`.
-5. Pulsa **Generar script / Generate Script**. Revisa la cabecera del script: servidor `localhost`, destino `Northwind_Test`.
-6. Vuelve a la ventana de publicación y pulsa **Publicar / Publish**. Espera el mensaje de publicación correcta.
-
-### 4.1 Comprobar los procedimientos
-
-En SSMS, abre **Nueva consulta / New Query**, confirma la conexión `localhost` y ejecuta:
+Para comprobarlo en SSMS, conéctate al **Motor de base de datos > localhost**, abre **Nueva consulta** y ejecuta:
 
 ```sql
-USE Northwind_Test;
-SELECT COUNT(*) AS Clientes FROM dbo.Customers;
+USE NorthWind;
+SELECT name
+FROM sys.procedures
+WHERE name IN (N'GetDatabaseRowVersion',N'GetCustomerChangesByRowVersion',
+ N'GetEmployeeChangesByRowVersion',N'GetProductChangesByRowVersion',
+ N'GetShipperChangesByRowVersion',N'GetSalesChangesByRowVersion',
+ N'RowVersionToBigInt',N'BigIntToRowVersion')
+ORDER BY name;
+SELECT COUNT(*) AS Pedidos FROM dbo.Orders;
 SELECT COUNT(*) AS Lineas FROM dbo.OrderDetails;
-SELECT name FROM sys.procedures WHERE name LIKE N'%RowVersion%' ORDER BY name;
 ```
 
-**Resultado de referencia:** 91 clientes, 2.155 líneas y ocho procedimientos auxiliares/de extracción.
+**Resultado:** aparecen ocho procedimientos; siguen existiendo los mismos 830 pedidos y 2.155 líneas. Si falta uno, repite la publicación de `Northwind.OLTP` con el perfil `NorthWind.publish.xml`.
 
-### 4.2 (Opcional) Ver las filas que leen los extractores
+## 06. Ejecuta los extractores para ver los datos que leerá SSIS
 
-Esta demostración consulta las filas de origen; por sí sola no llena el DW.
+Este paso consulta el origen; todavía no carga el DW.
+
+1. En SSMS, conéctate al **Motor de base de datos > localhost**.
+2. Abre **Nueva consulta** y selecciona `NorthWind` en la lista de bases.
+3. Ejecuta con **F5**:
 
 ```sql
-USE Northwind_Test;
-DECLARE @cut TABLE(DBTS bigint);
-INSERT @cut EXEC dbo.GetDatabaseRowVersion;
-DECLARE @fin bigint=(SELECT DBTS FROM @cut);
+USE NorthWind;
+DECLARE @corte table(DBTS bigint);
+INSERT @corte EXEC dbo.GetDatabaseRowVersion;
+DECLARE @fin bigint=(SELECT DBTS FROM @corte);
 EXEC dbo.GetCustomerChangesByRowVersion 0,@fin;
 EXEC dbo.GetEmployeeChangesByRowVersion 0,@fin;
 EXEC dbo.GetProductChangesByRowVersion 0,@fin;
@@ -152,369 +141,277 @@ EXEC dbo.GetShipperChangesByRowVersion 0,@fin;
 EXEC dbo.GetSalesChangesByRowVersion 0,@fin;
 ```
 
-Pulsa **F5**. Los resultados de referencia son 91 clientes, 9 empleados, 77 productos, 3 transportistas y 2.155 líneas de venta.
+**Resultado de referencia:** 91 clientes, 9 empleados, 77 productos, 3 transportistas y 2.155 líneas de venta. Si aparece “Could not find stored procedure”, vuelve al paso 05 y publica en `NorthWind`.
 
-## 5. Preparar y publicar el almacén de datos
+## 07. Prepara el esquema de Northwind_DW
 
-### 5.1 Ejecutar la preparación del almacén
+### 07.1 Decide si debes migrar un DW anterior
 
-1. En SSMS abre `Northwind.DW/Deployment/Prepare-LegacyWarehouse.sql`.
-2. En la barra de consulta, selecciona `Northwind_DW_Test` en la lista desplegable de bases de datos. Confirma el nombre antes de ejecutar.
-3. Pulsa **F5**.
-
-El script prepara/migra el almacén de práctica y contiene una guarda: si la conexión no apunta a la copia `Northwind_DW_Test` identificada, falla sin hacer la migración.
-
-### 5.2 Publicar el proyecto DW
-
-1. En Visual Studio, clic derecho en `Northwind.DW` > **Publicar / Publish**.
-2. Pulsa **Cargar perfil / Load Profile**.
-3. Abre `Northwind.DW/Properties/PublishProfiles/Northwind_DW_Test.publish.xml`.
-4. Comprueba servidor `localhost` y base destino `Northwind_DW_Test`.
-5. Pulsa **Generar script** y revisa que el destino siga siendo la copia de práctica.
-6. Pulsa **Publicar** y espera el resultado correcto.
-
-La publicación mantiene datos y marcas existentes; no es una orden para vaciar el almacén.
-
-### 5.3 Crear el calendario
-
-En SSMS abre una nueva consulta conectada al motor `localhost` y ejecuta con **F5**:
+En SSMS, ejecuta esta comprobación en `Northwind_DW`:
 
 ```sql
-USE Northwind_DW_Test;
-DECLARE @Desde date, @Hasta date;
-SELECT @Desde=MIN(Fecha), @Hasta=MAX(Fecha)
-FROM Northwind_Test.dbo.Orders
+USE Northwind_DW;
+SELECT (SELECT COUNT(*) FROM sys.tables) AS TotalTablas,
+       OBJECT_ID(N'dbo.Dim_Cliente',N'U') AS DimCliente,
+       OBJECT_ID(N'dbo.Fact_Ventas',N'U') AS Hechos;
+```
+
+Si `TotalTablas` es 0 y los otros dos resultados son `NULL`, `Northwind_DW` está vacío: **omite 07.2 y pasa a 07.3**. Si ambas tablas de proyecto aparecen, ejecuta 07.2 antes de publicar. Si el conteo es mayor que 0 pero falta una de esas tablas, detente y revisa el esquema; no ejecutes la migración sobre una estructura incompleta.
+
+### 07.2 Ejecuta la migración controlada si reutilizas el DW anterior
+
+1. En SSMS, conéctate al **Motor de base de datos > localhost**.
+2. Selecciona **Archivo > Abrir > Archivo** y abre `Northwind.DW/Deployment/Prepare-LegacyWarehouse.sql`.
+3. En la lista desplegable de bases, selecciona `Northwind_DW`. Comprueba el nombre antes de ejecutar.
+4. Pulsa **F5** y espera el mensaje de finalización correcta.
+
+La migración usa una transacción y valida que las filas existentes puedan conservarse. Si se detiene por duplicados, claves o importes incompatibles, no fuerces el script; conserva el mensaje de error y revísalo antes de publicar.
+
+### 07.3 Publica el proyecto DW
+
+1. Regresa a Visual Studio.
+2. En el Explorador de soluciones, clic derecho en `Northwind.DW` > **Publicar**.
+3. Pulsa **Cargar perfil** y abre `Northwind.DW/Properties/PublishProfiles/Northwind_DW.publish.xml`.
+4. Confirma servidor `localhost` y destino `Northwind_DW`.
+5. Pulsa **Generar script** y comprueba otra vez el destino.
+6. Pulsa **Publicar** y espera el mensaje de éxito.
+
+El perfil usa `BlockOnPossibleDataLoss=True` y `DropObjectsNotInSource=False`: detiene cambios con pérdida posible y no borra objetos ajenos al proyecto.
+
+### 07.4 Verifica el esquema y los controles iniciales
+
+En SSMS, abre una consulta en `Northwind_DW` y ejecuta:
+
+```sql
+USE Northwind_DW;
+SELECT PackageName,CONVERT(bigint,LastRowVersion) AS Marca,LastSuccessfulLoad
+FROM dbo.PackageConfig ORDER BY PackageName;
+SELECT COUNT(*) AS FilasHecho FROM dbo.Fact_Ventas;
+SELECT Cliente_SK,CustomerID FROM dbo.Dim_Cliente WHERE Cliente_SK=0;
+SELECT Empleado_SK,EmployeeID FROM dbo.Dim_Empleado WHERE Empleado_SK=0;
+SELECT Tiempo_SK,Fecha FROM dbo.Dim_Tiempo WHERE Tiempo_SK=0;
+```
+
+**Resultado:** cinco controles —Cliente, Empleado, Producto, Transportista y Ventas—; cero hechos antes de la carga; y las filas técnicas desconocidas de Cliente, Empleado y Tiempo. No elimines estos registros: son parte del modelo.
+
+## 08. Llena el calendario
+
+1. En la misma ventana de consulta, confirma que la base seleccionada sea `Northwind_DW`.
+2. Ejecuta con **F5**:
+
+```sql
+USE Northwind_DW;
+DECLARE @Desde date,@Hasta date;
+SELECT @Desde=MIN(Fecha),@Hasta=MAX(Fecha)
+FROM NorthWind.dbo.Orders
 CROSS APPLY (VALUES(CONVERT(date,OrderDate)),
                    (CONVERT(date,RequiredDate)),
-                   (CONVERT(date,ShippedDate))) d(Fecha);
+                   (CONVERT(date,ShippedDate))) f(Fecha);
 EXEC dbo.DW_LoadDimTiempo @FechaInicio=@Desde,@FechaFin=@Hasta;
 SELECT COUNT(*) AS Dias,MIN(Fecha) AS Desde,MAX(Fecha) AS Hasta
 FROM dbo.Dim_Tiempo WHERE Tiempo_SK<>0;
-SELECT PackageName,LastRowVersion,LastSuccessfulLoad
-FROM dbo.PackageConfig ORDER BY PackageName;
 ```
 
-**Resultado de referencia para las copias originales:** 708 días, del 4 de julio de 1996 al 11 de junio de 1998, y cinco controles en `PackageConfig`. Si la copia es nueva, las marcas empiezan en cero y las fechas de carga en `NULL`. Si ya cargaste ventas, no borres las marcas ni ejecutes restauraciones para forzar ese resultado inicial.
+**Resultado de referencia:** 708 días, del 1996-07-04 al 1998-06-11. El procedimiento puede ejecutarse otra vez: amplía el calendario si aparecen fechas nuevas y no duplica las existentes.
 
-## 6. Ejecutar la carga SSIS en Visual Studio
+## 09. Ejecuta la carga SSIS desde Visual Studio
 
-Este paso lee `Northwind_Test`, extrae los cambios y carga dimensiones y ventas en `Northwind_DW_Test`.
+### 09.1 Confirma las conexiones del proyecto
 
-### 6.1 Revisar conexiones y parámetros
+1. En Visual Studio, expande `Northwind.ETL` en el Explorador de soluciones.
+2. Abre `Project.params` y comprueba:
 
-1. En Visual Studio abre `Northwind.sln` y expande `Northwind.ETL`.
-2. Abre `Project.params`.
-3. Confirma estos valores:
-
-| Parámetro | Valor de práctica |
+| Parámetro | Valor |
 | --- | --- |
 | `SourceServer` | `localhost` |
-| `SourceDatabase` | `Northwind_Test` |
+| `SourceDatabase` | `NorthWind` |
 | `WarehouseServer` | `localhost` |
-| `WarehouseDatabase` | `Northwind_DW_Test` |
+| `WarehouseDatabase` | `Northwind_DW` |
 | `LogDirectory` | `.` |
 
-4. En el Explorador de soluciones expande **Northwind.ETL > Connection Managers**. Verás `Origen.conmgr` y `DW.conmgr`. No crees otras conexiones.
-5. Abre ambas conexiones si cambiaste los nombres o el servidor. El proveedor debe ser **Microsoft OLE DB Driver for SQL Server / `MSOLEDBSQL.1`** y la autenticación **Windows**. Pulsa **Probar conexión / Test Connection** y guarda.
-6. Clic derecho en `Northwind.ETL` > **Propiedades**. Comprueba `TargetServerVersion = SQL Server 2025`.
+3. Expande **Connection Managers**. Deben aparecer `Origen.conmgr` y `DW.conmgr`. Sus proveedores son `MSOLEDBSQL.1` y usan autenticación integrada de Windows.
+4. Si tus valores coinciden, no cambies conexiones ni parámetros. Si el proveedor indica `SQLNCLI11`, selecciona **Microsoft OLE DB Driver for SQL Server / MSOLEDBSQL.1**.
 
-### 6.2 Ejecutar el paquete principal
+### 09.2 Abre el paquete principal y ejecútalo
 
-1. Expande **Northwind.ETL > SSIS Packages**.
-2. Haz doble clic en `CargarNorthwind.dtsx`.
-3. En el diseñador, selecciona **Flujo de control / Control Flow**. Los rectángulos `Cargar Cliente`, `Cargar Empleado`, `Cargar Producto`, `Cargar Transportista` y `Cargar Ventas` son grupos de tareas que ejecutan en ese orden.
-4. Para inspeccionar un grupo, pulsa la flecha de su esquina superior para expandirlo. Haz doble clic en `Extraer a staging`; en **Flujo de datos / Data Flow** verás **OLE DB Source** conectado a **OLE DB Destination**. Vuelve a la pestaña **Control Flow**.
-5. En el diseñador, clic derecho en `CargarNorthwind.dtsx` > **Ejecutar paquete / Execute Package**.
-6. Espera el mensaje `Package execution completed with success` y las marcas verdes. Detén la depuración con **Mayús+F5**.
+1. Expande `Northwind.ETL > SSIS Packages` y abre `CargarNorthwind.dtsx`.
+2. Selecciona la pestaña **Flujo de control / Control Flow**.
+3. Los grupos llamados `Cargar Cliente`, `Cargar Empleado`, `Cargar Producto`, `Cargar Transportista` y `Cargar Ventas` son contenedores de secuencia. Cada uno agrupa las tareas de una entidad y las ejecuta en orden.
+4. Para inspeccionar un grupo, pulsa el pequeño triángulo de su esquina. Dentro, haz doble clic en **Extraer a staging** para ver el flujo de datos desde el origen OLE DB al destino de staging. Vuelve a **Flujo de control** al terminar.
+5. Haz clic derecho en el fondo del diseñador y elige **Ejecutar paquete / Execute Package**.
+6. Espera a que el estado termine como **Package execution completed with success**. Detén la depuración con **Mayús+F5**.
 
-Si hay una cruz roja, abre **Progreso / Progress**, busca el primer mensaje **Error** y corrige esa causa antes de repetir. No vacíes tablas ni pongas las marcas a cero para reintentar.
+El paquete principal ejecuta las cinco entidades. No ejecutes los paquetes individuales además del principal durante la misma carga.
 
-### 6.3 Comprobar la carga en SSMS
+## 10. Verifica la carga y vuelve a ejecutarla
 
-En SSMS, conectado al motor, ejecuta:
+### 10.1 Comprueba resultados del DW
+
+En SSMS, conéctate al **Motor de base de datos > localhost** y ejecuta en `Northwind_DW`:
 
 ```sql
-USE Northwind_DW_Test;
+USE Northwind_DW;
 SELECT COUNT(*) AS Lineas,
        COUNT(DISTINCT OrderID) AS Pedidos,
        SUM(CONVERT(bigint,Cantidad)) AS Unidades,
        SUM(ImporteNeto) AS Neto
 FROM dbo.Fact_Ventas;
-
-SELECT PackageName,LastRowVersion,LastSuccessfulLoad
+SELECT PackageName,CONVERT(bigint,LastRowVersion) AS Marca,LastSuccessfulLoad
 FROM dbo.PackageConfig ORDER BY PackageName;
-
 SELECT OrderID,ProductID,Cantidad,ImporteNeto
 FROM dbo.Fact_Ventas WHERE OrderID=10248 ORDER BY ProductID;
 ```
 
-Pulsa **F5**.
+**Resultado:** 2.155 líneas, 830 pedidos, 51.317 unidades y neto 1.265.792,76; cinco controles con fecha de éxito. El pedido 10248 tiene tres líneas y 27 unidades, con neto total 440,00.
 
-**Resultado de referencia:** 2.155 líneas, 830 pedidos, 51.317 unidades y neto `1.265.792,76`; cinco controles con fecha de carga correcta. El pedido 10248 contiene 3 líneas, 27 unidades y neto total `440,00`.
+### 10.2 Comprueba que la repetición es segura
 
-### 6.4 Repetir la carga
+1. Vuelve a Visual Studio y ejecuta `CargarNorthwind.dtsx` otra vez.
+2. Espera el mismo estado **Package execution completed with success**.
+3. Repite la consulta de 10.1.
 
-Vuelve a ejecutar el paquete `CargarNorthwind.dtsx` en Visual Studio y vuelve a ejecutar la consulta anterior en SSMS. Si el origen no cambió, deben permanecer los mismos conteos, claves e importes. La carga incremental no duplica las ventas.
+**Resultado:** los conteos y el neto no cambian si `NorthWind` no tuvo cambios. No trunques tablas ni pongas las marcas de `PackageConfig` en cero.
 
-## 7. Crear el catálogo SSISDB y su entorno
+## 11. Publica SSIS en el catálogo del servidor
 
-Si `SSISDB` ya aparece bajo **Catálogos de Integration Services**, no la crees de nuevo; pasa a 7.2.
+### 11.1 Crea SSISDB si todavía no existe
 
-### 7.1 Crear SSISDB una sola vez
+1. En SSMS, conéctate al **Motor de base de datos > localhost** como administrador.
+2. En el Explorador de objetos, clic derecho en **Catálogos de Integration Services** > **Crear catálogo**.
+3. Marca **Habilitar integración CLR**, escribe y confirma una contraseña para proteger los datos sensibles del catálogo y pulsa **Aceptar**.
+4. Si `SSISDB` ya aparece en el Explorador de objetos, no la vuelvas a crear.
 
-1. En SSMS, conectado al **Motor de base de datos > localhost** con una cuenta administradora, expande el servidor.
-2. Clic derecho en **Catálogos de Integration Services** > **Crear catálogo / Create Catalog**.
-3. Marca **Habilitar integración CLR / Enable CLR Integration**.
-4. Escribe una contraseña nueva para la clave maestra y confírmala.
-5. Pulsa **Aceptar** y espera que aparezca `SSISDB`.
-6. Guarda esa contraseña en un gestor seguro. No la escribas en un archivo SQL ni la subas al repositorio.
+### 11.2 Prepara el entorno de producción
 
-### 7.2 Crear el entorno y sus cinco valores
+1. En SSMS, selecciona **Archivo > Abrir > Archivo** y abre `scripts/sql/Configure-NorthwindSSIS.sql`.
+2. Comprueba en el bloque inicial que los valores sean carpeta `Northwind`, entorno `Northwind`, origen `NorthWind` y almacén `Northwind_DW`.
+3. Ejecuta el archivo completo con **F5**. Debe crear o actualizar la carpeta y el entorno, sin publicar el proyecto todavía.
+4. En el Explorador de archivos, crea `C:\ProgramData\NorthwindBI\Logs` si no existe.
+5. En **Propiedades > Seguridad**, concede **Modificar** a las cuentas de servicio que aparecen en **Servicios** para SQL Server y SQL Server Agent. Si las cuentas ya tienen acceso, no agregues duplicados.
 
-1. En SSMS selecciona **Archivo > Abrir > Archivo** y abre `scripts/sql/Configure-NorthwindSSIS.sql`.
-2. La primera vez, revisa que los valores del encabezado sean:
+### 11.3 Despliega el proyecto desde Visual Studio
 
-| Campo | Valor |
-| --- | --- |
-| Folder | `Northwind` |
-| Environment | `Northwind_Test` |
-| Project | `Northwind.ETL` |
-| SourceServer | `localhost` |
-| SourceDatabase | `Northwind_Test` |
-| WarehouseServer | `localhost` |
-| WarehouseDatabase | `Northwind_DW_Test` |
-| LogDirectory | `C:\ProgramData\NorthwindBI\Logs` |
+1. En Visual Studio, recompila `Northwind.sln`.
+2. Clic derecho en `Northwind.ETL` > **Implementar / Deploy**.
+3. Selecciona el destino **Integration Services en SQL Server**, servidor `localhost`, autenticación Windows y ruta `/SSISDB/Northwind/Northwind.ETL`.
+4. Pulsa **Implementar** y espera el mensaje de éxito.
+5. Regresa a SSMS y vuelve a ejecutar `scripts/sql/Configure-NorthwindSSIS.sql` con **F5**. Esta segunda ejecución enlaza los parámetros del proyecto al entorno.
 
-3. Confirma que la consulta está conectada al motor correcto y pulsa **F5**.
-4. Si el proyecto SSIS aún no se publicó, el script crea la carpeta, entorno y valores y avisa que falta publicar el proyecto. Es normal en esta primera pasada.
+### 11.4 Comprueba y ejecuta el paquete publicado
 
-### 7.3 Dar permisos a la carpeta de registros
+1. En SSMS, expande **Catálogos de Integration Services > SSISDB > Northwind > Proyectos > Northwind.ETL**.
+2. Confirma que aparecen seis paquetes y que el proyecto tiene una referencia al entorno `Northwind`.
+3. Clic derecho en `CargarNorthwind.dtsx` > **Ejecutar**.
+4. Marca **Usar entorno** y elige `Northwind`.
+5. Antes de iniciar, comprueba `SourceDatabase = NorthWind` y `WarehouseDatabase = Northwind_DW`; pulsa **Aceptar**.
+6. Abre el informe de ejecución y comprueba estado **Correcto / Succeeded**. Verifica de nuevo los totales de 10.1.
 
-1. Abre el Explorador de archivos y navega a `C:\ProgramData`.
-2. Crea `NorthwindBI` y dentro crea `Logs` si todavía no existen.
-3. Clic derecho en `Logs` > **Propiedades > Seguridad > Editar > Agregar**.
-4. En **Ubicaciones**, elige este equipo. Añade `NT SERVICE\MSSQLSERVER` y `NT SERVICE\SQLSERVERAGENT` (o las cuentas reales que viste en **Servicios**).
-5. Para ambas cuentas permite **Modificar** y acepta.
+## 12. Publica y procesa NorthwindOLAP
 
-Esto permite que SSIS y Agent creen los archivos de registro; no concedas permisos a `Everyone/Todos`.
+### 12.1 Da acceso de lectura al servicio SSAS
 
-## 8. Publicar SSIS en SSISDB y ejecutarlo
+1. En SSMS, conectado al **Motor de base de datos > localhost**, abre `scripts/sql/Configure-NorthwindOLAPAccess.sql`.
+2. Comprueba que la primera línea diga `USE [Northwind_DW]` y que el servicio indicado sea `NT SERVICE\MSSQLServerOLAPService`.
+3. Ejecuta con **F5**. El resultado indica acceso `SELECT` a las seis tablas del modelo.
 
-### 8.1 Publicar el proyecto
+### 12.2 Implementa el modelo tabular
 
-1. En Visual Studio, clic derecho en `Northwind.ETL` > **Implementar / Deploy**.
-2. Selecciona destino **SSIS en SQL Server**.
-3. Servidor: `localhost`. Usa autenticación de Windows.
-4. Como ruta de destino selecciona la carpeta **SSISDB > Northwind** y el proyecto `Northwind.ETL`.
-5. Confirma el resumen y pulsa **Implementar / Deploy**.
+1. En Visual Studio, clic derecho en `Northwind.OLAP` > **Propiedades**.
+2. En **Implementación / Deployment**, confirma servidor `localhost` y base `NorthwindOLAP`.
+3. Abre `Northwind.OLAP.bim`; en **Orígenes de datos / Data Sources**, confirma servidor `localhost` y base `Northwind_DW`.
+4. Clic derecho en `Northwind.OLAP` > **Implementar / Deploy**. Espera el mensaje de publicación correcta.
 
-Si usas el asistente de SSMS, selecciona `Northwind.ETL/bin/Development/Northwind.ispac` como archivo de origen y publica en la misma carpeta. El `.ispac` de Visual Studio se llama `Northwind.ispac` aunque el proyecto del catálogo se llame `Northwind.ETL`.
+### 12.3 Procesa y consulta
 
-### 8.2 Vincular los parámetros del proyecto al entorno
-
-1. Regresa a la ventana de consulta de SSMS con `Configure-NorthwindSSIS.sql`.
-2. Ejecútala de nuevo con **F5**.
-3. En SSMS, expande **Catálogos de Integration Services > SSISDB > Northwind > Proyectos > Northwind.ETL** y revisa sus parámetros y referencias.
-
-**Resultado esperado:** una referencia al entorno `Northwind_Test` y cinco parámetros vinculados: servidor/base de origen, servidor/base del DW y carpeta de logs.
-
-### 8.3 Ejecutar desde el catálogo
-
-1. En el árbol de SSMS expande **Northwind > Proyectos > Northwind.ETL > Paquetes**.
-2. Clic derecho en `CargarNorthwind.dtsx` > **Ejecutar**.
-3. En la ventana de ejecución, marca que use el entorno y selecciona `Northwind_Test`.
-4. Pulsa **Aceptar** para iniciar.
-5. Cuando SSMS confirme que terminó, abre **Informes > Informes estándar > Todas las ejecuciones** del proyecto y abre la ejecución más reciente.
-6. Revisa el estado general y los mensajes del paquete; el estado debe ser **Correcto / Succeeded**.
-7. Repite la consulta de ventas del paso 6.3.
-
-## 9. Publicar y procesar el modelo tabular
-
-### 9.1 Permitir que Analysis Services lea el DW
-
-1. En SSMS, conectado al motor `localhost`, abre `scripts/sql/Configure-NorthwindOLAPAccess.sql`.
-2. Ejecuta con **F5**.
-
-**Resultado:** la cuenta del servicio Analysis Services puede leer las seis tablas de `Northwind_DW_Test` que utiliza el modelo. El permiso es `SELECT` sobre esas tablas.
-
-### 9.2 Revisar y publicar el modelo
-
-1. En Visual Studio, expande `Northwind.OLAP` y clic derecho en el proyecto > **Propiedades**.
-2. En **Implementación / Deployment**, confirma servidor `localhost` y base del modelo `NorthwindOLAP_Test`; guarda.
-3. Abre `Northwind.OLAP.bim`. En el modelo tabular, abre **Orígenes de datos / Data Sources** y confirma que `NorthwindDW` use servidor `localhost` y base `Northwind_DW_Test`.
-4. Clic derecho en `Northwind.OLAP` > **Implementar / Deploy**.
-5. Espera el mensaje de despliegue correcto.
-
-**Resultado:** en SSMS, conectado a **Analysis Services > localhost**, aparece la base `NorthwindOLAP_Test`.
-
-### 9.3 Procesar los datos
-
-1. En SSMS, actualiza la lista de bases de Analysis Services.
-2. Clic derecho en `NorthwindOLAP_Test` > **Procesar base de datos / Process Database**.
-3. Elige **Procesar completo / Process Full** y pulsa **Aceptar**.
-4. Espera el resultado correcto.
-
-Repite el procesamiento después de cargas hechas en Visual Studio. El job del paso 10 ya hace la carga y el procesamiento como etapas seguidas.
-
-### 9.4 Consultar con DAX
-
-En SSMS, clic derecho en `NorthwindOLAP_Test` > **Nueva consulta > DAX**. Ejecuta:
+1. En SSMS, abre **Conectar > Analysis Services**, servidor `localhost`, autenticación Windows.
+2. Expande **Bases de datos**, actualiza la vista y confirma `NorthwindOLAP`.
+3. Clic derecho en `NorthwindOLAP` > **Procesar base de datos / Process Database**.
+4. Selecciona **Procesar completo / Process Full**, pulsa **Aceptar** y espera el resultado correcto.
+5. Clic derecho en `NorthwindOLAP` > **Nueva consulta > DAX**. Ejecuta:
 
 ```DAX
 EVALUATE
-ROW("Pedidos", [Pedidos distintos],
-    "Unidades", [Unidades],
-    "Neto", [Ventas netas])
+ROW("Pedidos",[Pedidos distintos],"Unidades",[Unidades],"Neto",[Ventas netas])
 ```
 
-**Resultado de referencia:** 830 pedidos, 51.317 unidades y `1.265.792,76` netos.
+**Resultado:** 830 pedidos, 51.317 unidades y 1.265.792,76 netos.
 
-Prueba también un filtro de producto y año:
+Para comprobar un filtro por categoría y año, ejecuta:
 
 ```DAX
 EVALUATE
-ROW("Ventas netas", CALCULATE([Ventas netas],
-    Dim_Tiempo[Anio] = 1996,
-    Dim_Producto[Categoria] = "Beverages"))
+ROW("Ventas netas",CALCULATE([Ventas netas],
+    Dim_Tiempo[Anio]=1996,Dim_Producto[Categoria]="Beverages"))
 ```
 
-**Resultado:** `47.919,00`.
+**Resultado:** 47.919,00.
 
-Y un filtro por país y cliente:
+## 13. Crea y prueba NorthwindBIJob
 
-```DAX
-EVALUATE
-ROW("Pedidos", CALCULATE([Pedidos distintos],
-    Dim_Cliente[Pais] = "Germany",
-    Dim_Cliente[CustomerID] = "ALFKI"),
-    "Ventas netas", CALCULATE([Ventas netas],
-    Dim_Cliente[Pais] = "Germany",
-    Dim_Cliente[CustomerID] = "ALFKI"))
-```
+### 13.1 Configura el permiso de procesamiento
 
-**Resultado:** 6 pedidos y `4.273,00` netos.
+1. En **Servicios**, confirma qué cuenta ejecuta **SQL Server Agent (MSSQLSERVER)**. Con la instalación predeterminada suele ser `NT SERVICE\SQLSERVERAGENT`.
+2. En SSMS, conectado a **Analysis Services > localhost**, expande **Bases de datos > NorthwindOLAP > Roles**.
+3. Si no existe `NorthwindBIJobProcessor`, clic derecho en **Roles** > **Nuevo rol**. Si ya existe, abre **Propiedades**.
+4. En **General**, escribe `NorthwindBIJobProcessor` y selecciona permiso **Procesar base de datos / Process Database**.
+5. En **Pertenencia / Membership**, agrega la cuenta que viste para SQL Server Agent. Pulsa **Aceptar**.
 
-## 10. Configurar y ejecutar el job
+### 13.2 Crea el job deshabilitado
 
-El job combina dos etapas: ejecutar `CargarNorthwind.dtsx` y luego procesar `NorthwindOLAP_Test`. Se crea deshabilitado y el horario también queda deshabilitado.
+1. En SSMS, conéctate al **Motor de base de datos > localhost** como administrador.
+2. Abre `scripts/sql/Create-NorthwindBIJob.sql` mediante **Archivo > Abrir > Archivo**.
+3. En el bloque inicial confirma `@Environment = N'Northwind'` y `@ModelDatabase = N'NorthwindOLAP'`.
+4. Si quieres cambiar la hora diaria propuesta, edita `@StartTime`, por ejemplo `'04:30:00'`. Deja `@EnableJob = 0` y `@EnableSchedule = 0`.
+5. Pulsa **F5** y actualiza **SQL Server Agent > Trabajos / Jobs**.
 
-### 10.1 Permitir que SQL Server Agent procese el modelo
+**Resultado:** `NorthwindBIJob` tiene dos pasos —cargar SSIS y procesar el modelo— y un horario deshabilitado. Si actualizas un job de esta práctica, el script conserva el mismo nombre y no crea una copia duplicada.
 
-1. En **Servicios**, revisa la cuenta con la que se inicia **SQL Server Agent (MSSQLSERVER)**. Normalmente es `NT SERVICE\SQLSERVERAGENT`.
-2. En SSMS, conéctate a **Analysis Services > localhost**.
-3. Expande **Bases de datos > NorthwindOLAP_Test > Roles**.
-4. Si `NorthwindBIJobProcessor` ya existe, clic derecho > **Propiedades** y revisa **General**, **Permisos** y **Pertenencia**. Si está correcto, continúa con 10.2.
-5. Si no existe, clic derecho en **Roles > Nuevo rol**.
-6. En **General**, escribe el nombre `NorthwindBIJobProcessor` y selecciona permiso **Procesar base de datos / Process Database**.
-7. En **Descripción**, pega exactamente: `Northwind practice processing role managed by Configure-NorthwindJobAccess.ps1.`
-8. En **Pertenencia / Membership**, pulsa **Agregar**, elige la cuenta de SQL Server Agent del paso 1 y acepta.
+### 13.3 Ejecuta y revisa el historial
 
-La descripción exacta identifica este rol como el de la práctica. El rol debe revisarse después de volver a implementar el modelo desde Visual Studio.
-
-### 10.2 Crear el job deshabilitado
-
-1. En SSMS conecta a **Motor de base de datos > localhost** usando una cuenta administradora.
-2. Selecciona **Archivo > Abrir > Archivo** y abre `scripts/sql/Create-NorthwindBIJob.sql`.
-3. Revisa el encabezado. Los valores locales son `localhost`, `Northwind`, `Northwind.ETL`, `Northwind_Test`, paquete `CargarNorthwind.dtsx` y modelo `NorthwindOLAP_Test`.
-4. `@StartTime` tiene el valor `'02:00:00'` (hora local del servidor SQL). Puedes cambiarlo, por ejemplo, a `'04:30:00'`.
-5. Conserva `@EnableJob = 0` y `@EnableSchedule = 0` durante la prueba.
-6. Pulsa **F5**. En el Explorador de objetos actualiza **SQL Server Agent > Trabajos / Jobs**.
-
-**Resultado:** `NorthwindBIJob` con dos pasos nativos y programación diaria, ambos deshabilitados. Si vuelves a ejecutar el script, actualiza el job de la práctica en lugar de duplicarlo.
-
-### 10.3 Ejecutar manualmente y leer el historial
-
-1. En **SQL Server Agent > Trabajos**, clic derecho en `NorthwindBIJob` > **Iniciar trabajo en el paso… / Start Job at Step…**.
+1. Clic derecho en `NorthwindBIJob` > **Iniciar trabajo en el paso… / Start Job at Step…**.
 2. Selecciona el paso 1 y pulsa **Iniciar**.
-3. Espera a que termine. Clic derecho en el job > **Ver historial / View History**.
-4. Expande la ejecución más reciente. Debe aparecer primero **carga SSIS** y luego **procesamiento OLAP**, ambos con estado **Correcto / Succeeded**.
-5. Si un paso está rojo, selecciónalo y lee el mensaje. Para SSIS también abre el informe **SSISDB > Northwind > Proyectos > Northwind.ETL > Informes > Todas las ejecuciones** y selecciona **Todos los mensajes**.
+3. Clic derecho en el job > **Ver historial / View History**. Expande la ejecución.
+4. Comprueba que los pasos SSIS y Analysis Services indiquen **Correcto / Succeeded**.
+5. Repite la consulta de totales de 10.1 y la consulta DAX de 12.3.
 
-### 10.4 Confirmar que las dos capas tienen los mismos resultados
+**Resultado:** ambos pasos correctos y los totales del DW coinciden con los del modelo.
 
-En Motor de base de datos ejecuta:
+### 13.4 Activa el horario solo si lo necesitas
 
-```sql
-USE Northwind_DW_Test;
-SELECT COUNT(*) AS Lineas,
-       COUNT(DISTINCT OrderID) AS Pedidos,
-       SUM(CONVERT(bigint,Cantidad)) AS Unidades,
-       SUM(ImporteNeto) AS Neto
-FROM dbo.Fact_Ventas;
-SELECT OrderID,
-       SUM(Cantidad) AS Unidades,
-       SUM(ImporteNeto) AS Neto
-FROM dbo.Fact_Ventas
-WHERE OrderID=10248
-GROUP BY OrderID;
-```
+1. Clic derecho en `NorthwindBIJob` > **Propiedades > Programaciones / Schedules**.
+2. Selecciona el horario > **Editar**, elige frecuencia y hora, marca **Habilitada / Enabled** y pulsa **Aceptar**.
+3. En **General**, marca el job como **Habilitado / Enabled** y pulsa **Aceptar**.
 
-En Analysis Services ejecuta otra vez la consulta DAX total de 9.4.
+Para detener ejecuciones futuras, desmarca **Habilitado** en **General**. La ejecución manual sigue disponible.
 
-**Resultado esperado en ambos destinos:** 830 pedidos, 51.317 unidades y neto `1.265.792,76`. Para el pedido 10248: 27 unidades y neto `440,00`. El conteo de líneas en DW es 2.155.
+## 14. Volver a abrir o ejecutar el proyecto después
 
-### 10.5 Habilitar el horario (opcional)
+1. Abre `Northwind.sln` en Visual Studio.
+2. Recompila si cambiaste archivos del proyecto.
+3. Para una carga manual, abre `CargarNorthwind.dtsx` y ejecútalo siguiendo 09. Para cargar y procesar de una vez, inicia `NorthwindBIJob` siguiendo 13.3.
+4. Comprueba los resultados con las consultas de 10.1 y 12.3.
 
-Hazlo solo después de que 10.3 y 10.4 estén correctos.
+No restaures `NorthWind` ni pongas en cero los controles del DW para “empezar de nuevo”. La carga incremental vuelve a leer cambios del origen y actualiza el DW. Si necesitas reconstruir datos reales después de una pérdida o vaciado, detén la práctica y prepara primero una estrategia de respaldo y reconstrucción.
 
-1. En **SQL Server Agent > Trabajos**, clic derecho en `NorthwindBIJob` > **Propiedades > Programaciones / Schedules**.
-2. Selecciona la programación y pulsa **Editar**.
-3. Confirma **Diariamente**, cada 1 día, y la hora local que elegiste. Marca **Habilitada / Enabled** y acepta.
-4. En la página **General**, marca el job **Habilitado / Enabled** y acepta.
+## 15. Si algo falla
 
-Para apagar ejecuciones futuras, vuelve a **Propiedades > General** y desmarca **Habilitado**. El job aún se puede ejecutar manualmente desde el menú contextual.
-
-## 11. Qué hacer cada vez que vuelvas a ejecutar el proyecto
-
-### Opción 1: ejecutar y procesar por separado desde las interfaces
-
-1. Inicia los tres servicios en el paso 1 si están detenidos.
-2. En Visual Studio abre `Northwind.sln` y ejecuta `CargarNorthwind.dtsx` según el paso 6.
-3. En SSMS confirma que el paquete terminó correctamente y que los totales del DW coinciden.
-4. En SSMS, conecta a Analysis Services, clic derecho en `NorthwindOLAP_Test` > **Procesar base de datos > Procesar completo**.
-5. Ejecuta la consulta DAX del paso 9.4.
-
-### Opción 2: ejecutar todo con el job desde la interfaz
-
-1. En SSMS conecta al motor `localhost`.
-2. En **SQL Server Agent > Trabajos**, clic derecho en `NorthwindBIJob` > **Iniciar trabajo en el paso…**.
-3. Inicia desde el paso 1, espera el resultado y revisa el historial.
-4. Compara DW y OLAP según 10.4.
-
-No ejecutes ambas opciones una tras otra para una misma demostración: el job ya incluye la carga SSIS y el procesamiento del modelo. La carga es incremental y repetible, pero una sola ruta hace más fácil explicar y comprobar cada ejecución.
-
-## 12. Restablecer solo las copias de práctica
-
-Haz este apartado únicamente si de verdad necesitas volver al estado inicial. **Se perderán los cambios de práctica en `Northwind_Test` y `Northwind_DW_Test`.** No toques `NorthWind` ni `Northwind_DW`.
-
-1. En SSMS, deshabilita `NorthwindBIJob` desde **Propiedades > General** y confirma que no haya una ejecución activa.
-2. Crea backups completos nuevos de `NorthWind` y `Northwind_DW` siguiendo 3.1. Guarda los archivos `.bak` con nombres fáciles de distinguir.
-3. Restaura `NorthWind` como `Northwind_Test` y `Northwind_DW` como `Northwind_DW_Test` siguiendo 3.1–3.2.
-4. En cada restauración revisa dos veces el nombre de **Base de datos de destino**. En **Archivos**, especifica archivos físicos con sufijo `_Test`; nunca apuntes a los `.mdf`/`.ldf` de las originales.
-5. En **Opciones**, si el destino de prueba ya existe, marca **Sobrescribir la base de datos existente / Overwrite the existing database (WITH REPLACE)** solamente después de comprobar que el destino escrito es el nombre `_Test`. Si hay conexiones activas a la copia, cierra primero consultas, paquetes y ejecuciones del job; no fuerces la restauración de la original.
-6. Ejecuta `scripts/sql/Identify-NorthwindCopies.sql` como en 3.3.
-7. Repite la publicación de extractores (paso 4), preparación/publicación y calendario del DW (paso 5), carga SSIS (paso 6), configuración/publicación del catálogo SSIS (pasos 7–8), modelo OLAP (paso 9) y creación/prueba del job (paso 10).
-
-Si no estás segura de haber seleccionado la copia `_Test`, cancela la ventana de restauración y verifica el nombre antes de continuar.
-
-## 13. Errores comunes
-
-| Mensaje o síntoma | Comprobación |
+| Mensaje o síntoma | Qué revisar |
 | --- | --- |
-| `SQLNCLI11 provider is not registered` | Usa el controlador Microsoft OLE DB Driver for SQL Server; en Connection Managers el proveedor debe ser `MSOLEDBSQL.1`. |
-| Un proyecto aparece incompatible o descargado | Instala SSDT y las extensiones SSIS/Analysis Services indicadas en 1.2; reinicia Visual Studio. |
-| No conecta a `localhost` | En Servicios inicia SQL Server. En SSMS usa Autenticación Windows; para el certificado local habilita **Confiar en el certificado**. |
-| No aparece SQL Server Agent | Comprueba que tu edición de SQL Server lo incluya y que el servicio esté instalado/iniciado. |
-| No aparece `SSISDB` | Créala una vez en 7.1. Si ya existe, no repitas creación; sigue con la configuración del entorno. |
-| El script SSIS dice que la copia no está marcada | Confirma que existen `Northwind_Test` y `Northwind_DW_Test`, y ejecuta la identificación de 3.3. No sustituyas sus nombres por los originales. |
-| SSIS no encuentra el entorno `Northwind_Test` | Ejecuta `Configure-NorthwindSSIS.sql` después de publicar el proyecto (paso 8.2) y marca la referencia al entorno en la ventana de ejecución. |
-| Falla al escribir el log | Comprueba que existe `C:\ProgramData\NorthwindBI\Logs` y que las cuentas de servicio tienen permiso **Modificar** (7.3). |
-| El job falla en el paso SSIS | Abre el historial del job y **SSISDB > Informes > Todas las ejecuciones > Todos los mensajes**. Revisa conexión, entorno y acceso a los logs. |
-| El job falla en el paso OLAP | Confirma que existe `NorthwindOLAP_Test`, que SSAS está iniciado y que `NorthwindBIJobProcessor` permite procesar y contiene la cuenta de SQL Server Agent. |
-| Los conteos no coinciden | Espera a que termine el job; actualiza las consultas; comprueba que los resultados vienen de `_Test` y que se procesó OLAP después de la carga. No reinicies marcas ni vacíes tablas para ocultar la diferencia. |
+| No aparece `NorthWind` o falta la tabla `Orders` | Repite la restauración de `Files/NorthWind.bak` del paso 02.1; verifica que el destino se llame `NorthWind`. |
+| `Operating system error 5 (Access is denied)` al restaurar | Copia `NorthWind.bak` a la ruta **Copias de seguridad / Backup** del servidor indicada en SSMS y vuelve a seleccionarlo desde allí. |
+| `Northwind_DW` tiene 0 tablas | Si acabas de crearla, es el resultado esperado; publica `Northwind.DW` en el paso 07.3. |
+| El script de migración dice que falta una tabla | Si la base está vacía, omite 07.2; si tiene tablas parciales, detente y revisa el DW antes de publicar. |
+| Un proyecto aparece incompatible en Visual Studio | Confirma Visual Studio 2026 y las extensiones SSIS y Analysis Services; reinicia Visual Studio después de instalarlas. |
+| El servicio SQL Server Agent no existe | Instala la edición Developer y el Database Engine; Express no incluye SQL Server Agent. |
+| No aparece `MSOLEDBSQL.1` | Instala OLE DB Driver 18 x64. El driver 19 usa otro nombre de proveedor. |
+| `SQLNCLI11` no está registrado | En los administradores de conexión selecciona `Microsoft OLE DB Driver for SQL Server` (`MSOLEDBSQL.1`). |
+| Falla al abrir o probar una conexión | Confirma servidor `localhost`, autenticación Windows y nombres `NorthWind` / `Northwind_DW` en parámetros y administradores de conexión. |
+| Un procedimiento no existe | Repite el paso 05 con el perfil `NorthWind.publish.xml`; confirma que la ventana de publicación apunte a `NorthWind`. |
+| SSIS dice que necesita una copia marcada | Se está ejecutando un paquete antiguo. Recompila la solución, vuelve a desplegar `Northwind.ETL` y usa los valores reales del entorno `Northwind`. |
+| No aparece el entorno en SSISDB | Ejecuta `Configure-NorthwindSSIS.sql` antes y después de implementar el proyecto. |
+| El paquete termina con error rojo | En Visual Studio abre **Progreso / Progress** y lee el primer error. En SSMS abre el informe de ejecución y **Todos los mensajes**. Corrige la causa antes de repetir. |
+| No se procesa NorthwindOLAP | Confirma que SSAS esté iniciado, que el modelo lea `Northwind_DW` y que la cuenta del servicio tenga `SELECT` en las seis tablas. |
+| El job falla en su segundo paso | Confirma el rol `NorthwindBIJobProcessor`, su miembro de SQL Server Agent y que el modelo se llame `NorthwindOLAP`. |
+| La carga informa que el DW está ocupado | Espera a que termine la otra ejecución. No lances dos paquetes de carga a la vez. |
 
-## Referencia rápida del orden
-
-`Servicios activos > abrir y compilar Northwind.sln > copias identificadas > publicar extractores > preparar/publicar DW > calendario > ejecutar CargarNorthwind.dtsx > comprobar ventas > crear/configurar SSISDB > publicar SSIS > vincular entorno > dar acceso a SSAS > publicar y procesar modelo > crear job deshabilitado > iniciar job manualmente > revisar historial y comparar resultados > habilitar horario solo si lo necesitas.`
-
-Las guías operativas numeradas 01–10 contienen los mismos procesos en fichas más breves: [índice de guías](docs/01-guia-practica.md).
+Para realizar pruebas automatizadas aisladas, usa las instrucciones de [pruebas aisladas](referencias/pruebas-aisladas.md). No uses esa ruta para la ejecución principal de la práctica.

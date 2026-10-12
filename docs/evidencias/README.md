@@ -10,4 +10,4 @@ El resumen compartido está en [validacion.md](../validacion.md). Sus referencia
 & '.\tests\Test-Isolation.ps1' | Tee-Object '.\docs\evidencias\segmento-02\aislamiento.txt'
 ```
 
-La comparación `tests/Verify-TestCopies.sql` debe ejecutarse inmediatamente después de crear copias y antes de modificar fixtures, según la [guía de pruebas](../03-pruebas-aisladas.md).
+La comparación `tests/Verify-TestCopies.sql` debe ejecutarse inmediatamente después de crear copias y antes de modificar fixtures, según la [guía de pruebas aisladas](../referencias/pruebas-aisladas.md).

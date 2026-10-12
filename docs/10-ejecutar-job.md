@@ -4,7 +4,7 @@
 
 1. Completa [08](08-publicar-ssis.md) y [09](09-procesar-y-consultar-olap.md).
 2. En **Inicio > Servicios**, comprueba **SQL Server Agent (MSSQLSERVER)** en ejecución. En sus **Propiedades > Iniciar sesión**, comprueba la cuenta `NT SERVICE\SQLSERVERAGENT`; si es otra, usa esa cuenta en el paso siguiente.
-3. En SSMS conectado a **Analysis Services > localhost**, abre **Bases de datos > NorthwindOLAP_Test > Roles**. Clic derecho en `NorthwindBIJobProcessor` > **Propiedades**; si falta, clic derecho en **Roles > Nuevo rol**.
+3. En SSMS conectado a **Analysis Services > localhost**, abre **Bases de datos > NorthwindOLAP > Roles**. Clic derecho en `NorthwindBIJobProcessor` > **Propiedades**; si falta, clic derecho en **Roles > Nuevo rol**.
 4. En **General**, nombre `NorthwindBIJobProcessor`, permiso **Procesar base de datos**. Descripción: `Northwind practice processing role managed by Configure-NorthwindJobAccess.ps1.`
 5. En **Pertenencia / Membership > Agregar**, agrega la cuenta del Agent; acepta. Revisa este rol después de volver a implementar el modelo desde Visual Studio.
 
@@ -42,7 +42,7 @@ Para detener futuras ejecuciones, desmarca **Habilitado** en **General**. La eje
 
 1. Abre **Ver historial**, expande la ejecución fallida y selecciona el paso rojo para leer el mensaje.
 2. Si falla SSIS: en **Catálogos de Integration Services > SSISDB > Northwind > Proyectos > Northwind.ETL**, clic derecho > **Informes > Informes estándar > Todas las ejecuciones**. Abre **Todos los mensajes** de la ejecución fallida.
-3. Si falla OLAP: comprueba la conexión a **Analysis Services > localhost**, la base `NorthwindOLAP_Test` y el rol del paso 1.
+3. Si falla OLAP: comprueba la conexión a **Analysis Services > localhost**, la base `NorthwindOLAP` y el rol del paso 1.
 4. Corrige la causa señalada y vuelve a iniciar el job desde el paso 1. Comprueba de nuevo los totales del apartado 3.
 
 **Resultado:** ambos pasos correctos. Conserva los datos y las marcas del DW durante el reintento.

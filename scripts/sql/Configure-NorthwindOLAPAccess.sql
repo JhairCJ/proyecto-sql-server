@@ -1,12 +1,8 @@
-USE [Northwind_DW_Test];
+USE [Northwind_DW];
 SET NOCOUNT ON;
 DECLARE @ServiceAccount sysname=N'NT Service\MSSQLServerOLAPService';
-IF DB_NAME()<>N'Northwind_DW_Test' OR NOT EXISTS(
- SELECT 1 FROM sys.extended_properties WHERE class=0
- AND name=N'NorthwindPracticeTestDatabase' AND CONVERT(nvarchar(128),value)=N'Northwind_DW')
- THROW 51501,'El destino no es la copia marcada Northwind_DW_Test.',1;
-IF EXISTS(SELECT 1 FROM sys.databases WHERE name=DB_NAME() AND (is_trustworthy_on=1 OR is_db_chaining_on=1))
- THROW 51502,'La copia no conserva su aislamiento.',1;
+IF DB_NAME()<>N'Northwind_DW'
+ THROW 51501,'El destino debe ser la base real Northwind_DW.',1;
 DECLARE @Statement nvarchar(max);
 IF SUSER_ID(@ServiceAccount) IS NULL
 BEGIN

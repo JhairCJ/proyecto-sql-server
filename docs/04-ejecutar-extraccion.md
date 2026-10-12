@@ -1,11 +1,11 @@
 # 04. Ejecutar los extractores
 
-**Requisitos:** [preparación 03](03-pruebas-aisladas.md) completada.
+**Requisitos:** extractores publicados siguiendo [03](03-preparar-origen.md).
 
 En SSMS, conectado al motor localhost con autenticación Windows, abre **Nueva consulta**, pega y pulsa **F5**:
 
 ```sql
-USE Northwind_Test;
+USE NorthWind;
 DECLARE @cut TABLE(DBTS bigint);
 INSERT @cut EXEC dbo.GetDatabaseRowVersion;
 DECLARE @fin bigint=(SELECT DBTS FROM @cut);

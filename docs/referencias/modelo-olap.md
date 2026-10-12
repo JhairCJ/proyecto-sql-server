@@ -20,7 +20,7 @@ Las medidas suman los importes de línea ya calculados en el DW: `Ventas brutas 
 
 Las dimensiones usan tipo 1: un cambio reemplaza el atributo anterior, por lo que una categoría o ciudad muestra su valor actual también para hechos antiguos. El precio vendido permanece histórico en Fact_Ventas. Las claves cero identifican miembros desconocidos; `Dim_Tiempo[TipoFecha]` separa la fila técnica de fechas reales.
 
-El modelo se publica sobre SSAS tabular con compatibilidad 1700, disponible para SQL Server 2025. La conexión de importación usa la cuenta del servicio SSAS y permisos de solo lectura sobre las seis tablas del almacén de prueba. El script local solo autoriza `Northwind_DW_Test`.
+El modelo se publica como `NorthwindOLAP` sobre SSAS tabular con compatibilidad 1700, disponible para SQL Server 2025. La conexión de importación usa la cuenta del servicio SSAS y permisos de solo lectura sobre las seis tablas de `Northwind_DW`. Las pruebas automatizadas despliegan un modelo separado sobre la copia de prueba.
 
 ```DAX
 EVALUATE

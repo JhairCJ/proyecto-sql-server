@@ -9,7 +9,7 @@ Ejecuta `CargarNorthwind.dtsx` con [07](07-ejecutar-ssis.md).
 Conecta al motor `localhost`. En **Nueva consulta**, ejecuta con **F5**:
 
 ```sql
-USE Northwind_DW_Test;
+USE Northwind_DW;
 SELECT COUNT(*) AS Lineas,COUNT(DISTINCT OrderID) AS Pedidos,
        SUM(CONVERT(bigint,Cantidad)) AS Unidades,SUM(ImporteNeto) AS Neto
 FROM dbo.Fact_Ventas;

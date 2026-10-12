@@ -2,7 +2,7 @@
 
 ## 1. Preparar las bases, solo la primera vez
 
-Completa [03](03-pruebas-aisladas.md) y [05](05-preparar-dw.md). Si ya tienes las copias y los proyectos SQL publicados, pasa al paso 2.
+Completa [03](03-preparar-origen.md) y [05](05-preparar-dw.md). Si los proyectos SQL ya están publicados en `NorthWind` y `Northwind_DW`, pasa al paso 2.
 
 ## 2. Abrir en Visual Studio
 
@@ -14,8 +14,8 @@ Completa [03](03-pruebas-aisladas.md) y [05](05-preparar-dw.md). Si ya tienes la
 | --- | --- |
 | SourceServer | localhost |
 | WarehouseServer | localhost |
-| SourceDatabase | Northwind_Test |
-| WarehouseDatabase | Northwind_DW_Test |
+| SourceDatabase | NorthWind |
+| WarehouseDatabase | Northwind_DW |
 | LogDirectory | . |
 
 En tu equipo usa esos valores tal como están. Solo cámbialos si el servidor o los nombres de las bases son distintos; deja `LogDirectory` como está para la primera ejecución.
@@ -38,7 +38,7 @@ En tu equipo usa esos valores tal como están. Solo cámbialos si el servidor o 
 En SSMS, conecta a `localhost` con **Autenticación de Windows**. En **Nueva consulta**, ejecuta con **F5**:
 
 ```sql
-USE Northwind_DW_Test;
+USE Northwind_DW;
 SELECT COUNT(*) Lineas, COUNT(DISTINCT OrderID) Pedidos,
        SUM(Cantidad) Unidades, SUM(ImporteNeto) Neto
 FROM dbo.Fact_Ventas;
@@ -46,7 +46,7 @@ SELECT PackageName, CONVERT(bigint,LastRowVersion) Marca, LastSuccessfulLoad
 FROM dbo.PackageConfig ORDER BY PackageName;
 ```
 
-Resultado con Northwind original: **2155 líneas, 830 pedidos, 51317 unidades, neto 1265792.76**; cinco marcas con fecha. Ejecuta nuevamente el paquete: los conteos y el neto se mantienen.
+Resultado esperado en las bases reales: **2155 líneas, 830 pedidos, 51317 unidades, neto 1265792.76**; cinco marcas con fecha. Ejecuta nuevamente el paquete: los conteos y el neto se mantienen.
 
 ## 5. Localizar un error
 

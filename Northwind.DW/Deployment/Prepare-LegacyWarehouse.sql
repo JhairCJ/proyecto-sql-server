@@ -1,9 +1,9 @@
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
-IF DB_NAME()<>N'Northwind_DW_Test' OR NOT EXISTS
+IF DB_NAME()<>N'Northwind_DW' AND NOT EXISTS
  (SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'NorthwindPracticeTestDatabase'
   AND CONVERT(nvarchar(128),value)=N'Northwind_DW')
-    THROW 52010,'Migracion rechazada: no es el DW de prueba marcado.',1;
+    THROW 52010,'Migracion rechazada: use Northwind_DW o una copia de prueba identificada.',1;
 BEGIN TRY
     BEGIN TRANSACTION;
     IF EXISTS(SELECT CustomerID FROM dbo.Dim_Cliente GROUP BY CustomerID HAVING COUNT(*)>1)

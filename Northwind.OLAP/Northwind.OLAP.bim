@@ -12,7 +12,7 @@
         "connectionDetails": {
           "address": {
             "server": "localhost",
-            "database": "Northwind_DW_Test"
+            "database": "Northwind_DW"
           },
           "query": null,
           "authentication": null,

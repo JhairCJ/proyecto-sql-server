@@ -1,25 +1,27 @@
-# 02. Configurar el entorno
+# 02. Configurar el entorno desde cero
 
-## 1. Conectar SQL Server
+Si en esta computadora faltan SQL Server o las bases, sigue primero los pasos 01 y 02 de la [guía paso a paso](<guia paso a paso.md>). Allí se instala el motor, se restaura `NorthWind.bak` y se crea `Northwind_DW` vacía desde SSMS.
 
-1. En **Inicio > Servicios**, comprueba que **SQL Server (MSSQLSERVER)** esté en ejecución.
-2. En SSMS: **Conectar > Motor de base de datos**, servidor `localhost`, **Autenticación de Windows**. Si aparece un error de certificado local, marca **Confiar en el certificado del servidor**.
-3. En **Bases de datos**, comprueba que existan `NorthWind` y `Northwind_DW`.
+## 1. Instalar lo necesario
 
-## 2. Abrir y compilar
+1. Instala SQL Server 2025 Developer con **Database Engine Services** e **Integration Services**; usa instancia predeterminada `MSSQLSERVER` y autenticación Windows.
+2. Instala **Analysis Services** en modo **Tabular** y agrega tu usuario como administrador.
+3. Instala SSMS.
+4. Instala Visual Studio 2026 y SSDT desde la carga de trabajo **Almacenamiento y procesamiento de datos**.
+5. En Visual Studio > **Extensiones > Administrar extensiones**, instala **SQL Server Integration Services Projects** y **Microsoft Analysis Services Projects**.
+6. Instala Microsoft OLE DB Driver 18 para usar el proveedor `MSOLEDBSQL.1` que ya configura el proyecto.
 
-1. En Visual Studio: **Archivo > Abrir > Proyecto o solución**, abre `Northwind.sln` desde la carpeta del repositorio.
-2. En **Ver > Explorador de soluciones**, deben aparecer `Northwind.OLTP`, `Northwind.DW`, `Northwind.ETL` y `Northwind.OLAP` sin «incompatible» ni «descargado».
-3. Selecciona **Compilar > Recompilar solución**; en **Ver > Salida**, selecciona **Compilación / Build**.
+La guía detallada enlaza las páginas oficiales y muestra las opciones exactas del instalador.
 
-**Resultado:** `4 succeeded, 0 failed, 0 skipped`. La compilación SSIS de Visual Studio produce `Northwind.ETL\bin\Development\Northwind.ispac`.
+## 2. Conectar y compilar
 
-Si falta soporte SQL, instala **Visual Studio Installer > Modificar > Almacenamiento y procesamiento de datos > SSDT**. Para ETL y OLAP, instala **SQL Server Integration Services Projects** y **Microsoft Analysis Services Projects** desde **Extensiones > Administrar extensiones**; reinicia Visual Studio cuando lo solicite. Instala **Microsoft OLE DB Driver for SQL Server** si falla el proveedor `MSOLEDBSQL.1`.
+1. En **Inicio > Servicios**, inicia **SQL Server (MSSQLSERVER)** y **SQL Server Analysis Services (MSSQLSERVER)**. Inicia también **SQL Server Agent (MSSQLSERVER)** para crear o ejecutar el job.
+2. En SSMS, conecta al **Motor de base de datos** con servidor `localhost` y autenticación Windows; confirma que aparezcan `NorthWind` y `Northwind_DW`.
+3. En Visual Studio, abre `Northwind.sln`. En **Explorador de soluciones** deben estar cargados `Northwind.OLTP`, `Northwind.DW`, `Northwind.ETL` y `Northwind.OLAP`.
+4. Selecciona **Compilar > Recompilar solución**; en **Ver > Salida**, selecciona **Compilación / Build**.
+
+**Resultado:** `4 succeeded, 0 failed, 0 skipped`. El paquete compilado está en `Northwind.ETL\bin\Development\Northwind.ispac`.
 
 ## 3. Conectar Analysis Services
 
-1. En **Servicios**, comprueba **SQL Server Analysis Services (MSSQLSERVER)** en ejecución.
-2. En SSMS: **Conectar > Analysis Services**, servidor `localhost`, autenticación Windows.
-3. Si falta el servicio, abre el instalador de SQL Server > **Agregar características**, selecciona **Analysis Services**, modo **Tabular**, y agrega tu usuario como administrador.
-
-**Resultado:** conexión a Analysis Services Tabular. [Instalación de Analysis Services](https://learn.microsoft.com/en-us/analysis-services/instances/install-windows/install-analysis-services?view=sql-analysis-services-2025).
+En SSMS, conecta a **Analysis Services**, servidor `localhost`, autenticación Windows. Si falta el servicio, sigue la [instalación de Analysis Services](https://learn.microsoft.com/en-us/analysis-services/instances/install-windows/install-analysis-services) y selecciona el modo **Tabular**.

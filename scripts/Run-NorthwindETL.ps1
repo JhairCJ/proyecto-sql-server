@@ -1,8 +1,8 @@
 [CmdletBinding()]
 param(
  [string]$Server='localhost',
- [string]$SourceDatabase='Northwind_Test',
- [string]$WarehouseDatabase='Northwind_DW_Test',
+ [string]$SourceDatabase='NorthWind',
+ [string]$WarehouseDatabase='Northwind_DW',
  [ValidateSet('CargarNorthwind','Cliente','Empleado','Producto','Transportista','Ventas')][string]$Package='CargarNorthwind',
  [string]$LogDirectory,
  [string]$ProjectFile
