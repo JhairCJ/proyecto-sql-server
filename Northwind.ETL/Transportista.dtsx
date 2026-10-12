@@ -1,0 +1,605 @@
+<?xml version="1.0"?>
+<DTS:Executable xmlns:DTS="www.microsoft.com/SqlServer/Dts"
+  DTS:refId="Package"
+  DTS:CreationDate="10/12/2026 1:04:45 AM"
+  DTS:CreationName="Microsoft.Package"
+  DTS:CreatorComputerName=""
+  DTS:CreatorName=""
+  DTS:DTSID="{B3192597-DD90-4D9D-9395-07DDC70AC9BB}"
+  DTS:ExecutableType="Microsoft.Package"
+  DTS:LastModifiedProductVersion="17.0.1000.7"
+  DTS:LocaleID="1033"
+  DTS:MaxConcurrentExecutables="1"
+  DTS:ObjectName="Transportista"
+  DTS:ProtectionLevel="0"
+  DTS:TransactionOption="0"
+  DTS:VersionGUID="{BC08DC0D-C134-4A77-B7D3-7DD2F2085BC1}">
+  <DTS:Property
+    DTS:Name="PackageFormatVersion">8</DTS:Property>
+  <DTS:ConnectionManagers>
+    <DTS:ConnectionManager
+      DTS:refId="Package.ConnectionManagers[Registro]"
+      DTS:CreationName="FILE"
+      DTS:DTSID="{566271BB-27F1-4DA5-A341-9BA440418835}"
+      DTS:ObjectName="Registro">
+      <DTS:PropertyExpression
+        DTS:Name="ConnectionString">@[$Project::LogDirectory] + "\\Northwind.ETL-" + (DT_WSTR,38)@[System::ExecutionInstanceGUID] + ".log"</DTS:PropertyExpression>
+      <DTS:ObjectData>
+        <DTS:ConnectionManager
+          DTS:ConnectionString=".\Northwind.ETL-{697DA32E-8BFA-447E-B6A4-3CCA965EE124}.log" />
+      </DTS:ObjectData>
+    </DTS:ConnectionManager>
+  </DTS:ConnectionManagers>
+  <DTS:LogProviders>
+    <DTS:LogProvider
+      DTS:ConfigString="Registro"
+      DTS:CreationName="Microsoft.LogProviderTextFile"
+      DTS:DTSID="{FE8B0D46-16D2-4CC0-93F2-423F4A9E7D2F}"
+      DTS:ObjectName="{FE8B0D46-16D2-4CC0-93F2-423F4A9E7D2F}">
+      <DTS:ObjectData>
+        <InnerObject />
+      </DTS:ObjectData>
+    </DTS:LogProvider>
+  </DTS:LogProviders>
+  <DTS:Variables>
+    <DTS:Variable
+      DTS:CreationName=""
+      DTS:DTSID="{FD0C234E-99C4-47A9-B8A7-970D5B8DCFA0}"
+      DTS:IncludeInDebugDump="6789"
+      DTS:Namespace="User"
+      DTS:ObjectName="EndRow">
+      <DTS:VariableValue
+        DTS:DataType="20">0</DTS:VariableValue>
+    </DTS:Variable>
+    <DTS:Variable
+      DTS:CreationName=""
+      DTS:DTSID="{B8E5C1A9-49D9-47E4-BCAB-E68926AA2CCB}"
+      DTS:EvaluateAsExpression="True"
+      DTS:Expression="&quot;EXEC dbo.GetShipperChangesByRowVersion &quot; + (DT_WSTR,20)@[User::StartRow] + &quot;,&quot; + (DT_WSTR,20)@[User::EndRow] + &quot;;&quot;"
+      DTS:IncludeInDebugDump="2345"
+      DTS:Namespace="User"
+      DTS:ObjectName="ExtractSql">
+      <DTS:VariableValue
+        DTS:DataType="8">EXEC dbo.GetShipperChangesByRowVersion 0,0;</DTS:VariableValue>
+    </DTS:Variable>
+    <DTS:Variable
+      DTS:CreationName=""
+      DTS:DTSID="{56D97BA3-70F9-42D9-8738-0996CE64E0C0}"
+      DTS:IncludeInDebugDump="6789"
+      DTS:Namespace="User"
+      DTS:ObjectName="StartRow">
+      <DTS:VariableValue
+        DTS:DataType="20">0</DTS:VariableValue>
+    </DTS:Variable>
+  </DTS:Variables>
+  <DTS:LoggingOptions
+    DTS:FilterKind="0"
+    DTS:LoggingMode="1">
+    <DTS:Property
+      DTS:DataType="8"
+      DTS:Name="EventFilter">4,12,OnPreExecute,13,OnPostExecute,7,OnError,12,OnTaskFailed</DTS:Property>
+    <DTS:SelectedLogProviders>
+      <DTS:SelectedLogProvider
+        DTS:InstanceID="{FE8B0D46-16D2-4CC0-93F2-423F4A9E7D2F}" />
+    </DTS:SelectedLogProviders>
+  </DTS:LoggingOptions>
+  <DTS:Executables>
+    <DTS:Executable
+      DTS:refId="Package\Aplicar y confirmar avance"
+      DTS:CreationName="Microsoft.ExecuteSQLTask"
+      DTS:DTSID="{81DB50D2-5F90-4E17-803D-D02BF1469244}"
+      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+      DTS:FailPackageOnFailure="True"
+      DTS:FailParentOnFailure="True"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="Aplicar y confirmar avance"
+      DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:PropertyExpression
+        DTS:Name="SqlStatementSource">"EXEC dbo.DW_ApplyPackage N'Transportista'," + (DT_WSTR,20)@[User::StartRow] + "," + (DT_WSTR,20)@[User::EndRow] + ";"</DTS:PropertyExpression>
+      <DTS:ObjectData>
+        <SQLTask:SqlTaskData
+          SQLTask:Connection="{1D8C7EF7-DAF1-4DE3-8127-36946FB9AFEF}"
+          SQLTask:SqlStatementSource="EXEC dbo.DW_ApplyPackage N'Transportista',0,0;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+      </DTS:ObjectData>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\Extraer a staging"
+      DTS:CreationName="Microsoft.Pipeline"
+      DTS:DelayValidation="True"
+      DTS:DTSID="{5D61E73A-F788-40D2-8B94-8C2CC418A851}"
+      DTS:ExecutableType="Microsoft.Pipeline"
+      DTS:FailPackageOnFailure="True"
+      DTS:FailParentOnFailure="True"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="Extraer a staging"
+      DTS:TaskContact="Performs high-performance data extraction, transformation and loading;Microsoft Corporation; Microsoft SQL Server; (C) Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <pipeline
+          version="1">
+          <components>
+            <component
+              refId="Package\Extraer a staging\OLE DB Destination"
+              componentClassID="Microsoft.OLEDBDestination"
+              contactInfo="OLE DB Destination;Microsoft Corporation; Microsoft SQL Server; (C) Microsoft Corporation; All Rights Reserved; http://www.microsoft.com/sql/support;4"
+              description="OLE DB Destination"
+              name="OLE DB Destination"
+              usesDispositions="true"
+              version="4">
+              <properties>
+                <property
+                  dataType="System.Int32"
+                  description="The number of seconds before a command times out.  A value of 0 indicates an infinite time-out."
+                  name="CommandTimeout">0</property>
+                <property
+                  dataType="System.String"
+                  description="Specifies the name of the database object used to open a rowset."
+                  name="OpenRowset">std.Transportista</property>
+                <property
+                  dataType="System.String"
+                  description="Specifies the variable that contains the name of the database object used to open a rowset."
+                  name="OpenRowsetVariable"></property>
+                <property
+                  dataType="System.String"
+                  description="The SQL command to be executed."
+                  name="SqlCommand"
+                  UITypeEditor="Microsoft.DataTransformationServices.Controls.ModalMultilineStringEditor"></property>
+                <property
+                  dataType="System.Int32"
+                  description="Specifies the column code page to use when code page information is unavailable from the data source."
+                  name="DefaultCodePage">1252</property>
+                <property
+                  dataType="System.Boolean"
+                  description="Forces the use of the DefaultCodePage property value when describing character data."
+                  name="AlwaysUseDefaultCodePage">false</property>
+                <property
+                  dataType="System.Int32"
+                  description="Specifies the mode used to access the database."
+                  name="AccessMode"
+                  typeConverter="AccessMode">3</property>
+                <property
+                  dataType="System.Boolean"
+                  description="Indicates whether the values supplied for identity columns will be copied to the destination. If false, values for identity columns will be auto-generated at the destination. Applies only if fast load is turned on."
+                  name="FastLoadKeepIdentity">false</property>
+                <property
+                  dataType="System.Boolean"
+                  description="Indicates whether the columns containing null will have null inserted in the destination. If false, columns containing null will have their default values inserted at the destination. Applies only if fast load is turned on."
+                  name="FastLoadKeepNulls">false</property>
+                <property
+                  dataType="System.String"
+                  description="Specifies options to be used with fast load.  Applies only if fast load is turned on."
+                  name="FastLoadOptions">TABLOCK,CHECK_CONSTRAINTS</property>
+                <property
+                  dataType="System.Int32"
+                  description="Specifies when commits are issued during data insertion.  A value of 0 specifies that one commit will be issued at the end of data insertion.  Applies only if fast load is turned on."
+                  name="FastLoadMaxInsertCommitSize">0</property>
+              </properties>
+              <connections>
+                <connection
+                  refId="Package\Extraer a staging\OLE DB Destination.Connections[OleDbConnection]"
+                  connectionManagerID="{1D8C7EF7-DAF1-4DE3-8127-36946FB9AFEF}:external"
+                  connectionManagerRefId="Project.ConnectionManagers[DW]"
+                  description="The OLE DB runtime connection used to access the database."
+                  name="OleDbConnection" />
+              </connections>
+              <inputs>
+                <input
+                  refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input]"
+                  errorOrTruncationOperation="Insert"
+                  errorRowDisposition="FailComponent"
+                  hasSideEffects="true"
+                  name="OLE DB Destination Input">
+                  <inputColumns>
+                    <inputColumn
+                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[ShipperID]"
+                      cachedDataType="i4"
+                      cachedName="ShipperID"
+                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[ShipperID]"
+                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[ShipperID]" />
+                    <inputColumn
+                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[CompanyName]"
+                      cachedDataType="wstr"
+                      cachedLength="40"
+                      cachedName="CompanyName"
+                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[CompanyName]"
+                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[CompanyName]" />
+                    <inputColumn
+                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[Phone]"
+                      cachedDataType="wstr"
+                      cachedLength="24"
+                      cachedName="Phone"
+                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[Phone]"
+                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[Phone]" />
+                    <inputColumn
+                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[SourceRowVersion]"
+                      cachedDataType="bytes"
+                      cachedLength="8"
+                      cachedName="SourceRowVersion"
+                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[SourceRowVersion]"
+                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[SourceRowVersion]" />
+                  </inputColumns>
+                  <externalMetadataColumns
+                    isUsed="True">
+                    <externalMetadataColumn
+                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[ShipperID]"
+                      dataType="i4"
+                      name="ShipperID" />
+                    <externalMetadataColumn
+                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[CompanyName]"
+                      dataType="wstr"
+                      length="40"
+                      name="CompanyName" />
+                    <externalMetadataColumn
+                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[Phone]"
+                      dataType="wstr"
+                      length="24"
+                      name="Phone" />
+                    <externalMetadataColumn
+                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[SourceRowVersion]"
+                      dataType="bytes"
+                      length="8"
+                      name="SourceRowVersion" />
+                  </externalMetadataColumns>
+                </input>
+              </inputs>
+              <outputs>
+                <output
+                  refId="Package\Extraer a staging\OLE DB Destination.Outputs[OLE DB Destination Error Output]"
+                  exclusionGroup="1"
+                  isErrorOut="true"
+                  name="OLE DB Destination Error Output"
+                  synchronousInputId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input]">
+                  <outputColumns>
+                    <outputColumn
+                      refId="Package\Extraer a staging\OLE DB Destination.Outputs[OLE DB Destination Error Output].Columns[ErrorCode]"
+                      dataType="i4"
+                      lineageId="Package\Extraer a staging\OLE DB Destination.Outputs[OLE DB Destination Error Output].Columns[ErrorCode]"
+                      name="ErrorCode"
+                      specialFlags="1" />
+                    <outputColumn
+                      refId="Package\Extraer a staging\OLE DB Destination.Outputs[OLE DB Destination Error Output].Columns[ErrorColumn]"
+                      dataType="i4"
+                      lineageId="Package\Extraer a staging\OLE DB Destination.Outputs[OLE DB Destination Error Output].Columns[ErrorColumn]"
+                      name="ErrorColumn"
+                      specialFlags="2" />
+                  </outputColumns>
+                  <externalMetadataColumns />
+                </output>
+              </outputs>
+            </component>
+            <component
+              refId="Package\Extraer a staging\OLE DB Source"
+              componentClassID="Microsoft.OLEDBSource"
+              contactInfo="OLE DB Source;Microsoft Corporation; Microsoft SQL Server; (C) Microsoft Corporation; All Rights Reserved; http://www.microsoft.com/sql/support;7"
+              description="OLE DB Source"
+              name="OLE DB Source"
+              usesDispositions="true"
+              version="7">
+              <properties>
+                <property
+                  dataType="System.Int32"
+                  description="The number of seconds before a command times out.  A value of 0 indicates an infinite time-out."
+                  name="CommandTimeout">0</property>
+                <property
+                  dataType="System.String"
+                  description="Specifies the name of the database object used to open a rowset."
+                  name="OpenRowset"></property>
+                <property
+                  dataType="System.String"
+                  description="Specifies the variable that contains the name of the database object used to open a rowset."
+                  name="OpenRowsetVariable"></property>
+                <property
+                  dataType="System.String"
+                  description="The SQL command to be executed."
+                  name="SqlCommand"
+                  UITypeEditor="Microsoft.DataTransformationServices.Controls.ModalMultilineStringEditor">EXEC dbo.GetShipperChangesByRowVersion 0,0;</property>
+                <property
+                  dataType="System.String"
+                  description="The variable that contains the SQL command to be executed."
+                  name="SqlCommandVariable">User::ExtractSql</property>
+                <property
+                  dataType="System.Int32"
+                  description="Specifies the column code page to use when code page information is unavailable from the data source."
+                  name="DefaultCodePage">1252</property>
+                <property
+                  dataType="System.Boolean"
+                  description="Forces the use of the DefaultCodePage property value when describing character data."
+                  name="AlwaysUseDefaultCodePage">false</property>
+                <property
+                  dataType="System.Int32"
+                  description="Specifies the mode used to access the database."
+                  name="AccessMode"
+                  typeConverter="AccessMode">3</property>
+                <property
+                  dataType="System.String"
+                  description="The mappings between the parameters in the SQL command and variables."
+                  name="ParameterMapping"></property>
+              </properties>
+              <connections>
+                <connection
+                  refId="Package\Extraer a staging\OLE DB Source.Connections[OleDbConnection]"
+                  connectionManagerID="{36408304-1EEF-431A-A523-4229BE67C90E}:external"
+                  connectionManagerRefId="Project.ConnectionManagers[Origen]"
+                  description="The OLE DB runtime connection used to access the database."
+                  name="OleDbConnection" />
+              </connections>
+              <outputs>
+                <output
+                  refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output]"
+                  name="OLE DB Source Output">
+                  <outputColumns>
+                    <outputColumn
+                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[ShipperID]"
+                      dataType="i4"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[ShipperID]"
+                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[ShipperID]"
+                      name="ShipperID"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[CompanyName]"
+                      dataType="wstr"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[CompanyName]"
+                      length="40"
+                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[CompanyName]"
+                      name="CompanyName"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[Phone]"
+                      dataType="wstr"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[Phone]"
+                      length="24"
+                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[Phone]"
+                      name="Phone"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[SourceRowVersion]"
+                      dataType="bytes"
+                      errorOrTruncationOperation="Conversion"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[SourceRowVersion]"
+                      length="8"
+                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[SourceRowVersion]"
+                      name="SourceRowVersion"
+                      truncationRowDisposition="FailComponent" />
+                  </outputColumns>
+                  <externalMetadataColumns
+                    isUsed="True">
+                    <externalMetadataColumn
+                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[ShipperID]"
+                      dataType="i4"
+                      name="ShipperID" />
+                    <externalMetadataColumn
+                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[CompanyName]"
+                      dataType="wstr"
+                      length="40"
+                      name="CompanyName" />
+                    <externalMetadataColumn
+                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[Phone]"
+                      dataType="wstr"
+                      length="24"
+                      name="Phone" />
+                    <externalMetadataColumn
+                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[SourceRowVersion]"
+                      dataType="bytes"
+                      length="8"
+                      name="SourceRowVersion" />
+                  </externalMetadataColumns>
+                </output>
+                <output
+                  refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output]"
+                  isErrorOut="true"
+                  name="OLE DB Source Error Output">
+                  <outputColumns>
+                    <outputColumn
+                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ShipperID]"
+                      dataType="i4"
+                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ShipperID]"
+                      name="ShipperID" />
+                    <outputColumn
+                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[CompanyName]"
+                      dataType="wstr"
+                      length="40"
+                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[CompanyName]"
+                      name="CompanyName" />
+                    <outputColumn
+                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[Phone]"
+                      dataType="wstr"
+                      length="24"
+                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[Phone]"
+                      name="Phone" />
+                    <outputColumn
+                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[SourceRowVersion]"
+                      dataType="bytes"
+                      length="8"
+                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[SourceRowVersion]"
+                      name="SourceRowVersion" />
+                    <outputColumn
+                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ErrorCode]"
+                      dataType="i4"
+                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ErrorCode]"
+                      name="ErrorCode"
+                      specialFlags="1" />
+                    <outputColumn
+                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ErrorColumn]"
+                      dataType="i4"
+                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ErrorColumn]"
+                      name="ErrorColumn"
+                      specialFlags="2" />
+                  </outputColumns>
+                  <externalMetadataColumns />
+                </output>
+              </outputs>
+            </component>
+          </components>
+          <paths>
+            <path
+              refId="Package\Extraer a staging.Paths[OLE DB Source Output]"
+              endId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input]"
+              name="OLE DB Source Output"
+              startId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output]" />
+          </paths>
+        </pipeline>
+      </DTS:ObjectData>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\Leer ultimo avance"
+      DTS:CreationName="Microsoft.ExecuteSQLTask"
+      DTS:DTSID="{90075823-D34E-496E-9CE1-1DB4FDC786B5}"
+      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+      DTS:FailPackageOnFailure="True"
+      DTS:FailParentOnFailure="True"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="Leer ultimo avance"
+      DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <SQLTask:SqlTaskData
+          SQLTask:Connection="{1D8C7EF7-DAF1-4DE3-8127-36946FB9AFEF}"
+          SQLTask:SqlStatementSource="DECLARE @v binary(8);EXEC dbo.GetLastPackageRowVersion N'Transportista',@v OUTPUT;SELECT CONVERT(bigint,@v);"
+          SQLTask:ResultType="ResultSetType_SingleRow" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+          <SQLTask:ResultBinding
+            SQLTask:ResultName="0"
+            SQLTask:DtsVariableName="User::StartRow" />
+        </SQLTask:SqlTaskData>
+      </DTS:ObjectData>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\Liberar bloqueo de entidad"
+      DTS:CreationName="Microsoft.ExecuteSQLTask"
+      DTS:DTSID="{A7D81E63-7C3B-481B-BBA9-631C5A2C1D27}"
+      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+      DTS:FailPackageOnFailure="True"
+      DTS:FailParentOnFailure="True"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="Liberar bloqueo de entidad"
+      DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <SQLTask:SqlTaskData
+          SQLTask:Connection="{1D8C7EF7-DAF1-4DE3-8127-36946FB9AFEF}"
+          SQLTask:SqlStatementSource="EXEC sys.sp_releaseapplock @Resource=N'Northwind.Warehouse.Load',@LockOwner=N'Session';" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+      </DTS:ObjectData>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\Preparar staging"
+      DTS:CreationName="Microsoft.ExecuteSQLTask"
+      DTS:DTSID="{E69006FE-A8FB-4CFF-9199-A181EB855594}"
+      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+      DTS:FailPackageOnFailure="True"
+      DTS:FailParentOnFailure="True"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="Preparar staging"
+      DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:PropertyExpression
+        DTS:Name="SqlStatementSource">"IF " + (DT_WSTR,20)@[User::EndRow] + " &lt; " + (DT_WSTR,20)@[User::StartRow] + " THROW 52401,'Corte incompatible con el avance.',1; DELETE std.Transportista;"</DTS:PropertyExpression>
+      <DTS:ObjectData>
+        <SQLTask:SqlTaskData
+          SQLTask:Connection="{1D8C7EF7-DAF1-4DE3-8127-36946FB9AFEF}"
+          SQLTask:SqlStatementSource="IF 0 &lt; 0 THROW 52401,'Corte incompatible con el avance.',1; DELETE std.Transportista;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+      </DTS:ObjectData>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\Validar destino y bloquear"
+      DTS:CreationName="Microsoft.ExecuteSQLTask"
+      DTS:DTSID="{EE10DC98-B279-478E-AB9E-E5016323EED1}"
+      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+      DTS:FailPackageOnFailure="True"
+      DTS:FailParentOnFailure="True"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="Validar destino y bloquear"
+      DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <SQLTask:SqlTaskData
+          SQLTask:Connection="{1D8C7EF7-DAF1-4DE3-8127-36946FB9AFEF}"
+          SQLTask:SqlStatementSource="IF DB_NAME()&lt;&gt;N'Northwind_DW' AND NOT EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'NorthwindPracticeTestDatabase' AND CONVERT(nvarchar(128),value)=N'Northwind_DW') THROW 51002,'SSIS: use Northwind_DW o una copia de practica identificada.',1;DECLARE @r int;EXEC @r=sys.sp_getapplock @Resource=N'Northwind.Warehouse.Load',@LockMode=N'Exclusive',@LockOwner=N'Session',@LockTimeout=0;IF @r&lt;0 THROW 52402,'DW ocupado por otra carga; staging intacto.',1;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+      </DTS:ObjectData>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\Validar origen y fijar corte"
+      DTS:CreationName="Microsoft.ExecuteSQLTask"
+      DTS:DTSID="{440F617A-94DB-402B-94F3-64953723AE63}"
+      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+      DTS:FailPackageOnFailure="True"
+      DTS:FailParentOnFailure="True"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="Validar origen y fijar corte"
+      DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <SQLTask:SqlTaskData
+          SQLTask:Connection="{36408304-1EEF-431A-A523-4229BE67C90E}"
+          SQLTask:SqlStatementSource="IF DB_NAME()&lt;&gt;N'NorthWind' AND NOT EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'NorthwindPracticeTestDatabase' AND CONVERT(nvarchar(128),value)=N'NorthWind') THROW 51002,'SSIS: use NorthWind o una copia de practica identificada.',1;EXEC dbo.GetDatabaseRowVersion;"
+          SQLTask:ResultType="ResultSetType_SingleRow" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+          <SQLTask:ResultBinding
+            SQLTask:ResultName="0"
+            SQLTask:DtsVariableName="User::EndRow" />
+        </SQLTask:SqlTaskData>
+      </DTS:ObjectData>
+    </DTS:Executable>
+  </DTS:Executables>
+  <DTS:PrecedenceConstraints>
+    <DTS:PrecedenceConstraint
+      DTS:refId="Package.PrecedenceConstraints[{021816AA-575F-400F-9EAA-DA76ED323CDB\}]"
+      DTS:CreationName=""
+      DTS:DTSID="{021816AA-575F-400F-9EAA-DA76ED323CDB}"
+      DTS:From="Package\Preparar staging"
+      DTS:LogicalAnd="True"
+      DTS:ObjectName="{021816AA-575F-400F-9EAA-DA76ED323CDB}"
+      DTS:To="Package\Extraer a staging" />
+    <DTS:PrecedenceConstraint
+      DTS:refId="Package.PrecedenceConstraints[{29397A6B-DFC5-4B12-AB6F-F6F3E2D8B109\}]"
+      DTS:CreationName=""
+      DTS:DTSID="{29397A6B-DFC5-4B12-AB6F-F6F3E2D8B109}"
+      DTS:From="Package\Aplicar y confirmar avance"
+      DTS:LogicalAnd="True"
+      DTS:ObjectName="{29397A6B-DFC5-4B12-AB6F-F6F3E2D8B109}"
+      DTS:To="Package\Liberar bloqueo de entidad" />
+    <DTS:PrecedenceConstraint
+      DTS:refId="Package.PrecedenceConstraints[{30BEFD6E-502F-40E8-A77A-F71313C7E8AC\}]"
+      DTS:CreationName=""
+      DTS:DTSID="{30BEFD6E-502F-40E8-A77A-F71313C7E8AC}"
+      DTS:From="Package\Validar destino y bloquear"
+      DTS:LogicalAnd="True"
+      DTS:ObjectName="{30BEFD6E-502F-40E8-A77A-F71313C7E8AC}"
+      DTS:To="Package\Leer ultimo avance" />
+    <DTS:PrecedenceConstraint
+      DTS:refId="Package.PrecedenceConstraints[{43763CA2-F27A-46C1-A2F6-9BC54A942653\}]"
+      DTS:CreationName=""
+      DTS:DTSID="{43763CA2-F27A-46C1-A2F6-9BC54A942653}"
+      DTS:From="Package\Extraer a staging"
+      DTS:LogicalAnd="True"
+      DTS:ObjectName="{43763CA2-F27A-46C1-A2F6-9BC54A942653}"
+      DTS:To="Package\Aplicar y confirmar avance" />
+    <DTS:PrecedenceConstraint
+      DTS:refId="Package.PrecedenceConstraints[{5DFF0EDE-763B-4949-A958-572C35F582E1\}]"
+      DTS:CreationName=""
+      DTS:DTSID="{5DFF0EDE-763B-4949-A958-572C35F582E1}"
+      DTS:From="Package\Leer ultimo avance"
+      DTS:LogicalAnd="True"
+      DTS:ObjectName="{5DFF0EDE-763B-4949-A958-572C35F582E1}"
+      DTS:To="Package\Validar origen y fijar corte" />
+    <DTS:PrecedenceConstraint
+      DTS:refId="Package.PrecedenceConstraints[{D8912BF9-65EA-462D-9257-7EA2935FC425\}]"
+      DTS:CreationName=""
+      DTS:DTSID="{D8912BF9-65EA-462D-9257-7EA2935FC425}"
+      DTS:From="Package\Validar origen y fijar corte"
+      DTS:LogicalAnd="True"
+      DTS:ObjectName="{D8912BF9-65EA-462D-9257-7EA2935FC425}"
+      DTS:To="Package\Preparar staging" />
+  </DTS:PrecedenceConstraints>
+</DTS:Executable>

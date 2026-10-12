@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -127,8 +127,6 @@
     <Folder Include="dbo\Views\" />
     <Folder Include="dbo\Stored Procedures\" />
     <Folder Include="Scripts" />
-    <Folder Include="Scripts\Control" />
-    <Folder Include="Scripts\Procedures" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="dbo\Tables\Employees.sql">
@@ -247,10 +245,14 @@
       <AnsiNulls>On</AnsiNulls>
       <QuotedIdentifier>On</QuotedIdentifier>
     </Build>
+    <Build Include="dbo\Stored Procedures\RowVersionToBigInt.sql" />
+    <Build Include="dbo\Stored Procedures\BigIntToRowVersion.sql" />
     <Build Include="dbo\Stored Procedures\GetDatabaseRowVersion.sql">
       <AnsiNulls>On</AnsiNulls>
       <QuotedIdentifier>On</QuotedIdentifier>
     </Build>
+    <Build Include="dbo\Stored Procedures\GetShipperChangesByRowVersion.sql" />
+    <Build Include="dbo\Stored Procedures\GetSalesChangesByRowVersion.sql" />
     <Build Include="dbo\Stored Procedures\GetProductChangesByRowVersion.sql">
       <AnsiNulls>On</AnsiNulls>
       <QuotedIdentifier>On</QuotedIdentifier>
@@ -291,20 +293,9 @@
       <AnsiNulls>On</AnsiNulls>
       <QuotedIdentifier>On</QuotedIdentifier>
     </Build>
-    <None Include="Scripts\DW y dimensiones.sql" />
-    <None Include="Scripts\Fact.sql" />
-    <None Include="Scripts\Control\GetLastPackageRowVersion.sql" />
-    <None Include="Scripts\Control\PackageConfig.sql" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Scripts\Esquema_y_tablas.sql" />
-    <None Include="Scripts\Indices_Fact.sql" />
-    <None Include="Scripts\Control\UpdateLastPackageRowVersion.sql" />
-    <None Include="Scripts\DW_Merge.sql" />
   </ItemGroup>
   <ItemGroup>
-    <PostDeploy Include="Scripts\Control\VerificarPackages.sql" />
-    <None Include="Scripts\Procedures\GetLastPackageRowVersion.sql" />
-    <None Include="Scripts\Procedures\UpdateLastPackageRowVersion.sql" />
   </ItemGroup>
 </Project>

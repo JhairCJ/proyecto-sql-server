@@ -1,0 +1,688 @@
+{
+  "name": "Northwind.OLAP",
+  "compatibilityLevel": 1700,
+  "model": {
+    "culture": "es-ES",
+    "dataSources": [
+      {
+        "credential": {
+          "EncryptConnection": false,
+          "AuthenticationKind": "ServiceAccount"
+        },
+        "connectionDetails": {
+          "address": {
+            "server": "localhost",
+            "database": "Northwind_DW"
+          },
+          "query": null,
+          "authentication": null,
+          "protocol": "tds"
+        },
+        "name": "NorthwindDW",
+        "type": "structured"
+      }
+    ],
+    "tables": [
+      {
+        "name": "Dim_Cliente",
+        "columns": [
+          {
+            "name": "Cliente_SK",
+            "dataType": "int64",
+            "sourceColumn": "Cliente_SK",
+            "isHidden": true,
+            "isKey": true
+          },
+          {
+            "name": "CustomerID",
+            "dataType": "string",
+            "sourceColumn": "CustomerID"
+          },
+          {
+            "name": "NombreEmpresa",
+            "dataType": "string",
+            "sourceColumn": "NombreEmpresa"
+          },
+          {
+            "name": "NombreContacto",
+            "dataType": "string",
+            "sourceColumn": "NombreContacto"
+          },
+          {
+            "name": "TituloContacto",
+            "dataType": "string",
+            "sourceColumn": "TituloContacto"
+          },
+          {
+            "name": "Ciudad",
+            "dataType": "string",
+            "sourceColumn": "Ciudad"
+          },
+          {
+            "name": "Region",
+            "dataType": "string",
+            "sourceColumn": "Region"
+          },
+          {
+            "name": "CodigoPostal",
+            "dataType": "string",
+            "sourceColumn": "CodigoPostal"
+          },
+          {
+            "name": "Pais",
+            "dataType": "string",
+            "sourceColumn": "Pais"
+          }
+        ],
+        "partitions": [
+          {
+            "source": {
+              "expression": [
+                "let",
+                "    Fuente = #\"NorthwindDW\",",
+                "    Origen = Fuente{[Schema=\"dbo\", Item=\"Dim_Cliente\"]}[Data]",
+                "in",
+                "    Origen"
+              ],
+              "type": "m"
+            },
+            "name": "Dim_Cliente",
+            "dataView": "full"
+          }
+        ],
+        "hierarchies": [
+          {
+            "name": "País y cliente",
+            "levels": [
+              {
+                "column": "Pais",
+                "name": "País",
+                "ordinal": 0
+              },
+              {
+                "column": "NombreEmpresa",
+                "name": "Empresa",
+                "ordinal": 1
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Dim_Empleado",
+        "columns": [
+          {
+            "name": "Empleado_SK",
+            "dataType": "int64",
+            "sourceColumn": "Empleado_SK",
+            "isHidden": true,
+            "isKey": true
+          },
+          {
+            "name": "EmployeeID",
+            "dataType": "int64",
+            "sourceColumn": "EmployeeID"
+          },
+          {
+            "name": "NombreCompleto",
+            "dataType": "string",
+            "sourceColumn": "NombreCompleto"
+          },
+          {
+            "name": "Titulo",
+            "dataType": "string",
+            "sourceColumn": "Titulo"
+          },
+          {
+            "name": "Ciudad",
+            "dataType": "string",
+            "sourceColumn": "Ciudad"
+          },
+          {
+            "name": "Region",
+            "dataType": "string",
+            "sourceColumn": "Region"
+          },
+          {
+            "name": "Pais",
+            "dataType": "string",
+            "sourceColumn": "Pais"
+          },
+          {
+            "name": "ReportsTo",
+            "dataType": "int64",
+            "sourceColumn": "ReportsTo"
+          },
+          {
+            "name": "NombreSupervisor",
+            "dataType": "string",
+            "sourceColumn": "NombreSupervisor"
+          }
+        ],
+        "partitions": [
+          {
+            "source": {
+              "expression": [
+                "let",
+                "    Fuente = #\"NorthwindDW\",",
+                "    Origen = Fuente{[Schema=\"dbo\", Item=\"Dim_Empleado\"]}[Data]",
+                "in",
+                "    Origen"
+              ],
+              "type": "m"
+            },
+            "name": "Dim_Empleado",
+            "dataView": "full"
+          }
+        ]
+      },
+      {
+        "name": "Dim_Producto",
+        "columns": [
+          {
+            "name": "Producto_SK",
+            "dataType": "int64",
+            "sourceColumn": "Producto_SK",
+            "isHidden": true,
+            "isKey": true
+          },
+          {
+            "name": "ProductID",
+            "dataType": "int64",
+            "sourceColumn": "ProductID"
+          },
+          {
+            "name": "NombreProducto",
+            "dataType": "string",
+            "sourceColumn": "NombreProducto"
+          },
+          {
+            "name": "CantidadPorUnidad",
+            "dataType": "string",
+            "sourceColumn": "CantidadPorUnidad"
+          },
+          {
+            "name": "CategoryID",
+            "dataType": "int64",
+            "sourceColumn": "CategoryID",
+            "isHidden": true
+          },
+          {
+            "name": "Categoria",
+            "dataType": "string",
+            "sourceColumn": "Categoria"
+          },
+          {
+            "name": "SupplierID",
+            "dataType": "int64",
+            "sourceColumn": "SupplierID",
+            "isHidden": true
+          },
+          {
+            "name": "Proveedor",
+            "dataType": "string",
+            "sourceColumn": "Proveedor"
+          },
+          {
+            "name": "PaisProveedor",
+            "dataType": "string",
+            "sourceColumn": "PaisProveedor"
+          },
+          {
+            "name": "Descontinuado",
+            "dataType": "boolean",
+            "sourceColumn": "Descontinuado"
+          }
+        ],
+        "partitions": [
+          {
+            "source": {
+              "expression": [
+                "let",
+                "    Fuente = #\"NorthwindDW\",",
+                "    Origen = Fuente{[Schema=\"dbo\", Item=\"Dim_Producto\"]}[Data]",
+                "in",
+                "    Origen"
+              ],
+              "type": "m"
+            },
+            "name": "Dim_Producto",
+            "dataView": "full"
+          }
+        ],
+        "hierarchies": [
+          {
+            "name": "Categoría y producto",
+            "levels": [
+              {
+                "column": "Categoria",
+                "name": "Categoría",
+                "ordinal": 0
+              },
+              {
+                "column": "NombreProducto",
+                "name": "Producto",
+                "ordinal": 1
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Dim_Transportista",
+        "columns": [
+          {
+            "name": "Transportista_SK",
+            "dataType": "int64",
+            "sourceColumn": "Transportista_SK",
+            "isHidden": true,
+            "isKey": true
+          },
+          {
+            "name": "ShipperID",
+            "dataType": "int64",
+            "sourceColumn": "ShipperID"
+          },
+          {
+            "name": "NombreEmpresa",
+            "dataType": "string",
+            "sourceColumn": "NombreEmpresa"
+          },
+          {
+            "name": "Telefono",
+            "dataType": "string",
+            "sourceColumn": "Telefono"
+          }
+        ],
+        "partitions": [
+          {
+            "source": {
+              "expression": [
+                "let",
+                "    Fuente = #\"NorthwindDW\",",
+                "    Origen = Fuente{[Schema=\"dbo\", Item=\"Dim_Transportista\"]}[Data]",
+                "in",
+                "    Origen"
+              ],
+              "type": "m"
+            },
+            "name": "Dim_Transportista",
+            "dataView": "full"
+          }
+        ]
+      },
+      {
+        "name": "Dim_Tiempo",
+        "columns": [
+          {
+            "name": "Tiempo_SK",
+            "dataType": "int64",
+            "sourceColumn": "Tiempo_SK",
+            "isHidden": true,
+            "isKey": true
+          },
+          {
+            "name": "Fecha",
+            "dataType": "dateTime",
+            "sourceColumn": "Fecha",
+            "formatString": "dd/MM/yyyy"
+          },
+          {
+            "name": "Dia",
+            "dataType": "int64",
+            "sourceColumn": "Dia"
+          },
+          {
+            "name": "NombreDia",
+            "dataType": "string",
+            "sourceColumn": "NombreDia"
+          },
+          {
+            "name": "Mes",
+            "dataType": "int64",
+            "sourceColumn": "Mes",
+            "isHidden": true
+          },
+          {
+            "name": "NombreMes",
+            "dataType": "string",
+            "sourceColumn": "NombreMes",
+            "sortByColumn": "Mes"
+          },
+          {
+            "name": "Trimestre",
+            "dataType": "int64",
+            "sourceColumn": "Trimestre"
+          },
+          {
+            "name": "Anio",
+            "dataType": "int64",
+            "sourceColumn": "Anio"
+          },
+          {
+            "isDataTypeInferred": true,
+            "expression": "IF(Dim_Tiempo[Tiempo_SK] = 0, \"Desconocida\", \"Fecha real\")",
+            "dataType": "string",
+            "name": "TipoFecha",
+            "type": "calculated"
+          }
+        ],
+        "partitions": [
+          {
+            "source": {
+              "expression": [
+                "let",
+                "    Fuente = #\"NorthwindDW\",",
+                "    Origen = Fuente{[Schema=\"dbo\", Item=\"Dim_Tiempo\"]}[Data]",
+                "in",
+                "    Origen"
+              ],
+              "type": "m"
+            },
+            "name": "Dim_Tiempo",
+            "dataView": "full"
+          }
+        ],
+        "hierarchies": [
+          {
+            "name": "Calendario",
+            "levels": [
+              {
+                "column": "Anio",
+                "name": "Año",
+                "ordinal": 0
+              },
+              {
+                "column": "Trimestre",
+                "name": "Trimestre",
+                "ordinal": 1
+              },
+              {
+                "column": "NombreMes",
+                "name": "Mes",
+                "ordinal": 2
+              },
+              {
+                "column": "Fecha",
+                "name": "Fecha",
+                "ordinal": 3
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Fact_Ventas",
+        "columns": [
+          {
+            "name": "Venta_SK",
+            "dataType": "int64",
+            "sourceColumn": "Venta_SK",
+            "isHidden": true,
+            "isKey": true
+          },
+          {
+            "name": "Cliente_SK",
+            "dataType": "int64",
+            "sourceColumn": "Cliente_SK",
+            "isHidden": true
+          },
+          {
+            "name": "Empleado_SK",
+            "dataType": "int64",
+            "sourceColumn": "Empleado_SK",
+            "isHidden": true
+          },
+          {
+            "name": "Producto_SK",
+            "dataType": "int64",
+            "sourceColumn": "Producto_SK",
+            "isHidden": true
+          },
+          {
+            "name": "Transportista_SK",
+            "dataType": "int64",
+            "sourceColumn": "Transportista_SK",
+            "isHidden": true
+          },
+          {
+            "name": "FechaPedido_SK",
+            "dataType": "int64",
+            "sourceColumn": "FechaPedido_SK",
+            "isHidden": true
+          },
+          {
+            "name": "FechaRequerida_SK",
+            "dataType": "int64",
+            "sourceColumn": "FechaRequerida_SK",
+            "isHidden": true
+          },
+          {
+            "name": "FechaEnvio_SK",
+            "dataType": "int64",
+            "sourceColumn": "FechaEnvio_SK",
+            "isHidden": true
+          },
+          {
+            "name": "OrderID",
+            "dataType": "int64",
+            "sourceColumn": "OrderID"
+          },
+          {
+            "name": "ProductID",
+            "dataType": "int64",
+            "sourceColumn": "ProductID",
+            "isHidden": true
+          },
+          {
+            "name": "Cantidad",
+            "dataType": "int64",
+            "sourceColumn": "Cantidad",
+            "isHidden": true
+          },
+          {
+            "name": "PrecioUnitario",
+            "dataType": "decimal",
+            "sourceColumn": "PrecioUnitario",
+            "isHidden": true
+          },
+          {
+            "name": "Descuento",
+            "dataType": "decimal",
+            "sourceColumn": "Descuento",
+            "isHidden": true
+          },
+          {
+            "name": "ImporteBruto",
+            "dataType": "decimal",
+            "sourceColumn": "ImporteBruto",
+            "isHidden": true
+          },
+          {
+            "name": "ImporteDescuento",
+            "dataType": "decimal",
+            "sourceColumn": "ImporteDescuento",
+            "isHidden": true
+          },
+          {
+            "name": "ImporteNeto",
+            "dataType": "decimal",
+            "sourceColumn": "ImporteNeto",
+            "isHidden": true
+          }
+        ],
+        "partitions": [
+          {
+            "source": {
+              "expression": [
+                "let",
+                "    Fuente = #\"NorthwindDW\",",
+                "    Origen = Fuente{[Schema=\"dbo\", Item=\"Fact_Ventas\"]}[Data]",
+                "in",
+                "    Origen"
+              ],
+              "type": "m"
+            },
+            "name": "Fact_Ventas",
+            "dataView": "full"
+          }
+        ],
+        "measures": [
+          {
+            "name": "Ventas brutas",
+            "expression": "SUM(Fact_Ventas[ImporteBruto])",
+            "formatString": "$ #,##0.00;-$ #,##0.00;$ 0.00"
+          },
+          {
+            "name": "Descuentos aplicados",
+            "expression": "SUM(Fact_Ventas[ImporteDescuento])",
+            "formatString": "$ #,##0.00;-$ #,##0.00;$ 0.00"
+          },
+          {
+            "name": "Ventas netas",
+            "expression": "SUM(Fact_Ventas[ImporteNeto])",
+            "formatString": "$ #,##0.00;-$ #,##0.00;$ 0.00"
+          },
+          {
+            "name": "Unidades",
+            "expression": "SUM(Fact_Ventas[Cantidad])",
+            "formatString": "#,##0"
+          },
+          {
+            "name": "Pedidos distintos",
+            "expression": "DISTINCTCOUNT(Fact_Ventas[OrderID])",
+            "formatString": "#,##0"
+          },
+          {
+            "name": "Ventas brutas por fecha requerida",
+            "expression": "CALCULATE([Ventas brutas], USERELATIONSHIP(Fact_Ventas[FechaRequerida_SK], Dim_Tiempo[Tiempo_SK]))",
+            "formatString": "$ #,##0.00;-$ #,##0.00;$ 0.00",
+            "displayFolder": "Fecha requerida"
+          },
+          {
+            "name": "Descuentos por fecha requerida",
+            "expression": "CALCULATE([Descuentos aplicados], USERELATIONSHIP(Fact_Ventas[FechaRequerida_SK], Dim_Tiempo[Tiempo_SK]))",
+            "formatString": "$ #,##0.00;-$ #,##0.00;$ 0.00",
+            "displayFolder": "Fecha requerida"
+          },
+          {
+            "name": "Ventas netas por fecha requerida",
+            "expression": "CALCULATE([Ventas netas], USERELATIONSHIP(Fact_Ventas[FechaRequerida_SK], Dim_Tiempo[Tiempo_SK]))",
+            "formatString": "$ #,##0.00;-$ #,##0.00;$ 0.00",
+            "displayFolder": "Fecha requerida"
+          },
+          {
+            "name": "Unidades por fecha requerida",
+            "expression": "CALCULATE([Unidades], USERELATIONSHIP(Fact_Ventas[FechaRequerida_SK], Dim_Tiempo[Tiempo_SK]))",
+            "formatString": "#,##0",
+            "displayFolder": "Fecha requerida"
+          },
+          {
+            "name": "Pedidos por fecha requerida",
+            "expression": "CALCULATE([Pedidos distintos], USERELATIONSHIP(Fact_Ventas[FechaRequerida_SK], Dim_Tiempo[Tiempo_SK]))",
+            "formatString": "#,##0",
+            "displayFolder": "Fecha requerida"
+          },
+          {
+            "name": "Ventas brutas por fecha de envío",
+            "expression": "CALCULATE([Ventas brutas], USERELATIONSHIP(Fact_Ventas[FechaEnvio_SK], Dim_Tiempo[Tiempo_SK]))",
+            "formatString": "$ #,##0.00;-$ #,##0.00;$ 0.00",
+            "displayFolder": "Fecha de envío"
+          },
+          {
+            "name": "Descuentos por fecha de envío",
+            "expression": "CALCULATE([Descuentos aplicados], USERELATIONSHIP(Fact_Ventas[FechaEnvio_SK], Dim_Tiempo[Tiempo_SK]))",
+            "formatString": "$ #,##0.00;-$ #,##0.00;$ 0.00",
+            "displayFolder": "Fecha de envío"
+          },
+          {
+            "name": "Ventas netas por fecha de envío",
+            "expression": "CALCULATE([Ventas netas], USERELATIONSHIP(Fact_Ventas[FechaEnvio_SK], Dim_Tiempo[Tiempo_SK]))",
+            "formatString": "$ #,##0.00;-$ #,##0.00;$ 0.00",
+            "displayFolder": "Fecha de envío"
+          },
+          {
+            "name": "Unidades por fecha de envío",
+            "expression": "CALCULATE([Unidades], USERELATIONSHIP(Fact_Ventas[FechaEnvio_SK], Dim_Tiempo[Tiempo_SK]))",
+            "formatString": "#,##0",
+            "displayFolder": "Fecha de envío"
+          },
+          {
+            "name": "Pedidos por fecha de envío",
+            "expression": "CALCULATE([Pedidos distintos], USERELATIONSHIP(Fact_Ventas[FechaEnvio_SK], Dim_Tiempo[Tiempo_SK]))",
+            "formatString": "#,##0",
+            "displayFolder": "Fecha de envío"
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "f04a6a0b-e218-4fbd-a49b-b4423dbea5fe",
+        "fromTable": "Fact_Ventas",
+        "fromColumn": "Cliente_SK",
+        "toTable": "Dim_Cliente",
+        "isActive": true,
+        "toColumn": "Cliente_SK"
+      },
+      {
+        "name": "8fe51adb-48b0-4a7c-aae3-f9ffd914972f",
+        "fromTable": "Fact_Ventas",
+        "fromColumn": "Empleado_SK",
+        "toTable": "Dim_Empleado",
+        "isActive": true,
+        "toColumn": "Empleado_SK"
+      },
+      {
+        "name": "1bbb8bc3-3bef-4d7f-bc77-dbb1e97e9964",
+        "fromTable": "Fact_Ventas",
+        "fromColumn": "Producto_SK",
+        "toTable": "Dim_Producto",
+        "isActive": true,
+        "toColumn": "Producto_SK"
+      },
+      {
+        "name": "07a66964-a0c5-49f1-b4c4-a33c98b70feb",
+        "fromTable": "Fact_Ventas",
+        "fromColumn": "Transportista_SK",
+        "toTable": "Dim_Transportista",
+        "isActive": true,
+        "toColumn": "Transportista_SK"
+      },
+      {
+        "name": "7adfb54a-5a08-410a-81a3-18f5cd4369b2",
+        "fromTable": "Fact_Ventas",
+        "fromColumn": "FechaPedido_SK",
+        "toTable": "Dim_Tiempo",
+        "isActive": true,
+        "toColumn": "Tiempo_SK"
+      },
+      {
+        "name": "63d992e5-51af-40ca-9486-582dab9600d7",
+        "fromTable": "Fact_Ventas",
+        "fromColumn": "FechaRequerida_SK",
+        "toTable": "Dim_Tiempo",
+        "isActive": false,
+        "toColumn": "Tiempo_SK"
+      },
+      {
+        "name": "e1e04d2c-0ab8-4276-a36d-2e637a66b1fc",
+        "fromTable": "Fact_Ventas",
+        "fromColumn": "FechaEnvio_SK",
+        "toTable": "Dim_Tiempo",
+        "isActive": false,
+        "toColumn": "Tiempo_SK"
+      }
+    ],
+    "annotations": [
+      {
+        "name": "NorthwindPracticeModel",
+        "value": "Northwind.OLAP"
+      },
+      {
+        "name": "ClientCompatibilityLevel",
+        "value": "700"
+      }
+    ]
+  }
+}

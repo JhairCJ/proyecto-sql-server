@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <TargetConnectionString>Data Source=localhost;Initial Catalog=Northwind_DW_Test;Integrated Security=True;Encrypt=True;TrustServerCertificate=True</TargetConnectionString>
+    <TargetDatabaseName>Northwind_DW_Test</TargetDatabaseName>
+    <BlockOnPossibleDataLoss>True</BlockOnPossibleDataLoss>
+    <DropObjectsNotInSource>False</DropObjectsNotInSource>
+    <DropExtendedPropertiesNotInSource>False</DropExtendedPropertiesNotInSource>
+    <ScriptDatabaseOptions>False</ScriptDatabaseOptions>
+  </PropertyGroup>
+</Project>

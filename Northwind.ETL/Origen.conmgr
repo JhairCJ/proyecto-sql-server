@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<DTS:ConnectionManager xmlns:DTS="www.microsoft.com/SqlServer/Dts"
+  DTS:ObjectName="Origen"
+  DTS:DTSID="{36408304-1EEF-431A-A523-4229BE67C90E}"
+  DTS:CreationName="OLEDB">
+  <DTS:PropertyExpression
+    DTS:Name="ConnectionString">"Provider=MSOLEDBSQL.1;Data Source=" + @[$Project::SourceServer] + ";Initial Catalog=" + @[$Project::SourceDatabase] + ";Integrated Security=SSPI;Trust Server Certificate=True;"</DTS:PropertyExpression>
+  <DTS:ObjectData>
+    <DTS:ConnectionManager
+      DTS:Retain="True"
+      DTS:ConnectRetryCount="1"
+      DTS:ConnectRetryInterval="5"
+      DTS:ConnectionString="Data Source=localhost;Initial Catalog=NorthWind;Provider=MSOLEDBSQL.1;Integrated Security=SSPI;Trust Server Certificate=True;" />
+  </DTS:ObjectData>
+</DTS:ConnectionManager>

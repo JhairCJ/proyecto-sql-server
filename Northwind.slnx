@@ -3,4 +3,16 @@
     <Build />
     <Deploy />
   </Project>
+  <Project Path="Northwind.DW/Northwind.DW.sqlproj" Id="704221ef-32e1-488f-972c-133b39e8ef91"><Build /><Deploy /></Project>
+  <Project Path="Northwind.ETL/Northwind.ETL.dtproj" Type="C9674DCB-5085-4A16-B785-4C70DD1589BD" Id="27006512-9361-4dfe-8a12-2c5c14d584c8">
+    <BuildType Project="Development" />
+    <Platform Project="Default" />
+    <Build />
+  </Project>
+  <Project Path="Northwind.OLAP/Northwind.OLAP.smproj" Type="6870E480-7721-4708-BFB8-9AE898AA21B3" Id="c687c03a-6a1a-4e5f-9514-af4238b81e10">
+    <BuildType Project="Development" />
+    <Platform Project="Default" />
+    <Build />
+    <Deploy />
+  </Project>
 </Solution>
