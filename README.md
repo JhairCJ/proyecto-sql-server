@@ -1,6 +1,6 @@
 # Práctica SQL Server — Northwind
 
-Rama `northwind`: proyecto OLTP existente, guía desde cero y herramientas de pruebas aisladas. Se completaron **4 de 41 tareas** del plan; la carga ETL, el modelo analítico y el job todavía están en desarrollo.
+Rama `northwind`: proyecto OLTP existente, guía desde cero y herramientas de pruebas aisladas. Se completaron **6 de 41 tareas** del plan; la carga ETL, el modelo analítico y el job todavía están en desarrollo.
 
 ## Descargar y empezar
 
@@ -15,6 +15,7 @@ Si ya tienes el repositorio, actualiza las referencias y cambia a `northwind` co
 2. Abre `Northwind.slnx` desde la carpeta donde clonaste el repositorio. En las guías, `C:\Proyectos\proyecto-sql-server` es **una ruta de ejemplo**: reemplázala por tu carpeta real. Las versiones y permisos documentados corresponden al equipo donde se validó, no certifican tu instalación.
 3. Para trabajar con pruebas necesitas primero las bases locales `NorthWind` y `Northwind_DW` preparadas en tu motor. Clonar el repositorio no las crea. `Files/NorthWind.bak` es material existente del proyecto; la inicialización y el despliegue completo en una computadora nueva se terminarán en las siguientes etapas.
 4. Si vas a desarrollar o ejecutar fixtures y ya tienes esas bases, sigue la [guía de pruebas aisladas](docs/pruebas-aisladas.md). Ejecuta `tests/Prepare-TestDatabases.ps1` desde esta carpeta: crea `Northwind_Test` y `Northwind_DW_Test` en tu computadora y reutiliza las copias marcadas en ejecuciones posteriores.
+5. Para probar las marcas y el extractor de clientes actualizado, sigue [extracción de clientes](docs/extraccion-clientes.md): publica los cuatro procedimientos en la copia y ejecuta las pruebas de intervalos y conexiones separadas.
 
 Las bases de prueba son permanentes y separadas de las originales. Las escrituras de fixtures deben ejecutarse con `Northwind.TestTools.psm1`; sus guardas restringen los destinos. Las consultas manuales en SSMS con una cuenta administradora conservan los permisos de esa cuenta.
 

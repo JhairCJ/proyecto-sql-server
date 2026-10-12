@@ -78,3 +78,29 @@ La comparación exacta corresponde al instante inicial anterior a los fixtures. 
 La [guía de pruebas](pruebas-aisladas.md) contiene fichas con programas, valores, pasos, resultados y recuperación. Esta etapa se ejecutó automáticamente; las instrucciones permiten aprender y reproducirla sin exigir que el usuario vuelva a crear las bases. No se modificó la solución de Visual Studio ni se publicaron proyectos.
 
 Tarea 1.3 completa. Progreso: **4 de 41**. Pendientes: corregir extractores y contratos, construir DW/ETL/OLAP y validar despliegues y job. Próxima unidad recomendada: **2.1 y 2.2**, marcas y clientes con casos de límites y transacciones pendientes en copias aisladas.
+
+## Segmento 03 — Contrato de marcas y clientes
+
+Tareas **2.1 y 2.2**. Se corrigieron GetDatabaseRowVersion y GetCustomerChangesByRowVersion, se añadieron las dos conversiones comprobadas y se publicaron solo esos cuatro procedimientos en Northwind_Test. Se mantiene NorthWind sin publicación de estos cambios hasta su fase de despliegue.
+
+| Escenario | Resultado ejecutado | Evidencia local en `evidencias/segmento-03/` |
+| --- | --- | --- |
+| Compilación SQL | Salida 0; se mantienen las 19 advertencias heredadas SQL71502, sin errores nuevos | `compilacion.txt` |
+| Publicación acotada | Cuatro procedimientos en origen de prueba; repetición sin reset | `despliegue.txt` |
+| Referencia / contrato de staging | 91 clientes únicos; INSERT EXEC compatible con las nueve columnas de std.Cliente | `clientes.txt` |
+| Conversiones | 0, 1, 9007199254740993 y máximo Int64 preservados; NULL, negativo y binario 0x8000... rechazados | `clientes.txt`, `rowversion.txt` |
+| Límites | Inferior excluido, superior incluido, posterior recuperado, intervalo vacío sin filas; intervalos inválidos rechazados | `clientes.txt` |
+| Demografía | Clientes con cero y varias clasificaciones conservados una vez; cambios demográficos no seleccionan entidades | `clientes.txt` |
+| Transacción pendiente + commit posterior | Corte anterior a ambas escrituras; lectura RC no publica la pendiente; después del commit ambos clientes se seleccionan una vez | `rowversion.txt` |
+| Conexión reutilizada | GetDatabaseRowVersion y extracción conservan RC del llamador; prueba desde RU confirmó RC dentro del extractor | `rowversion.txt` |
+| Parámetros reales | ADO.NET Binary(8)/BigInt y variables Int64 sin pérdida; prueba SSIS queda en 5.1 | `rowversion.txt` |
+| Guardas tras ampliar herramienta | Destinos originales y escapes SQL rechazados; rollback/commit comprobados | `aislamiento.txt` |
+| Originales / limpieza | Valores de referencia, @@DBTS y hashes de procedimientos del origen, así como controles/hechos DW, sin diferencias antes/después; fixtures eliminados y nombres restaurados en copia | `originales-antes-validacion.txt`, `originales-despues-validacion.txt`, `limpieza.txt` |
+
+Parser PowerShell y pruebas de motor ejecutados sobre los scripts. El timeout deliberado de lectura sobre la fila pendiente se reconoció específicamente como SqlException -2, no como un fallo de conexión aceptado silenciosamente. Los errores esperados de rango se verificaron por número SQL. El fixture SQL desactiva XACT_ABORT solo dentro de su batch para capturar esos rechazos y termina con rollback; la herramienta lo activa por defecto para ejecuciones normales.
+
+Se amplió el módulo con New-NorthwindTestConnection para compartir las guardas en pruebas de múltiples sesiones. Los procedimientos SQL restauran el nivel de aislamiento del llamador al salir; no se interpreta que SET dentro del prototipo alterase permanentemente una sesión RC. El problema corregido es la lectura interna READ UNCOMMITTED y el contrato sin validación.
+
+La [guía de esta etapa](extraccion-clientes.md) contiene explicación y fichas D9 de publicación en copia, consulta y pruebas. No requiere intervención manual para completar lo ya ejecutado. Todavía no hay ETL de clientes, aplicación de staging ni paquete SSIS comprobados.
+
+Progreso: **6 de 41**. Próxima unidad recomendada: **2.3 y 2.4**, empleados y productos con atributos dependientes y relaciones opcionales.

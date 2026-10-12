@@ -1,18 +1,13 @@
 Set-StrictMode -Version Latest
 
-function Invoke-NorthwindTestSql {
-    <# Ejecuta un batch de fixtures solo en copias marcadas. Revierte por defecto.
-       -Commit confirma cambios de prueba. No admite separadores GO de SSMS. #>
+function New-NorthwindTestConnection {
+    <# Conexión restringida para pruebas de varias sesiones. El llamador debe Dispose(). #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
         [ValidateSet('Northwind_Test', 'Northwind_DW_Test')]
         [string]$Database,
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
-        [string]$Sql,
-        [string]$Server = 'localhost',
-        [switch]$Commit
+        [string]$Server = 'localhost'
     )
 
     $ErrorActionPreference = 'Stop'
@@ -51,6 +46,26 @@ IF USER_ID(N'NorthwindFixture') IS NULL
         $identity.CommandText = "EXECUTE AS USER = N'NorthwindFixture' WITH NO REVERT;"
         [void]$identity.ExecuteNonQuery()
         $identity.Dispose()
+        return $connection
+    } catch { $connection.Dispose(); throw }
+}
+
+function Invoke-NorthwindTestSql {
+    <# Un batch sin GO; revierte por defecto, -Commit confirma el fixture. #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [ValidateSet('Northwind_Test', 'Northwind_DW_Test')]
+        [string]$Database,
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]$Sql,
+        [string]$Server = 'localhost',
+        [switch]$Commit
+    )
+    $ErrorActionPreference = 'Stop'
+    $connection = New-NorthwindTestConnection -Database $Database -Server $Server
+    try {
         $command = $connection.CreateCommand()
         $command.CommandTimeout = 60
         $finish = if ($Commit) { 'COMMIT TRANSACTION;' } else { 'ROLLBACK TRANSACTION;' }
@@ -66,4 +81,4 @@ IF USER_ID(N'NorthwindFixture') IS NULL
     }
 }
 
-Export-ModuleMember -Function Invoke-NorthwindTestSql
+Export-ModuleMember -Function Invoke-NorthwindTestSql, New-NorthwindTestConnection

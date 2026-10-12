@@ -160,6 +160,10 @@ SELECT COL_LENGTH('std.Empleado', 'SupervisorName') AS LongitudSupervisor;
 
 Ya están preparadas `Northwind_Test` y `Northwind_DW_Test`. Lee [bases de prueba aisladas](pruebas-aisladas.md) para reconocerlas en SSMS, repetir la preparación sin sobrescribir y ejecutar fixtures con guardas. No necesitas repetir la creación: se ejecutó y verificó automáticamente.
 
-## 9. Próximo segmento
+## 9. Marcas y clientes
 
-Corregir el contrato de marcas de cambios y la extracción de clientes, con pruebas en las copias. Cuando pidas continuar, elegiré automáticamente el siguiente segmento verificable y explicaré cualquier acción requerida en los programas con objetivo, valores, pasos, resultado y comprobación.
+Ya está corregido y probado el contrato de marcas y el extractor de clientes en Northwind_Test. Lee [marcas y extracción de clientes](extraccion-clientes.md) para entender los intervalos, consultar el resultado en SSMS y reproducir las pruebas.
+
+## 10. Próximo segmento
+
+Corregir empleados y productos con relaciones opcionales y cambios dependientes. Cuando pidas continuar, elegiré automáticamente el siguiente segmento verificable y explicaré cualquier acción requerida en los programas con objetivo, valores, pasos, resultado y comprobación.
