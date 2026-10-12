@@ -1,4 +1,4 @@
-﻿CREATE OR ALTER PROCEDURE dbo.UpdateLastPackageRowVersion
+CREATE PROCEDURE dbo.UpdateLastPackageRowVersion
     @PackageName NVARCHAR(100),
     @LastRowVersion BINARY(8)
 AS
@@ -27,4 +27,4 @@ BEGIN
         );
     END;
 END;
-GO
+

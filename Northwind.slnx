@@ -3,4 +3,5 @@
     <Build />
     <Deploy />
   </Project>
+  <Project Path="Northwind.DW/Northwind.DW.sqlproj" Id="704221ef-32e1-488f-972c-133b39e8ef91"><Build /><Deploy /></Project>
 </Solution>

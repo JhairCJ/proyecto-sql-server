@@ -40,7 +40,7 @@ En Northwind_DW, las cinco dimensiones, Fact_Ventas y las cinco tablas std tiene
 ### Diferencias y riesgos encontrados respecto a la planificación
 
 - Se confirmó `std.Empleado.SupervisorName`, `nvarchar(60)`, 120 bytes. Ya existen los cuatro `DW_MergeDim...`.
-- Ahora también existen `DW_LoadDimTiempo` y `DW_MergeFactVentas`, tanto en el servidor como en `Scripts/DW_Merge.sql`. No se consideran tareas implementadas por nosotros: no se han ejecutado sus escenarios de aceptación.
+- Ahora también existen `DW_LoadDimTiempo` y `DW_MergeFactVentas`, tanto en el servidor como en el antiguo `Scripts/DW_Merge.sql` (reorganizado posteriormente; véase referencias/modelo-dw.md). No se consideran tareas implementadas por nosotros: no se han ejecutado sus escenarios de aceptación.
 - El calendario existente inserta solo fechas presentes en staging y usa DATENAME dependiente del idioma de sesión. Queda pendiente convertirlo en calendario continuo y nombres españoles estables (3.3).
 - La aplicación de ventas empareja por OrderID/Producto_SK, no guarda ProductID en el hecho, excluye filas sin cliente/empleado resuelto o fecha de pedido y calcula importes con fórmulas que deben ajustarse al contrato. Se adaptará y probará en 3.4/4.2, conservando el trabajo existente como punto de partida.
 - OLTP compila con 19 advertencias por referencias heredadas a `Order Details`; el nombre actual es `OrderDetails`. Pendiente resolver referencias antes de una publicación validada.
@@ -101,7 +101,7 @@ Parser PowerShell y pruebas de motor ejecutados sobre los scripts. El timeout de
 
 Se amplió el módulo con New-NorthwindTestConnection para compartir las guardas en pruebas de múltiples sesiones. Los procedimientos SQL restauran el nivel de aislamiento del llamador al salir; no se interpreta que SET dentro del prototipo alterase permanentemente una sesión RC. El problema corregido es la lectura interna READ UNCOMMITTED y el contrato sin validación.
 
-La [guía de esta etapa](04-extraccion-clientes.md) contiene explicación y fichas D9 de publicación en copia, consulta y pruebas. No requiere intervención manual para completar lo ya ejecutado. Todavía no hay ETL de clientes, aplicación de staging ni paquete SSIS comprobados.
+La [guía de esta etapa](referencias/extraccion.md) contiene explicación y fichas D9 de publicación en copia, consulta y pruebas. No requiere intervención manual para completar lo ya ejecutado. Todavía no hay ETL de clientes, aplicación de staging ni paquete SSIS comprobados.
 
 Progreso: **6 de 41**. Próxima unidad recomendada: **2.3 y 2.4**, empleados y productos con atributos dependientes y relaciones opcionales.
 
@@ -124,7 +124,7 @@ Tareas **2.3 y 2.4**. Ambos extractores entregan las columnas de staging en su o
 
 Las pruebas de corte de este segmento simulan escrituras sucesivas alrededor de un corte capturado dentro del fixture; no se presentan como prueba de una instantánea global ni como nuevas pruebas de múltiples sesiones. Los fixtures revierten sus datos y las marcas de la copia avanzan normalmente. El parser del script PowerShell de publicación pasó.
 
-La [guía de empleados y productos](05-extraccion-empleados-productos.md) contiene conceptos, preparación, consulta en SSMS, pruebas y compilación en Visual Studio. No se cargó staging ni se construyeron paquetes SSIS en esta etapa. Se mantiene retirada la planificación del repositorio; no se hizo commit ni push.
+La [guía de empleados y productos](referencias/extraccion.md) contiene conceptos, preparación, consulta en SSMS, pruebas y compilación en Visual Studio. No se cargó staging ni se construyeron paquetes SSIS en esta etapa. Se mantiene retirada la planificación del repositorio; no se hizo commit ni push.
 
 Progreso: **8 de 41**. Próxima unidad recomendada: **2.5 y 2.6**, transportistas y ventas.
 
@@ -165,4 +165,32 @@ Se corrigió un conflicto de intercalación de las tablas temporales de prueba c
 
 Las pruebas de corte usan escrituras sucesivas dentro de un fixture, sin afirmar una nueva comprobación de múltiples sesiones ni una instantánea global. std.Ventas conserva por ahora MONEY/REAL como el origen; tipos decimales y cálculo de importes del DW corresponden a tareas posteriores. No se cargaron staging, hechos ni paquetes SSIS.
 
-La [guía 06](06-extraccion-transportistas-ventas.md) explica conceptos, columnas, pasos PowerShell/SSMS/Visual Studio, resultados y recuperación. Progreso: **10 de 41**. Próxima unidad recomendada: **2.7**, mapa de tablas, claves y extractores, antes del proyecto DW.
+La [guía 06](referencias/extraccion.md) explica conceptos, columnas, pasos PowerShell/SSMS/Visual Studio, resultados y recuperación. Progreso: **10 de 41**. Próxima unidad recomendada: **2.7**, mapa de tablas, claves y extractores, antes del proyecto DW.
+
+## Sección funcional: cierre de extracción y modelo/publicación DW
+
+Se sustituyó el límite de una a tres tareas por secciones funcionales completas y se registró la preferencia de guías operativas concisas en AGENTS.md, la habilidad local y los artefactos OpenSpec externos al repo. El commit/push autorizado de lo acumulado fue **72849d2** en northwind. Los cambios de esta sección son posteriores y permanecen locales.
+
+Tareas **2.7 y 3.1–3.7**. La solución contiene Northwind.OLTP y Northwind.DW, con propietarios separados. Se retiraron las definiciones DW duplicadas del OLTP y su PostDeploy que consultaba otro destino. Los cuatro merges de dimensiones y los procedimientos de control se integraron en DW; su endurecimiento transaccional corresponde a la sección de aplicación. El procedimiento antiguo de hechos quedó como Legacy fuera de Build y no se utiliza como carga validada.
+
+| Comprobación ejecutada | Resultado | Evidencia local en `evidencias/seccion-dw/` |
+| --- | --- | --- |
+| Solución y límites de dacpac | Ambos proyectos compilan; OLTP tiene sus 13 tablas de origen, DW sus 12 tablas; ningún objeto DW en OLTP | `compilacion-solucion.txt`, `limites-y-guia.txt` |
+| Extracción completa y pedido conocido | 91/9/77/3/2155; pedido 10248 con productos 11/42/72, 27 unidades y bruto/neto 440 | `pruebas-modelo.txt`, `limites-y-guia.txt` |
+| Esquema y claves | Unicidad comercial en dimensiones, OrderID/ProductID único, FKs y validaciones de cantidad/precio/descuento; miembros desconocidos 0 | `pruebas-modelo.txt` |
+| Tipo 1 | Actualización de ciudad refleja atributo y conserva Cliente_SK | `pruebas-modelo.txt` |
+| Calendario | Rango continuo 1996-07-04 a 1998-06-11 (708 días), extensión de cuatro días repetible, nombres españoles bajo idiomas/DATEFIRST diferentes; rangos inválidos 52001/52002 rechazados | `pruebas-modelo.txt`, `limpieza.txt`, `limites-y-guia.txt` |
+| Migración ambigua | Dos hechos legacy con la misma identidad derivada rechazados con 52013 antes de agregar ProductID; fixture revertido | `migracion-ambigua.txt` |
+| Migración de datos y republicación | Hecho legacy de prueba conserva Venta_SK, importes, marca 0x7B y fecha; ProductID derivado de dimensión; segunda publicación conserva todo | `legacy-antes-republicar.txt`, `legacy-despues-republicar.txt`, `republicacion-con-datos.txt`, `republicacion/` |
+| Regla monetaria | 10×20 y 10% → 200/20/180; precio 0,0050 → 0,01; descuento sobre bruto 1 con proporción 0,005000 → 0,01 | `pruebas-modelo.txt` |
+| Reconciliación independiente sobre fixture completo | 91 clientes, 9 empleados, 77 productos, 3 transportistas, 2155 líneas, 830 pedidos, 51317 unidades; bruto 1354458,59, descuento 88665,83, neto 1265792,76 | `pruebas-modelo.txt` |
+| Fixtures inválidos | Constraints rechazan duplicados y referencias/valores inválidos; comparación detecta neto incorrecto y ProductID incoherente con SK; ausencias legítimas admitidas con 0/NULL | `pruebas-modelo.txt` |
+| Originales y limpieza | Capturas de originales idénticas; fixture legacy y marca temporal eliminados; fixture completo revertido. Copia DW conserva desconocidos/calendario, cero entidades/hechos comerciales y controles iniciales | `originales-antes.txt`, `originales-despues.txt`, `limpieza.txt` |
+
+La primera publicación sobre datos se detuvo por BlockOnPossibleDataLoss ante REAL→decimal. Se corrigió mediante conversión explícita validada antes de publicar, manteniendo ese bloqueo activado. Se configuró la conservación de propiedades extendidas y opciones de base para no retirar la marca de prueba. En la carga del fixture, BulkCopy REAL→decimal produjo una diferencia de un centavo; se normalizó el descuento en SQL antes del transporte y la reconciliación independiente pasó. La sección SSIS debe conservar esa conversión; no se declara probada su integración.
+
+Las comprobaciones de datos completos usan un fixture transaccional, no una carga de aplicación ya disponible. La sección DW prepara esquema, controles, desconocidos y calendario. La aplicación incremental, SSIS, modelo tabular y job permanecen pendientes. La publicación inicial y repetida se realizó únicamente en Northwind_DW_Test.
+
+Las guías operativas quedan en 01–05. Las antiguas guías por entidad 04-extraccion-clientes, 05-extraccion-empleados-productos y 06-extraccion-transportistas-ventas se sustituyeron por una sola guía de ejecución de extractores y [referencias técnicas](referencias/extraccion.md). El [mapa DW](referencias/modelo-dw.md) registra propietarios, renombres, tres fechas, claves, tipo 1, importes y correspondencia BikeStores. La guía [05](05-preparar-dw.md) contiene únicamente publicación/comprobación. Se verificaron sus consultas y enlaces locales; parser PowerShell sin errores.
+
+Progreso: **18 de 41**. Próxima sección funcional: **aplicación y carga de datos (grupo 4)**. No se hizo commit ni push de esta sección posterior a 72849d2.
