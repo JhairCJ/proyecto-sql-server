@@ -19,11 +19,11 @@ USE NorthWind;
 SELECT name FROM sys.procedures
 WHERE name IN (N'GetDatabaseRowVersion',N'GetCustomerChangesByRowVersion',
  N'GetEmployeeChangesByRowVersion',N'GetProductChangesByRowVersion',
- N'GetShipperChangesByRowVersion',N'GetSalesChangesByRowVersion',
+ N'GetShipperChangesByRowVersion',N'GetSupplierChangesByRowVersion',N'GetSalesChangesByRowVersion',
  N'RowVersionToBigInt',N'BigIntToRowVersion')
 ORDER BY name;
 SELECT COUNT(*) AS Pedidos FROM dbo.Orders;
 SELECT COUNT(*) AS Lineas FROM dbo.OrderDetails;
 ```
 
-**Resultado:** ocho procedimientos; 830 pedidos y 2.155 líneas. La publicación agrega o actualiza procedimientos; no cambia esas filas comerciales.
+**Resultado:** nueve procedimientos; 830 pedidos y 2.155 líneas. La publicación agrega o actualiza procedimientos; no cambia esas filas comerciales.

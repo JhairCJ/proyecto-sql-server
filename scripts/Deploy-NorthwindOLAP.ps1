@@ -2,7 +2,7 @@
 param(
     [string]$AnalysisServer = 'localhost',
     [string]$WarehouseServer = 'localhost',
-    [ValidateSet('Northwind_DW', 'Northwind_DW_Test')]
+    [ValidatePattern('^(Northwind_DW|Northwind_DW_(?:[A-Za-z0-9]+_)*Test)$')]
     [string]$WarehouseDatabase = 'Northwind_DW_Test',
     [ValidateSet('NorthwindOLAP', 'NorthwindOLAP_Test')]
     [string]$ModelDatabase = 'NorthwindOLAP_Test'

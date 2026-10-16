@@ -11,9 +11,13 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$expectedWarehouseDatabase = if ($ModelDatabase -eq 'NorthwindOLAP') { 'Northwind_DW' } else { 'Northwind_DW_Test' }
-if ($WarehouseDatabase -in @('Northwind_DW', 'Northwind_DW_Test') -and $WarehouseDatabase -ne $expectedWarehouseDatabase) {
-    throw 'Use NorthwindOLAP/Northwind_DW together, or NorthwindOLAP_Test/Northwind_DW_Test together.'
+if ($ModelDatabase -eq 'NorthwindOLAP' -and $WarehouseDatabase -ne 'Northwind_DW') {
+    throw 'El modelo NorthwindOLAP solo puede procesar Northwind_DW.'
+}
+if ($ModelDatabase -eq 'NorthwindOLAP_Test' -and
+    $WarehouseDatabase -ne 'Northwind_DW_Test' -and
+    $WarehouseDatabase -notlike 'Northwind_DW_*_Test') {
+    throw 'El modelo NorthwindOLAP_Test solo puede procesar el DW de prueba o una copia de prueba marcada.'
 }
 
 if ([string]::IsNullOrWhiteSpace($LogDirectory)) {

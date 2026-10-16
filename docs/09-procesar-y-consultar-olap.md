@@ -1,53 +1,51 @@
-# 09. Publicar, procesar y consultar OLAP
+# 09. Publicar, procesar y consultar el modelo tabular
 
-## 1. Dar acceso al DW
+## Conceder lectura
 
-Con el DW cargado, en SSMS conectado al motor `localhost`, abre `scripts/sql/Configure-NorthwindOLAPAccess.sql` y ejecuta con **F5**.
+Con el DW cargado, conecta SSMS a **Motor de base de datos > localhost**, abre `scripts/sql/Configure-NorthwindOLAPAccess.sql` y pulsa **F5**.
 
-**Resultado:** la cuenta `NT SERVICE\MSSQLServerOLAPService` puede leer las seis tablas de `Northwind_DW`.
+**Resultado:** la cuenta del servicio SSAS tiene `SELECT` en las ocho tablas finales de `Northwind_DW`.
 
-## 2. Publicar desde Visual Studio
+## Publicar y procesar
 
-1. Abre `Northwind.sln`. Clic derecho en `Northwind.OLAP` > **Propiedades**.
-2. En **Implementación / Deployment**, comprueba **Servidor = localhost**, **Base de datos = NorthwindOLAP**; acepta.
-3. Abre `Northwind.OLAP.bim`. En **Explorador del modelo tabular > Orígenes de datos**, comprueba que `NorthwindDW` use `localhost` y `Northwind_DW`.
-4. Clic derecho en `Northwind.OLAP` > **Implementar / Deploy**. Espera el mensaje de implementación correcta.
+1. En Visual Studio, abre `Northwind.sln`; clic derecho en `Northwind.OLAP` > **Propiedades** > **Implementación**. Confirma servidor `localhost` y modelo `NorthwindOLAP`.
+2. En `Northwind.OLAP.bim`, confirma que el origen `NorthwindDW` use `localhost/Northwind_DW`.
+3. Clic derecho en el proyecto > **Implementar**. En SSMS conectado a **Analysis Services > localhost**, procesa `NorthwindOLAP` con **Procesamiento completo**.
 
-**Resultado:** `NorthwindOLAP` aparece en SSMS al conectar a **Analysis Services > localhost**.
+Después de cargar datos nuevos, vuelve a procesar el modelo. El job de [10](10-ejecutar-job.md) también hace ese segundo paso.
 
-## 3. Procesar desde SSMS
+## Consultar con DAX
 
-1. En SSMS: **Conectar > Analysis Services**, servidor `localhost`, autenticación Windows.
-2. Actualiza **Bases de datos**. Clic derecho en `NorthwindOLAP` > **Procesar base de datos / Process Database**.
-3. Selecciona **Procesar completo / Process Full**, pulsa **Aceptar** y espera el resultado correcto.
-
-Repite este paso después de cada nueva carga SSIS; si ejecutas el job de [10](10-ejecutar-job.md), su segundo paso ya procesa el modelo.
-
-## 4. Consultar
-
-Selecciona `NorthwindOLAP` y abre **Nueva consulta > DAX**. Ejecuta con **F5**:
+En SSMS, selecciona `NorthwindOLAP` y abre **Nueva consulta > DAX**.
 
 ```DAX
 EVALUATE
-ROW("Pedidos", [Pedidos distintos], "Unidades", [Unidades], "Neto", [Ventas netas])
+ROW("Pedidos", [Pedidos distintos], "Unidades", [Unidades],
+    "Ventas netas", [Ventas netas], "Flete", [Flete total],
+    "Pedidos sin flete", [Pedidos sin flete informado])
 ```
 
-**Resultado de referencia:** 830 pedidos, 51.317 unidades y neto 1.265.792,76.
+Para pedido 10248, el flete de 32,38 aparece una sola vez aunque el pedido tenga tres líneas:
 
 ```DAX
 EVALUATE
-ROW("Ventas netas", CALCULATE([Ventas netas],
-    Dim_Tiempo[Anio] = 1996, Dim_Producto[Categoria] = "Beverages"))
+CALCULATETABLE(
+    ROW("Líneas", COUNTROWS(FactSales), "Flete", [Flete total],
+        "Neto", [Ventas netas]),
+    FactSales[OrderID] = 10248)
 ```
 
-**Resultado:** 47.919,00.
+Ubicación del cliente y destino son filtros separados:
 
 ```DAX
 EVALUATE
-ROW("Pedidos", CALCULATE([Pedidos distintos],
-    Dim_Cliente[Pais] = "Germany", Dim_Cliente[CustomerID] = "ALFKI"),
-    "Ventas netas", CALCULATE([Ventas netas],
-    Dim_Cliente[Pais] = "Germany", Dim_Cliente[CustomerID] = "ALFKI"))
+ROW(
+    "Ventas por cliente en Alemania",
+    CALCULATE([Ventas netas], DimCustomer[CustomerID] = "ALFKI",
+        DimCustomer[Country] = "Germany"),
+    "Flete de pedido enviado a Francia",
+    CALCULATE([Flete total], FactSales[OrderID] = 10248,
+        DimGeography[ShipCountry] = "France"))
 ```
 
-**Resultado:** 6 pedidos y 4.273,00 netos. Continúa con [10](10-ejecutar-job.md).
+Para analizar por fecha requerida o envío, usa las medidas `... por fecha requerida` y `... por fecha de envío`; la relación activa corresponde a la fecha de pedido. Al segmentar por producto o proveedor, los subtotales de Freight pueden solaparse: no los sumes entre grupos. Continúa con [10](10-ejecutar-job.md).

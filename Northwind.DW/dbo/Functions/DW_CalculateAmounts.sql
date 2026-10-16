@@ -7,8 +7,8 @@ CREATE FUNCTION dbo.DW_CalculateAmounts
 RETURNS TABLE
 AS RETURN
 (
-    SELECT b.ImporteBruto,d.ImporteDescuento,
-           CONVERT(DECIMAL(18,2),b.ImporteBruto-d.ImporteDescuento) AS ImporteNeto
-    FROM (VALUES(CONVERT(DECIMAL(18,2),ROUND(CONVERT(DECIMAL(5,0),@Quantity)*@UnitPrice,2)))) b(ImporteBruto)
-    CROSS APPLY (VALUES(CONVERT(DECIMAL(18,2),ROUND(b.ImporteBruto*@Discount,2)))) d(ImporteDescuento)
+    SELECT b.GrossAmount,d.DiscountAmount,
+           CONVERT(DECIMAL(19,2),b.GrossAmount-d.DiscountAmount) AS NetAmount
+    FROM (VALUES(CONVERT(DECIMAL(19,2),ROUND(CONVERT(DECIMAL(5,0),@Quantity)*@UnitPrice,2)))) b(GrossAmount)
+    CROSS APPLY (VALUES(CONVERT(DECIMAL(19,2),ROUND(b.GrossAmount*@Discount,2)))) d(DiscountAmount)
 );

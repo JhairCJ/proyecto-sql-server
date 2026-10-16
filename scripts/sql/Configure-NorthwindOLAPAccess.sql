@@ -14,11 +14,25 @@ BEGIN
  SET @Statement=N'CREATE USER '+QUOTENAME(@ServiceAccount)+N' FOR LOGIN '+QUOTENAME(@ServiceAccount)+N';';
  EXEC sys.sp_executesql @Statement;
 END;
-DECLARE @Sql nvarchar(max)=N'GRANT SELECT ON dbo.Dim_Cliente TO '+QUOTENAME(@ServiceAccount)+N';
-GRANT SELECT ON dbo.Dim_Empleado TO '+QUOTENAME(@ServiceAccount)+N';
-GRANT SELECT ON dbo.Dim_Producto TO '+QUOTENAME(@ServiceAccount)+N';
-GRANT SELECT ON dbo.Dim_Transportista TO '+QUOTENAME(@ServiceAccount)+N';
-GRANT SELECT ON dbo.Dim_Tiempo TO '+QUOTENAME(@ServiceAccount)+N';
-GRANT SELECT ON dbo.Fact_Ventas TO '+QUOTENAME(@ServiceAccount)+N';';
+DECLARE @Sql nvarchar(max)=N'GRANT SELECT ON dbo.DimDate TO '+QUOTENAME(@ServiceAccount)+N';
+GRANT SELECT ON dbo.DimProduct TO '+QUOTENAME(@ServiceAccount)+N';
+GRANT SELECT ON dbo.DimCustomer TO '+QUOTENAME(@ServiceAccount)+N';
+GRANT SELECT ON dbo.DimEmployee TO '+QUOTENAME(@ServiceAccount)+N';
+GRANT SELECT ON dbo.DimShipper TO '+QUOTENAME(@ServiceAccount)+N';
+GRANT SELECT ON dbo.DimSupplier TO '+QUOTENAME(@ServiceAccount)+N';
+GRANT SELECT ON dbo.DimGeography TO '+QUOTENAME(@ServiceAccount)+N';
+GRANT SELECT ON dbo.FactSales TO '+QUOTENAME(@ServiceAccount)+N';';
+IF OBJECT_ID(N'dbo.Dim_Cliente',N'U') IS NOT NULL
+ REVOKE SELECT ON OBJECT::dbo.Dim_Cliente FROM [NT SERVICE\MSSQLServerOLAPService];
+IF OBJECT_ID(N'dbo.Dim_Empleado',N'U') IS NOT NULL
+ REVOKE SELECT ON OBJECT::dbo.Dim_Empleado FROM [NT SERVICE\MSSQLServerOLAPService];
+IF OBJECT_ID(N'dbo.Dim_Producto',N'U') IS NOT NULL
+ REVOKE SELECT ON OBJECT::dbo.Dim_Producto FROM [NT SERVICE\MSSQLServerOLAPService];
+IF OBJECT_ID(N'dbo.Dim_Transportista',N'U') IS NOT NULL
+ REVOKE SELECT ON OBJECT::dbo.Dim_Transportista FROM [NT SERVICE\MSSQLServerOLAPService];
+IF OBJECT_ID(N'dbo.Dim_Tiempo',N'U') IS NOT NULL
+ REVOKE SELECT ON OBJECT::dbo.Dim_Tiempo FROM [NT SERVICE\MSSQLServerOLAPService];
+IF OBJECT_ID(N'dbo.Fact_Ventas',N'U') IS NOT NULL
+ REVOKE SELECT ON OBJECT::dbo.Fact_Ventas FROM [NT SERVICE\MSSQLServerOLAPService];
 EXEC sys.sp_executesql @Sql;
-SELECT @ServiceAccount AS Cuenta,DB_NAME() AS Base,N'SELECT en seis tablas' AS Permiso;
+SELECT @ServiceAccount AS Cuenta,DB_NAME() AS Base,N'SELECT en ocho tablas' AS Permiso;

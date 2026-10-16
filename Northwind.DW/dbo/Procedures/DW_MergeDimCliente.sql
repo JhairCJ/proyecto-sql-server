@@ -3,56 +3,27 @@ AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
-    BEGIN TRY
-      BEGIN TRANSACTION;
-      DECLARE @lock int;
-      EXEC @lock=sys.sp_getapplock @Resource=N'Northwind.Warehouse.Load',
-       @LockMode=N'Exclusive',@LockOwner=N'Transaction',@LockTimeout=0;
-      IF @lock<0 THROW 52402,'DW ocupado por otra carga.',1;
-      IF EXISTS(SELECT 1 FROM std.Cliente WHERE CustomerID=N'~UNK~') THROW 52408,'Cliente: identidad reservada para desconocido.',1;
 
-    MERGE dbo.Dim_Cliente WITH(HOLDLOCK) AS D
-    USING std.Cliente AS S
-        ON D.CustomerID = S.CustomerID
+    IF EXISTS(SELECT 1 FROM std.Cliente WHERE CustomerID=N'~UNK~')
+        THROW 52408,'Cliente: identidad reservada para desconocido.',1;
 
-    WHEN MATCHED THEN
-        UPDATE SET
-            D.NombreEmpresa  = S.CompanyName,
-            D.NombreContacto = S.ContactName,
-            D.TituloContacto = S.ContactTitle,
-            D.Ciudad         = S.City,
-            D.Region         = S.Region,
-            D.CodigoPostal   = S.PostalCode,
-            D.Pais           = S.Country
-
-    WHEN NOT MATCHED BY TARGET THEN
-        INSERT
-        (
-            CustomerID,
-            NombreEmpresa,
-            NombreContacto,
-            TituloContacto,
-            Ciudad,
-            Region,
-            CodigoPostal,
-            Pais
-        )
-        VALUES
-        (
-            S.CustomerID,
-            S.CompanyName,
-            S.ContactName,
-            S.ContactTitle,
-            S.City,
-            S.Region,
-            S.PostalCode,
-            S.Country
-        );
-
-      COMMIT TRANSACTION;
-    END TRY
-    BEGIN CATCH
-      IF XACT_STATE()<>0 ROLLBACK TRANSACTION;
-      THROW;
-    END CATCH;
+    MERGE dbo.DimCustomer WITH(HOLDLOCK) AS target
+    USING std.Cliente AS source
+       ON target.CustomerID=source.CustomerID
+    WHEN MATCHED THEN UPDATE SET
+        CompanyName=source.CompanyName,
+        ContactName=source.ContactName,
+        ContactTitle=source.ContactTitle,
+        [Address]=source.[Address],
+        City=source.City,
+        Region=source.Region,
+        PostalCode=source.PostalCode,
+        Country=source.Country,
+        Phone=source.Phone,
+        Fax=source.Fax
+    WHEN NOT MATCHED BY TARGET THEN INSERT
+        (CustomerID,CompanyName,ContactName,ContactTitle,[Address],City,Region,PostalCode,Country,Phone,Fax)
+    VALUES
+        (source.CustomerID,source.CompanyName,source.ContactName,source.ContactTitle,source.[Address],
+         source.City,source.Region,source.PostalCode,source.Country,source.Phone,source.Fax);
 END;

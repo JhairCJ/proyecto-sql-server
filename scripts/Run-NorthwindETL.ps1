@@ -3,7 +3,7 @@ param(
  [string]$Server='localhost',
  [string]$SourceDatabase='NorthWind',
  [string]$WarehouseDatabase='Northwind_DW',
- [ValidateSet('CargarNorthwind','Cliente','Empleado','Producto','Transportista','Ventas')][string]$Package='CargarNorthwind',
+ [ValidateSet('CargarNorthwind','Cliente','Empleado','Proveedor','Producto','Transportista','Ventas')][string]$Package='CargarNorthwind',
  [string]$LogDirectory,
  [string]$ProjectFile
 )

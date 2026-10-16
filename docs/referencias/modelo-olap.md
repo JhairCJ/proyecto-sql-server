@@ -1,35 +1,41 @@
 # Modelo tabular Northwind
 
-`Northwind.OLAP` reproduce la responsabilidad de análisis de `BikeStoresOLAP` en `Data-Management-and-BI/BikeStoresBI`, sobre el almacén `Northwind_DW`.
+`Northwind.OLAP` importa las ocho tablas de `Northwind_DW`. Las dimensiones y columnas físicas tienen nombres en inglés; las medidas y las instrucciones para el equipo aparecen en español.
 
-| BikeStores | Northwind | Adaptación |
-| --- | --- | --- |
-| Customer | Dim_Cliente | CustomerID y atributos actuales del cliente |
-| Staff | Dim_Empleado | EmployeeID y supervisor actual |
-| Product | Dim_Producto | ProductID; categoría y proveedor quedan como atributos |
-| Store | Sin dimensión equivalente | Northwind no tiene tiendas en el modelo de ventas |
-| Date | Dim_Tiempo | Una dimensión reutilizada para pedido, fecha requerida y envío |
-| FactOrders | Fact_Ventas | Una fila por OrderID/ProductID; no se cuenta cada línea como pedido |
-| BikeStoresOLAP | Northwind.OLAP | Modelo tabular SSAS en Northwind.OLAP.bim |
+| Tabla | Uso analítico |
+| --- | --- |
+| `DimDate` | Calendario compartido por pedido, requerida y envío |
+| `DimProduct` | Producto, categoría e inventario actual |
+| `DimCustomer` | Atributos y ubicación propia del cliente |
+| `DimEmployee` | Empleado y supervisor actual |
+| `DimShipper` | Transportista actual del pedido |
+| `DimSupplier` | Proveedor actual del producto vendido |
+| `DimGeography` | Destino del pedido, distinto de la ubicación del cliente |
+| `FactSales` | Una fila por línea de pedido |
 
-La estrella relaciona las cinco dimensiones con Fact_Ventas mediante claves sustitutas. Las claves técnicas permanecen ocultas; las claves de origen, nombres, país y categoría sirven para filtrar. Las jerarquías permiten explorar país/cliente, categoría/producto y año/trimestre/mes/fecha.
+Las ocho tablas se relacionan directamente mediante nueve relaciones. `DimDate[DateKey]` filtra activamente `FactSales[OrderDateKey]`; RequiredDateKey y ShippedDateKey son relaciones inactivas que las medidas activan con `USERELATIONSHIP`. No hay relación directa entre dimensiones.
 
-Las medidas suman los importes de línea ya calculados en el DW: `Ventas brutas = SUM(ImporteBruto)`, `Descuentos aplicados = SUM(ImporteDescuento)`, `Ventas netas = SUM(ImporteNeto)`, `Unidades = SUM(Cantidad)` y `Pedidos distintos = DISTINCTCOUNT(OrderID)`. No se recalculan precios con el catálogo ni se incluye flete.
+## Medidas
 
-`Dim_Tiempo[Tiempo_SK]` filtra activamente `FechaPedido_SK`. Las relaciones con `FechaRequerida_SK` y `FechaEnvio_SK` están inactivas. Las medidas con sufijo «por fecha requerida» o «por fecha de envío» activan la función correspondiente; por ejemplo, `[Ventas netas por fecha de envío]`. Al filtrar fechas reales, las líneas con envío ausente no se asignan a un mes.
+`Ventas brutas`, `Descuentos aplicados`, `Ventas netas`, `Unidades` y `Pedidos distintos` suman importes de línea o cuentan el OrderID distinto. Las variantes de ventas, descuentos, unidades y pedidos existen para fechas requerida y envío.
 
-Las dimensiones usan tipo 1: un cambio reemplaza el atributo anterior, por lo que una categoría o ciudad muestra su valor actual también para hechos antiguos. El precio vendido permanece histórico en Fact_Ventas. Las claves cero identifican miembros desconocidos; `Dim_Tiempo[TipoFecha]` separa la fila técnica de fechas reales.
+`Flete total` itera los pedidos visibles y toma el Freight del pedido una vez. `Pedidos sin flete informado` cuenta Freight NULL y diferencia ese caso de Freight igual a cero. Ambas tienen variantes por fecha requerida y fecha de envío. El comparador valida primero que todas las líneas de un pedido concuerden, incluso en NULL. Las columnas de importes físicos y Freight crudo están ocultas; los datos se exponen mediante medidas explícitas.
 
-El modelo se publica como `NorthwindOLAP` sobre SSAS tabular con compatibilidad 1700, disponible para SQL Server 2025. La conexión de importación usa la cuenta del servicio SSAS y permisos de solo lectura sobre las seis tablas de `Northwind_DW`. Las pruebas automatizadas despliegan un modelo separado sobre la copia de prueba.
+Freight se repite en las líneas. Al filtrar por proveedor o producto, el mismo pedido puede aparecer en varios grupos y su flete puede repetirse en esos subtotales; no se deben sumar los subtotales entre categorías. No se asigna Freight a productos ni se incorpora a Ventas netas. El inventario es actual y no tiene agregación automática. Supplier es la asociación actual del producto y no representa proveedor histórico por línea.
+
+Las claves sustitutas permanecen ocultas. `DimDate[IsUnknown]` identifica la fila técnica de calendario; las claves cero de cliente, empleado, transportista, proveedor y destino también tienen etiqueta «Desconocido». La fila de producto no se inventa.
+
+El modelo se publica como `NorthwindOLAP` en SSAS Tabular, compatibilidad 1700. La conexión de importación usa la cuenta del servicio SSAS, que recibe `SELECT` únicamente en las ocho tablas finales. Las pruebas publican `NorthwindOLAP_Test` sobre una copia DW marcada.
 
 ```DAX
 EVALUATE
 ROW(
-    "Pedidos", CALCULATE([Pedidos distintos], Fact_Ventas[OrderID] = 10248),
-    "Unidades", CALCULATE([Unidades], Fact_Ventas[OrderID] = 10248),
-    "Bruto", CALCULATE([Ventas brutas], Fact_Ventas[OrderID] = 10248),
-    "Neto", CALCULATE([Ventas netas], Fact_Ventas[OrderID] = 10248)
+    "Pedidos", CALCULATE([Pedidos distintos], FactSales[OrderID] = 10248),
+    "Unidades", CALCULATE([Unidades], FactSales[OrderID] = 10248),
+    "Bruto", CALCULATE([Ventas brutas], FactSales[OrderID] = 10248),
+    "Neto", CALCULATE([Ventas netas], FactSales[OrderID] = 10248),
+    "Flete", CALCULATE([Flete total], FactSales[OrderID] = 10248)
 )
 ```
 
-Resultado de referencia: 1 pedido, 27 unidades, 440,00 bruto y 440,00 neto. La guía ejecutable es [09. Procesar y consultar el modelo tabular](../09-procesar-y-consultar-olap.md).
+Resultado de referencia para pedido 10248: 1 pedido, 27 unidades, 440,00 bruto/neto y Freight una sola vez (32,38). La guía ejecutable es [09. Procesar y consultar el modelo tabular](../09-procesar-y-consultar-olap.md).

@@ -5,7 +5,7 @@ function New-NorthwindTestConnection {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
-        [ValidateSet('Northwind_Test', 'Northwind_DW_Test')]
+        [ValidatePattern('^(Northwind_Test|Northwind_DW_(?:[A-Za-z0-9]+_)*Test)$')]
         [string]$Database,
         [string]$Server = 'localhost'
     )
@@ -55,7 +55,7 @@ function Invoke-NorthwindTestSql {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
-        [ValidateSet('Northwind_Test', 'Northwind_DW_Test')]
+        [ValidatePattern('^(Northwind_Test|Northwind_DW_(?:[A-Za-z0-9]+_)*Test)$')]
         [string]$Database,
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]

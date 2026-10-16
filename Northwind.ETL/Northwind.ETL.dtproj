@@ -36,6 +36,7 @@
           <SSIS:Package SSIS:Name="Transportista.dtsx" SSIS:EntryPoint="1" />
           <SSIS:Package SSIS:Name="Ventas.dtsx" SSIS:EntryPoint="1" />
           <SSIS:Package SSIS:Name="CargarNorthwind.dtsx" SSIS:EntryPoint="1" />
+          <SSIS:Package SSIS:Name="Proveedor.dtsx" SSIS:EntryPoint="1" />
         </SSIS:Packages>
         <SSIS:ConnectionManagers>
           <SSIS:ConnectionManager SSIS:Name="Origen.conmgr" />

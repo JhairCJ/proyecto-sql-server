@@ -13,7 +13,8 @@ EXEC dbo.GetCustomerChangesByRowVersion 0,@fin;
 EXEC dbo.GetEmployeeChangesByRowVersion 0,@fin;
 EXEC dbo.GetProductChangesByRowVersion 0,@fin;
 EXEC dbo.GetShipperChangesByRowVersion 0,@fin;
+EXEC dbo.GetSupplierChangesByRowVersion 0,@fin;
 EXEC dbo.GetSalesChangesByRowVersion 0,@fin;
 ```
 
-**Resultado de referencia:** 91 clientes, 9 empleados, 77 productos, 3 transportistas y 2.155 líneas de venta. Si falta un procedimiento, repite la publicación de 03. Esta ejecución lee el origen; no carga el DW.
+**Resultado de referencia:** 91 clientes, 9 empleados, 77 productos, 3 transportistas, proveedores según el origen (29 en Northwind) y 2.155 líneas de venta. Cada pedido puede aparecer con varias filas porque una fila representa un producto vendido. Si falta un procedimiento, repite la publicación de 03. Esta ejecución lee el origen; no carga el DW.
