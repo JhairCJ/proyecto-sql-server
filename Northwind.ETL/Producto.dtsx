@@ -1,687 +1,182 @@
 <?xml version="1.0"?>
-<DTS:Executable xmlns:DTS="www.microsoft.com/SqlServer/Dts"
-  DTS:refId="Package"
-  DTS:CreationDate="10/12/2026 1:04:44 AM"
-  DTS:CreationName="Microsoft.Package"
-  DTS:CreatorComputerName=""
-  DTS:CreatorName=""
-  DTS:DTSID="{02B5F1C5-B11E-4D78-932A-AE997884A0D9}"
-  DTS:ExecutableType="Microsoft.Package"
-  DTS:LastModifiedProductVersion="17.0.1000.7"
-  DTS:LocaleID="1033"
-  DTS:MaxConcurrentExecutables="1"
-  DTS:ObjectName="Producto"
-  DTS:ProtectionLevel="0"
-  DTS:TransactionOption="0"
-  DTS:VersionGUID="{39E66385-A511-4032-8658-338EC43A2FB4}">
-  <DTS:Property
-    DTS:Name="PackageFormatVersion">8</DTS:Property>
+<DTS:Executable xmlns:DTS="www.microsoft.com/SqlServer/Dts" DTS:refId="Package" DTS:CreationDate="10/12/2026 1:04:44 AM" DTS:CreationName="Microsoft.Package" DTS:CreatorComputerName="" DTS:CreatorName="" DTS:DTSID="{02B5F1C5-B11E-4D78-932A-AE997884A0D9}" DTS:ExecutableType="Microsoft.Package" DTS:LastModifiedProductVersion="17.0.1000.7" DTS:LocaleID="1033" DTS:MaxConcurrentExecutables="1" DTS:ObjectName="Producto" DTS:ProtectionLevel="0" DTS:TransactionOption="0" DTS:VersionGUID="{39E66385-A511-4032-8658-338EC43A2FB4}">
+  <DTS:Property DTS:Name="PackageFormatVersion">8</DTS:Property>
   <DTS:ConnectionManagers>
-    <DTS:ConnectionManager
-      DTS:refId="Package.ConnectionManagers[Registro]"
-      DTS:CreationName="FILE"
-      DTS:DTSID="{4FD39798-F188-4428-965D-11E15EC33BAA}"
-      DTS:ObjectName="Registro">
-      <DTS:PropertyExpression
-        DTS:Name="ConnectionString">@[$Project::LogDirectory] + "\\Northwind.ETL-" + (DT_WSTR,38)@[System::ExecutionInstanceGUID] + ".log"</DTS:PropertyExpression>
+    <DTS:ConnectionManager DTS:refId="Package.ConnectionManagers[Registro]" DTS:CreationName="FILE" DTS:DTSID="{4FD39798-F188-4428-965D-11E15EC33BAA}" DTS:ObjectName="Registro">
+      <DTS:PropertyExpression DTS:Name="ConnectionString">@[$Project::LogDirectory] + "\\Northwind.ETL-" + (DT_WSTR,38)@[System::ExecutionInstanceGUID] + ".log"</DTS:PropertyExpression>
       <DTS:ObjectData>
-        <DTS:ConnectionManager
-          DTS:ConnectionString=".\Northwind.ETL-{8467EC30-18DA-4968-9751-8ECE82C83E45}.log" />
+        <DTS:ConnectionManager DTS:ConnectionString=".\Northwind.ETL-{8467EC30-18DA-4968-9751-8ECE82C83E45}.log" />
       </DTS:ObjectData>
     </DTS:ConnectionManager>
   </DTS:ConnectionManagers>
   <DTS:LogProviders>
-    <DTS:LogProvider
-      DTS:ConfigString="Registro"
-      DTS:CreationName="Microsoft.LogProviderTextFile"
-      DTS:DTSID="{9819019D-4441-45DE-BDBD-10F1C5612113}"
-      DTS:ObjectName="{9819019D-4441-45DE-BDBD-10F1C5612113}">
+    <DTS:LogProvider DTS:ConfigString="Registro" DTS:CreationName="Microsoft.LogProviderTextFile" DTS:DTSID="{9819019D-4441-45DE-BDBD-10F1C5612113}" DTS:ObjectName="{9819019D-4441-45DE-BDBD-10F1C5612113}">
       <DTS:ObjectData>
         <InnerObject />
       </DTS:ObjectData>
     </DTS:LogProvider>
   </DTS:LogProviders>
   <DTS:Variables>
-    <DTS:Variable
-      DTS:CreationName=""
-      DTS:DTSID="{F2297105-79A9-408C-BB12-F5210F106506}"
-      DTS:IncludeInDebugDump="6789"
-      DTS:Namespace="User"
-      DTS:ObjectName="EndRow">
-      <DTS:VariableValue
-        DTS:DataType="20">0</DTS:VariableValue>
+    <DTS:Variable DTS:CreationName="" DTS:DTSID="{F2297105-79A9-408C-BB12-F5210F106506}" DTS:IncludeInDebugDump="6789" DTS:Namespace="User" DTS:ObjectName="EndRow">
+      <DTS:VariableValue DTS:DataType="20">0</DTS:VariableValue>
     </DTS:Variable>
-    <DTS:Variable
-      DTS:CreationName=""
-      DTS:DTSID="{85C77382-4680-490B-9FAD-96E82444BAD2}"
-      DTS:EvaluateAsExpression="True"
-      DTS:Expression="&quot;EXEC dbo.GetProductChangesByRowVersion &quot; + (DT_WSTR,20)@[User::StartRow] + &quot;,&quot; + (DT_WSTR,20)@[User::EndRow] + &quot;;&quot;"
-      DTS:IncludeInDebugDump="2345"
-      DTS:Namespace="User"
-      DTS:ObjectName="ExtractSql">
-      <DTS:VariableValue
-        DTS:DataType="8">EXEC dbo.GetProductChangesByRowVersion 0,0;</DTS:VariableValue>
+    <DTS:Variable DTS:CreationName="" DTS:DTSID="{85C77382-4680-490B-9FAD-96E82444BAD2}" DTS:EvaluateAsExpression="True" DTS:Expression="&quot;EXEC dbo.GetProductChangesByRowVersion &quot; + (DT_WSTR,20)@[User::StartRow] + &quot;,&quot; + (DT_WSTR,20)@[User::EndRow] + &quot;;&quot;" DTS:IncludeInDebugDump="2345" DTS:Namespace="User" DTS:ObjectName="ExtractSql">
+      <DTS:VariableValue DTS:DataType="8">EXEC dbo.GetProductChangesByRowVersion 0,0;</DTS:VariableValue>
     </DTS:Variable>
-    <DTS:Variable
-      DTS:CreationName=""
-      DTS:DTSID="{AE22897C-B6DC-41ED-A872-E257D84318CB}"
-      DTS:IncludeInDebugDump="6789"
-      DTS:Namespace="User"
-      DTS:ObjectName="StartRow">
-      <DTS:VariableValue
-        DTS:DataType="20">0</DTS:VariableValue>
+    <DTS:Variable DTS:CreationName="" DTS:DTSID="{AE22897C-B6DC-41ED-A872-E257D84318CB}" DTS:IncludeInDebugDump="6789" DTS:Namespace="User" DTS:ObjectName="StartRow">
+      <DTS:VariableValue DTS:DataType="20">0</DTS:VariableValue>
     </DTS:Variable>
   </DTS:Variables>
-  <DTS:LoggingOptions
-    DTS:FilterKind="0"
-    DTS:LoggingMode="1">
-    <DTS:Property
-      DTS:DataType="8"
-      DTS:Name="EventFilter">4,12,OnPreExecute,13,OnPostExecute,7,OnError,12,OnTaskFailed</DTS:Property>
+  <DTS:LoggingOptions DTS:FilterKind="0" DTS:LoggingMode="1">
+    <DTS:Property DTS:DataType="8" DTS:Name="EventFilter">4,12,OnPreExecute,13,OnPostExecute,7,OnError,12,OnTaskFailed</DTS:Property>
     <DTS:SelectedLogProviders>
-      <DTS:SelectedLogProvider
-        DTS:InstanceID="{9819019D-4441-45DE-BDBD-10F1C5612113}" />
+      <DTS:SelectedLogProvider DTS:InstanceID="{9819019D-4441-45DE-BDBD-10F1C5612113}" />
     </DTS:SelectedLogProviders>
   </DTS:LoggingOptions>
   <DTS:Executables>
-    <DTS:Executable
-      DTS:refId="Package\Aplicar y confirmar avance"
-      DTS:CreationName="Microsoft.ExecuteSQLTask"
-      DTS:DTSID="{D79E80A8-8D35-4A4B-B20E-2BD7B5B0686B}"
-      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
-      DTS:FailPackageOnFailure="True"
-      DTS:FailParentOnFailure="True"
-      DTS:LocaleID="-1"
-      DTS:ObjectName="Aplicar y confirmar avance"
-      DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-      DTS:ThreadHint="0">
+    <DTS:Executable DTS:refId="Package\Aplicar y confirmar avance" DTS:CreationName="Microsoft.ExecuteSQLTask" DTS:DTSID="{D79E80A8-8D35-4A4B-B20E-2BD7B5B0686B}" DTS:ExecutableType="Microsoft.ExecuteSQLTask" DTS:FailPackageOnFailure="True" DTS:FailParentOnFailure="True" DTS:LocaleID="-1" DTS:ObjectName="Aplicar y confirmar avance" DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1" DTS:ThreadHint="0">
       <DTS:Variables />
-      <DTS:PropertyExpression
-        DTS:Name="SqlStatementSource">"EXEC dbo.DW_ApplyPackage N'Producto'," + (DT_WSTR,20)@[User::StartRow] + "," + (DT_WSTR,20)@[User::EndRow] + ";"</DTS:PropertyExpression>
+      <DTS:PropertyExpression DTS:Name="SqlStatementSource">"EXEC dbo.DW_ApplyPackage N'Producto'," + (DT_WSTR,20)@[User::StartRow] + "," + (DT_WSTR,20)@[User::EndRow] + ";"</DTS:PropertyExpression>
       <DTS:ObjectData>
-        <SQLTask:SqlTaskData
-          SQLTask:Connection="{1D8C7EF7-DAF1-4DE3-8127-36946FB9AFEF}"
-          SQLTask:SqlStatementSource="EXEC dbo.DW_ApplyPackage N'Producto',0,0;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+        <SQLTask:SqlTaskData SQLTask:Connection="{1D8C7EF7-DAF1-4DE3-8127-36946FB9AFEF}" SQLTask:SqlStatementSource="EXEC dbo.DW_ApplyPackage N'Producto',0,0;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
       </DTS:ObjectData>
     </DTS:Executable>
-    <DTS:Executable
-      DTS:refId="Package\Extraer a staging"
-      DTS:CreationName="Microsoft.Pipeline"
-      DTS:DelayValidation="True"
-      DTS:DTSID="{FF0279E9-E17A-45CF-87E2-F8F18E5D9594}"
-      DTS:ExecutableType="Microsoft.Pipeline"
-      DTS:FailPackageOnFailure="True"
-      DTS:FailParentOnFailure="True"
-      DTS:LocaleID="-1"
-      DTS:ObjectName="Extraer a staging"
-      DTS:TaskContact="Performs high-performance data extraction, transformation and loading;Microsoft Corporation; Microsoft SQL Server; (C) Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1">
+    <DTS:Executable DTS:refId="Package\Extraer a staging" DTS:CreationName="Microsoft.Pipeline" DTS:DelayValidation="True" DTS:DTSID="{FF0279E9-E17A-45CF-87E2-F8F18E5D9594}" DTS:ExecutableType="Microsoft.Pipeline" DTS:FailPackageOnFailure="True" DTS:FailParentOnFailure="True" DTS:LocaleID="-1" DTS:ObjectName="Extraer a staging" DTS:TaskContact="Performs high-performance data extraction, transformation and loading;Microsoft Corporation; Microsoft SQL Server; (C) Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1">
       <DTS:Variables />
       <DTS:ObjectData>
-        <pipeline
-          version="1">
+        <pipeline version="1">
           <components>
-            <component
-              refId="Package\Extraer a staging\OLE DB Destination"
-              componentClassID="Microsoft.OLEDBDestination"
-              contactInfo="OLE DB Destination;Microsoft Corporation; Microsoft SQL Server; (C) Microsoft Corporation; All Rights Reserved; http://www.microsoft.com/sql/support;4"
-              description="OLE DB Destination"
-              name="OLE DB Destination"
-              usesDispositions="true"
-              version="4">
+            <component refId="Package\Extraer a staging\OLE DB Destination" componentClassID="Microsoft.OLEDBDestination" contactInfo="OLE DB Destination;Microsoft Corporation; Microsoft SQL Server; (C) Microsoft Corporation; All Rights Reserved; http://www.microsoft.com/sql/support;4" description="OLE DB Destination" name="OLE DB Destination" usesDispositions="true" version="4">
               <properties>
-                <property
-                  dataType="System.Int32"
-                  description="The number of seconds before a command times out.  A value of 0 indicates an infinite time-out."
-                  name="CommandTimeout">0</property>
-                <property
-                  dataType="System.String"
-                  description="Specifies the name of the database object used to open a rowset."
-                  name="OpenRowset">std.Producto</property>
-                <property
-                  dataType="System.String"
-                  description="Specifies the variable that contains the name of the database object used to open a rowset."
-                  name="OpenRowsetVariable"></property>
-                <property
-                  dataType="System.String"
-                  description="The SQL command to be executed."
-                  name="SqlCommand"
-                  UITypeEditor="Microsoft.DataTransformationServices.Controls.ModalMultilineStringEditor"></property>
-                <property
-                  dataType="System.Int32"
-                  description="Specifies the column code page to use when code page information is unavailable from the data source."
-                  name="DefaultCodePage">1252</property>
-                <property
-                  dataType="System.Boolean"
-                  description="Forces the use of the DefaultCodePage property value when describing character data."
-                  name="AlwaysUseDefaultCodePage">false</property>
-                <property
-                  dataType="System.Int32"
-                  description="Specifies the mode used to access the database."
-                  name="AccessMode"
-                  typeConverter="AccessMode">3</property>
-                <property
-                  dataType="System.Boolean"
-                  description="Indicates whether the values supplied for identity columns will be copied to the destination. If false, values for identity columns will be auto-generated at the destination. Applies only if fast load is turned on."
-                  name="FastLoadKeepIdentity">false</property>
-                <property
-                  dataType="System.Boolean"
-                  description="Indicates whether the columns containing null will have null inserted in the destination. If false, columns containing null will have their default values inserted at the destination. Applies only if fast load is turned on."
-                  name="FastLoadKeepNulls">false</property>
-                <property
-                  dataType="System.String"
-                  description="Specifies options to be used with fast load.  Applies only if fast load is turned on."
-                  name="FastLoadOptions">TABLOCK,CHECK_CONSTRAINTS</property>
-                <property
-                  dataType="System.Int32"
-                  description="Specifies when commits are issued during data insertion.  A value of 0 specifies that one commit will be issued at the end of data insertion.  Applies only if fast load is turned on."
-                  name="FastLoadMaxInsertCommitSize">0</property>
+                <property dataType="System.Int32" description="The number of seconds before a command times out.  A value of 0 indicates an infinite time-out." name="CommandTimeout">0</property>
+                <property dataType="System.String" description="Specifies the name of the database object used to open a rowset." name="OpenRowset">std.Producto</property>
+                <property dataType="System.String" description="Specifies the variable that contains the name of the database object used to open a rowset." name="OpenRowsetVariable">
+                </property>
+                <property dataType="System.String" description="The SQL command to be executed." name="SqlCommand" UITypeEditor="Microsoft.DataTransformationServices.Controls.ModalMultilineStringEditor">
+                </property>
+                <property dataType="System.Int32" description="Specifies the column code page to use when code page information is unavailable from the data source." name="DefaultCodePage">1252</property>
+                <property dataType="System.Boolean" description="Forces the use of the DefaultCodePage property value when describing character data." name="AlwaysUseDefaultCodePage">false</property>
+                <property dataType="System.Int32" description="Specifies the mode used to access the database." name="AccessMode" typeConverter="AccessMode">3</property>
+                <property dataType="System.Boolean" description="Indicates whether the values supplied for identity columns will be copied to the destination. If false, values for identity columns will be auto-generated at the destination. Applies only if fast load is turned on." name="FastLoadKeepIdentity">false</property>
+                <property dataType="System.Boolean" description="Indicates whether the columns containing null will have null inserted in the destination. If false, columns containing null will have their default values inserted at the destination. Applies only if fast load is turned on." name="FastLoadKeepNulls">false</property>
+                <property dataType="System.String" description="Specifies options to be used with fast load.  Applies only if fast load is turned on." name="FastLoadOptions">TABLOCK,CHECK_CONSTRAINTS</property>
+                <property dataType="System.Int32" description="Specifies when commits are issued during data insertion.  A value of 0 specifies that one commit will be issued at the end of data insertion.  Applies only if fast load is turned on." name="FastLoadMaxInsertCommitSize">0</property>
               </properties>
               <connections>
-                <connection
-                  refId="Package\Extraer a staging\OLE DB Destination.Connections[OleDbConnection]"
-                  connectionManagerID="{1D8C7EF7-DAF1-4DE3-8127-36946FB9AFEF}:external"
-                  connectionManagerRefId="Project.ConnectionManagers[DW]"
-                  description="The OLE DB runtime connection used to access the database."
-                  name="OleDbConnection" />
+                <connection refId="Package\Extraer a staging\OLE DB Destination.Connections[OleDbConnection]" connectionManagerID="{1D8C7EF7-DAF1-4DE3-8127-36946FB9AFEF}:external" connectionManagerRefId="Project.ConnectionManagers[DW]" description="The OLE DB runtime connection used to access the database." name="OleDbConnection" />
               </connections>
               <inputs>
-                <input
-                  refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input]"
-                  errorOrTruncationOperation="Insert"
-                  errorRowDisposition="FailComponent"
-                  hasSideEffects="true"
-                  name="OLE DB Destination Input">
+                <input refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input]" errorOrTruncationOperation="Insert" errorRowDisposition="FailComponent" hasSideEffects="true" name="OLE DB Destination Input">
                   <inputColumns>
-                    <inputColumn
-                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[ProductID]"
-                      cachedDataType="i4"
-                      cachedName="ProductID"
-                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[ProductID]"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[ProductID]" />
-                    <inputColumn
-                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[ProductName]"
-                      cachedDataType="wstr"
-                      cachedLength="40"
-                      cachedName="ProductName"
-                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[ProductName]"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[ProductName]" />
-                    <inputColumn
-                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[QuantityPerUnit]"
-                      cachedDataType="wstr"
-                      cachedLength="20"
-                      cachedName="QuantityPerUnit"
-                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[QuantityPerUnit]"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[QuantityPerUnit]" />
-                    <inputColumn
-                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[CategoryID]"
-                      cachedDataType="i4"
-                      cachedName="CategoryID"
-                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[CategoryID]"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[CategoryID]" />
-                    <inputColumn
-                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[CategoryName]"
-                      cachedDataType="wstr"
-                      cachedLength="15"
-                      cachedName="CategoryName"
-                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[CategoryName]"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[CategoryName]" />
-                    <inputColumn
-                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[SupplierID]"
-                      cachedDataType="i4"
-                      cachedName="SupplierID"
-                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[SupplierID]"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[SupplierID]" />
-                    <inputColumn
-                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[SupplierName]"
-                      cachedDataType="wstr"
-                      cachedLength="40"
-                      cachedName="SupplierName"
-                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[SupplierName]"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[SupplierName]" />
-                    <inputColumn
-                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[SupplierCountry]"
-                      cachedDataType="wstr"
-                      cachedLength="15"
-                      cachedName="SupplierCountry"
-                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[SupplierCountry]"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[SupplierCountry]" />
-                    <inputColumn
-                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[Discontinued]"
-                      cachedDataType="bool"
-                      cachedName="Discontinued"
-                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[Discontinued]"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[Discontinued]" />
-                    <inputColumn
-                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[ProductRowVersion]"
-                      cachedDataType="bytes"
-                      cachedLength="8"
-                      cachedName="ProductRowVersion"
-                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[ProductRowVersion]"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[ProductRowVersion]" />
-                    <inputColumn
-                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[CategoryRowVersion]"
-                      cachedDataType="bytes"
-                      cachedLength="8"
-                      cachedName="CategoryRowVersion"
-                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[CategoryRowVersion]"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[CategoryRowVersion]" />
-                    <inputColumn
-                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[SupplierRowVersion]"
-                      cachedDataType="bytes"
-                      cachedLength="8"
-                      cachedName="SupplierRowVersion"
-                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[SupplierRowVersion]"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[SupplierRowVersion]" />
+                    <inputColumn cachedDataType="i4" externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[ProductID]" cachedName="ProductID" lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[ProductID]" refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[ProductID]" />
+                    <inputColumn refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[ProductName]" cachedDataType="wstr" externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[ProductName]" lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[ProductName]" cachedlength="40" cachedName="ProductName" />
+                    <inputColumn refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[QuantityPerUnit]" cachedDataType="wstr" externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[QuantityPerUnit]" lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[QuantityPerUnit]" cachedlength="20" cachedName="QuantityPerUnit" />
+                    <inputColumn cachedDataType="i4" externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[CategoryID]" cachedName="CategoryID" lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[CategoryID]" refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[CategoryID]" />
+                    <inputColumn refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[CategoryName]" cachedDataType="wstr" externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[CategoryName]" lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[CategoryName]" cachedlength="15" cachedName="CategoryName" />
+                    <inputColumn cachedDataType="nText" externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[CategoryDescription]" cachedName="CategoryDescription" lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[CategoryDescription]" refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[CategoryDescription]" />
+                    <inputColumn cachedDataType="i4" externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[SupplierID]" cachedName="SupplierID" lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[SupplierID]" refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[SupplierID]" />
+                    <inputColumn cachedDataType="i2" externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[UnitsInStock]" cachedName="UnitsInStock" lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[UnitsInStock]" refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[UnitsInStock]" />
+                    <inputColumn cachedDataType="i2" externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[UnitsOnOrder]" cachedName="UnitsOnOrder" lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[UnitsOnOrder]" refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[UnitsOnOrder]" />
+                    <inputColumn cachedDataType="i2" externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[ReorderLevel]" cachedName="ReorderLevel" lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[ReorderLevel]" refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[ReorderLevel]" />
+                    <inputColumn cachedDataType="bool" externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[Discontinued]" cachedName="Discontinued" lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[Discontinued]" refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[Discontinued]" />
+                    <inputColumn refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[ProductRowVersion]" cachedDataType="bytes" externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[ProductRowVersion]" lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[ProductRowVersion]" cachedlength="8" cachedName="ProductRowVersion" />
+                    <inputColumn refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[CategoryRowVersion]" cachedDataType="bytes" externalMetadataColumnId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[CategoryRowVersion]" lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[CategoryRowVersion]" cachedlength="8" cachedName="CategoryRowVersion" />
                   </inputColumns>
-                  <externalMetadataColumns
-                    isUsed="True">
-                    <externalMetadataColumn
-                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[ProductID]"
-                      dataType="i4"
-                      name="ProductID" />
-                    <externalMetadataColumn
-                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[ProductName]"
-                      dataType="wstr"
-                      length="40"
-                      name="ProductName" />
-                    <externalMetadataColumn
-                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[QuantityPerUnit]"
-                      dataType="wstr"
-                      length="20"
-                      name="QuantityPerUnit" />
-                    <externalMetadataColumn
-                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[CategoryID]"
-                      dataType="i4"
-                      name="CategoryID" />
-                    <externalMetadataColumn
-                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[CategoryName]"
-                      dataType="wstr"
-                      length="15"
-                      name="CategoryName" />
-                    <externalMetadataColumn
-                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[SupplierID]"
-                      dataType="i4"
-                      name="SupplierID" />
-                    <externalMetadataColumn
-                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[SupplierName]"
-                      dataType="wstr"
-                      length="40"
-                      name="SupplierName" />
-                    <externalMetadataColumn
-                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[SupplierCountry]"
-                      dataType="wstr"
-                      length="15"
-                      name="SupplierCountry" />
-                    <externalMetadataColumn
-                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[Discontinued]"
-                      dataType="bool"
-                      name="Discontinued" />
-                    <externalMetadataColumn
-                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[ProductRowVersion]"
-                      dataType="bytes"
-                      length="8"
-                      name="ProductRowVersion" />
-                    <externalMetadataColumn
-                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[CategoryRowVersion]"
-                      dataType="bytes"
-                      length="8"
-                      name="CategoryRowVersion" />
-                    <externalMetadataColumn
-                      refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[SupplierRowVersion]"
-                      dataType="bytes"
-                      length="8"
-                      name="SupplierRowVersion" />
+                  <externalMetadataColumns isUsed="True">
+                    <externalMetadataColumn name="ProductID" dataType="i4" refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[ProductID]" />
+                    <externalMetadataColumn name="ProductName" dataType="wstr" length="40" refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[ProductName]" />
+                    <externalMetadataColumn name="QuantityPerUnit" dataType="wstr" length="20" refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[QuantityPerUnit]" />
+                    <externalMetadataColumn name="CategoryID" dataType="i4" refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[CategoryID]" />
+                    <externalMetadataColumn name="CategoryName" dataType="wstr" length="15" refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[CategoryName]" />
+                    <externalMetadataColumn name="CategoryDescription" dataType="nText" refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[CategoryDescription]" />
+                    <externalMetadataColumn name="SupplierID" dataType="i4" refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[SupplierID]" />
+                    <externalMetadataColumn name="UnitsInStock" dataType="i2" refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[UnitsInStock]" />
+                    <externalMetadataColumn name="UnitsOnOrder" dataType="i2" refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[UnitsOnOrder]" />
+                    <externalMetadataColumn name="ReorderLevel" dataType="i2" refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[ReorderLevel]" />
+                    <externalMetadataColumn name="Discontinued" dataType="bool" refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[Discontinued]" />
+                    <externalMetadataColumn name="ProductRowVersion" dataType="bytes" length="8" refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[ProductRowVersion]" />
+                    <externalMetadataColumn name="CategoryRowVersion" dataType="bytes" length="8" refId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[CategoryRowVersion]" />
                   </externalMetadataColumns>
                 </input>
               </inputs>
               <outputs>
-                <output
-                  refId="Package\Extraer a staging\OLE DB Destination.Outputs[OLE DB Destination Error Output]"
-                  exclusionGroup="1"
-                  isErrorOut="true"
-                  name="OLE DB Destination Error Output"
-                  synchronousInputId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input]">
+                <output refId="Package\Extraer a staging\OLE DB Destination.Outputs[OLE DB Destination Error Output]" exclusionGroup="1" isErrorOut="true" name="OLE DB Destination Error Output" synchronousInputId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input]">
                   <outputColumns>
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Destination.Outputs[OLE DB Destination Error Output].Columns[ErrorCode]"
-                      dataType="i4"
-                      lineageId="Package\Extraer a staging\OLE DB Destination.Outputs[OLE DB Destination Error Output].Columns[ErrorCode]"
-                      name="ErrorCode"
-                      specialFlags="1" />
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Destination.Outputs[OLE DB Destination Error Output].Columns[ErrorColumn]"
-                      dataType="i4"
-                      lineageId="Package\Extraer a staging\OLE DB Destination.Outputs[OLE DB Destination Error Output].Columns[ErrorColumn]"
-                      name="ErrorColumn"
-                      specialFlags="2" />
+                    <outputColumn refId="Package\Extraer a staging\OLE DB Destination.Outputs[OLE DB Destination Error Output].Columns[ErrorCode]" dataType="i4" lineageId="Package\Extraer a staging\OLE DB Destination.Outputs[OLE DB Destination Error Output].Columns[ErrorCode]" name="ErrorCode" specialFlags="1" />
+                    <outputColumn refId="Package\Extraer a staging\OLE DB Destination.Outputs[OLE DB Destination Error Output].Columns[ErrorColumn]" dataType="i4" lineageId="Package\Extraer a staging\OLE DB Destination.Outputs[OLE DB Destination Error Output].Columns[ErrorColumn]" name="ErrorColumn" specialFlags="2" />
                   </outputColumns>
                   <externalMetadataColumns />
                 </output>
               </outputs>
             </component>
-            <component
-              refId="Package\Extraer a staging\OLE DB Source"
-              componentClassID="Microsoft.OLEDBSource"
-              contactInfo="OLE DB Source;Microsoft Corporation; Microsoft SQL Server; (C) Microsoft Corporation; All Rights Reserved; http://www.microsoft.com/sql/support;7"
-              description="OLE DB Source"
-              name="OLE DB Source"
-              usesDispositions="true"
-              version="7">
+            <component refId="Package\Extraer a staging\OLE DB Source" componentClassID="Microsoft.OLEDBSource" contactInfo="OLE DB Source;Microsoft Corporation; Microsoft SQL Server; (C) Microsoft Corporation; All Rights Reserved; http://www.microsoft.com/sql/support;7" description="OLE DB Source" name="OLE DB Source" usesDispositions="true" version="7">
               <properties>
-                <property
-                  dataType="System.Int32"
-                  description="The number of seconds before a command times out.  A value of 0 indicates an infinite time-out."
-                  name="CommandTimeout">0</property>
-                <property
-                  dataType="System.String"
-                  description="Specifies the name of the database object used to open a rowset."
-                  name="OpenRowset"></property>
-                <property
-                  dataType="System.String"
-                  description="Specifies the variable that contains the name of the database object used to open a rowset."
-                  name="OpenRowsetVariable"></property>
-                <property
-                  dataType="System.String"
-                  description="The SQL command to be executed."
-                  name="SqlCommand"
-                  UITypeEditor="Microsoft.DataTransformationServices.Controls.ModalMultilineStringEditor">EXEC dbo.GetProductChangesByRowVersion 0,0;</property>
-                <property
-                  dataType="System.String"
-                  description="The variable that contains the SQL command to be executed."
-                  name="SqlCommandVariable">User::ExtractSql</property>
-                <property
-                  dataType="System.Int32"
-                  description="Specifies the column code page to use when code page information is unavailable from the data source."
-                  name="DefaultCodePage">1252</property>
-                <property
-                  dataType="System.Boolean"
-                  description="Forces the use of the DefaultCodePage property value when describing character data."
-                  name="AlwaysUseDefaultCodePage">false</property>
-                <property
-                  dataType="System.Int32"
-                  description="Specifies the mode used to access the database."
-                  name="AccessMode"
-                  typeConverter="AccessMode">3</property>
-                <property
-                  dataType="System.String"
-                  description="The mappings between the parameters in the SQL command and variables."
-                  name="ParameterMapping"></property>
+                <property dataType="System.Int32" description="The number of seconds before a command times out.  A value of 0 indicates an infinite time-out." name="CommandTimeout">0</property>
+                <property dataType="System.String" description="Specifies the name of the database object used to open a rowset." name="OpenRowset">
+                </property>
+                <property dataType="System.String" description="Specifies the variable that contains the name of the database object used to open a rowset." name="OpenRowsetVariable">
+                </property>
+                <property dataType="System.String" description="The SQL command to be executed." name="SqlCommand" UITypeEditor="Microsoft.DataTransformationServices.Controls.ModalMultilineStringEditor">EXEC dbo.GetProductChangesByRowVersion 0,0 WITH RESULT SETS ((ProductID int,ProductName nvarchar(40),QuantityPerUnit nvarchar(20),CategoryID int,CategoryName nvarchar(15),CategoryDescription nvarchar(max),SupplierID int,UnitsInStock smallint,UnitsOnOrder smallint,ReorderLevel smallint,Discontinued bit,ProductRowVersion binary(8),CategoryRowVersion binary(8)));</property>
+                <property dataType="System.String" description="The variable that contains the SQL command to be executed." name="SqlCommandVariable">User::ExtractSql</property>
+                <property dataType="System.Int32" description="Specifies the column code page to use when code page information is unavailable from the data source." name="DefaultCodePage">1252</property>
+                <property dataType="System.Boolean" description="Forces the use of the DefaultCodePage property value when describing character data." name="AlwaysUseDefaultCodePage">false</property>
+                <property dataType="System.Int32" description="Specifies the mode used to access the database." name="AccessMode" typeConverter="AccessMode">3</property>
+                <property dataType="System.String" description="The mappings between the parameters in the SQL command and variables." name="ParameterMapping">
+                </property>
               </properties>
               <connections>
-                <connection
-                  refId="Package\Extraer a staging\OLE DB Source.Connections[OleDbConnection]"
-                  connectionManagerID="{36408304-1EEF-431A-A523-4229BE67C90E}:external"
-                  connectionManagerRefId="Project.ConnectionManagers[Origen]"
-                  description="The OLE DB runtime connection used to access the database."
-                  name="OleDbConnection" />
+                <connection refId="Package\Extraer a staging\OLE DB Source.Connections[OleDbConnection]" connectionManagerID="{36408304-1EEF-431A-A523-4229BE67C90E}:external" connectionManagerRefId="Project.ConnectionManagers[Origen]" description="The OLE DB runtime connection used to access the database." name="OleDbConnection" />
               </connections>
               <outputs>
-                <output
-                  refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output]"
-                  name="OLE DB Source Output">
+                <output refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output]" name="OLE DB Source Output">
                   <outputColumns>
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[ProductID]"
-                      dataType="i4"
-                      errorOrTruncationOperation="Conversion"
-                      errorRowDisposition="FailComponent"
-                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[ProductID]"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[ProductID]"
-                      name="ProductID"
-                      truncationRowDisposition="FailComponent" />
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[ProductName]"
-                      dataType="wstr"
-                      errorOrTruncationOperation="Conversion"
-                      errorRowDisposition="FailComponent"
-                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[ProductName]"
-                      length="40"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[ProductName]"
-                      name="ProductName"
-                      truncationRowDisposition="FailComponent" />
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[QuantityPerUnit]"
-                      dataType="wstr"
-                      errorOrTruncationOperation="Conversion"
-                      errorRowDisposition="FailComponent"
-                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[QuantityPerUnit]"
-                      length="20"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[QuantityPerUnit]"
-                      name="QuantityPerUnit"
-                      truncationRowDisposition="FailComponent" />
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[CategoryID]"
-                      dataType="i4"
-                      errorOrTruncationOperation="Conversion"
-                      errorRowDisposition="FailComponent"
-                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[CategoryID]"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[CategoryID]"
-                      name="CategoryID"
-                      truncationRowDisposition="FailComponent" />
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[CategoryName]"
-                      dataType="wstr"
-                      errorOrTruncationOperation="Conversion"
-                      errorRowDisposition="FailComponent"
-                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[CategoryName]"
-                      length="15"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[CategoryName]"
-                      name="CategoryName"
-                      truncationRowDisposition="FailComponent" />
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[SupplierID]"
-                      dataType="i4"
-                      errorOrTruncationOperation="Conversion"
-                      errorRowDisposition="FailComponent"
-                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[SupplierID]"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[SupplierID]"
-                      name="SupplierID"
-                      truncationRowDisposition="FailComponent" />
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[SupplierName]"
-                      dataType="wstr"
-                      errorOrTruncationOperation="Conversion"
-                      errorRowDisposition="FailComponent"
-                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[SupplierName]"
-                      length="40"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[SupplierName]"
-                      name="SupplierName"
-                      truncationRowDisposition="FailComponent" />
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[SupplierCountry]"
-                      dataType="wstr"
-                      errorOrTruncationOperation="Conversion"
-                      errorRowDisposition="FailComponent"
-                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[SupplierCountry]"
-                      length="15"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[SupplierCountry]"
-                      name="SupplierCountry"
-                      truncationRowDisposition="FailComponent" />
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[Discontinued]"
-                      dataType="bool"
-                      errorOrTruncationOperation="Conversion"
-                      errorRowDisposition="FailComponent"
-                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[Discontinued]"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[Discontinued]"
-                      name="Discontinued"
-                      truncationRowDisposition="FailComponent" />
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[ProductRowVersion]"
-                      dataType="bytes"
-                      errorOrTruncationOperation="Conversion"
-                      errorRowDisposition="FailComponent"
-                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[ProductRowVersion]"
-                      length="8"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[ProductRowVersion]"
-                      name="ProductRowVersion"
-                      truncationRowDisposition="FailComponent" />
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[CategoryRowVersion]"
-                      dataType="bytes"
-                      errorOrTruncationOperation="Conversion"
-                      errorRowDisposition="FailComponent"
-                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[CategoryRowVersion]"
-                      length="8"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[CategoryRowVersion]"
-                      name="CategoryRowVersion"
-                      truncationRowDisposition="FailComponent" />
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[SupplierRowVersion]"
-                      dataType="bytes"
-                      errorOrTruncationOperation="Conversion"
-                      errorRowDisposition="FailComponent"
-                      externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[SupplierRowVersion]"
-                      length="8"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[SupplierRowVersion]"
-                      name="SupplierRowVersion"
-                      truncationRowDisposition="FailComponent" />
+                    <outputColumn errorOrTruncationOperation="Conversion" dataType="i4" externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[ProductID]" errorRowDisposition="FailComponent" truncationRowDisposition="FailComponent" lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[ProductID]" name="ProductID" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[ProductID]" />
+                    <outputColumn errorOrTruncationOperation="Conversion" dataType="wstr" length="40" externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[ProductName]" errorRowDisposition="FailComponent" truncationRowDisposition="FailComponent" lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[ProductName]" name="ProductName" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[ProductName]" />
+                    <outputColumn errorOrTruncationOperation="Conversion" dataType="wstr" length="20" externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[QuantityPerUnit]" errorRowDisposition="FailComponent" truncationRowDisposition="FailComponent" lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[QuantityPerUnit]" name="QuantityPerUnit" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[QuantityPerUnit]" />
+                    <outputColumn errorOrTruncationOperation="Conversion" dataType="i4" externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[CategoryID]" errorRowDisposition="FailComponent" truncationRowDisposition="FailComponent" lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[CategoryID]" name="CategoryID" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[CategoryID]" />
+                    <outputColumn errorOrTruncationOperation="Conversion" dataType="wstr" length="15" externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[CategoryName]" errorRowDisposition="FailComponent" truncationRowDisposition="FailComponent" lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[CategoryName]" name="CategoryName" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[CategoryName]" />
+                    <outputColumn errorOrTruncationOperation="Conversion" dataType="nText" externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[CategoryDescription]" errorRowDisposition="FailComponent" truncationRowDisposition="FailComponent" lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[CategoryDescription]" name="CategoryDescription" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[CategoryDescription]" />
+                    <outputColumn errorOrTruncationOperation="Conversion" dataType="i4" externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[SupplierID]" errorRowDisposition="FailComponent" truncationRowDisposition="FailComponent" lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[SupplierID]" name="SupplierID" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[SupplierID]" />
+                    <outputColumn errorOrTruncationOperation="Conversion" dataType="i2" externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[UnitsInStock]" errorRowDisposition="FailComponent" truncationRowDisposition="FailComponent" lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[UnitsInStock]" name="UnitsInStock" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[UnitsInStock]" />
+                    <outputColumn errorOrTruncationOperation="Conversion" dataType="i2" externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[UnitsOnOrder]" errorRowDisposition="FailComponent" truncationRowDisposition="FailComponent" lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[UnitsOnOrder]" name="UnitsOnOrder" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[UnitsOnOrder]" />
+                    <outputColumn errorOrTruncationOperation="Conversion" dataType="i2" externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[ReorderLevel]" errorRowDisposition="FailComponent" truncationRowDisposition="FailComponent" lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[ReorderLevel]" name="ReorderLevel" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[ReorderLevel]" />
+                    <outputColumn errorOrTruncationOperation="Conversion" dataType="bool" externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[Discontinued]" errorRowDisposition="FailComponent" truncationRowDisposition="FailComponent" lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[Discontinued]" name="Discontinued" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[Discontinued]" />
+                    <outputColumn errorOrTruncationOperation="Conversion" dataType="bytes" length="8" externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[ProductRowVersion]" errorRowDisposition="FailComponent" truncationRowDisposition="FailComponent" lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[ProductRowVersion]" name="ProductRowVersion" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[ProductRowVersion]" />
+                    <outputColumn errorOrTruncationOperation="Conversion" dataType="bytes" length="8" externalMetadataColumnId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[CategoryRowVersion]" errorRowDisposition="FailComponent" truncationRowDisposition="FailComponent" lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[CategoryRowVersion]" name="CategoryRowVersion" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].Columns[CategoryRowVersion]" />
                   </outputColumns>
-                  <externalMetadataColumns
-                    isUsed="True">
-                    <externalMetadataColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[ProductID]"
-                      dataType="i4"
-                      name="ProductID" />
-                    <externalMetadataColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[ProductName]"
-                      dataType="wstr"
-                      length="40"
-                      name="ProductName" />
-                    <externalMetadataColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[QuantityPerUnit]"
-                      dataType="wstr"
-                      length="20"
-                      name="QuantityPerUnit" />
-                    <externalMetadataColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[CategoryID]"
-                      dataType="i4"
-                      name="CategoryID" />
-                    <externalMetadataColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[CategoryName]"
-                      dataType="wstr"
-                      length="15"
-                      name="CategoryName" />
-                    <externalMetadataColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[SupplierID]"
-                      dataType="i4"
-                      name="SupplierID" />
-                    <externalMetadataColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[SupplierName]"
-                      dataType="wstr"
-                      length="40"
-                      name="SupplierName" />
-                    <externalMetadataColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[SupplierCountry]"
-                      dataType="wstr"
-                      length="15"
-                      name="SupplierCountry" />
-                    <externalMetadataColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[Discontinued]"
-                      dataType="bool"
-                      name="Discontinued" />
-                    <externalMetadataColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[ProductRowVersion]"
-                      dataType="bytes"
-                      length="8"
-                      name="ProductRowVersion" />
-                    <externalMetadataColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[CategoryRowVersion]"
-                      dataType="bytes"
-                      length="8"
-                      name="CategoryRowVersion" />
-                    <externalMetadataColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[SupplierRowVersion]"
-                      dataType="bytes"
-                      length="8"
-                      name="SupplierRowVersion" />
+                  <externalMetadataColumns isUsed="True">
+                    <externalMetadataColumn name="ProductID" dataType="i4" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[ProductID]" />
+                    <externalMetadataColumn name="ProductName" dataType="wstr" length="40" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[ProductName]" />
+                    <externalMetadataColumn name="QuantityPerUnit" dataType="wstr" length="20" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[QuantityPerUnit]" />
+                    <externalMetadataColumn name="CategoryID" dataType="i4" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[CategoryID]" />
+                    <externalMetadataColumn name="CategoryName" dataType="wstr" length="15" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[CategoryName]" />
+                    <externalMetadataColumn name="CategoryDescription" dataType="nText" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[CategoryDescription]" />
+                    <externalMetadataColumn name="SupplierID" dataType="i4" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[SupplierID]" />
+                    <externalMetadataColumn name="UnitsInStock" dataType="i2" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[UnitsInStock]" />
+                    <externalMetadataColumn name="UnitsOnOrder" dataType="i2" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[UnitsOnOrder]" />
+                    <externalMetadataColumn name="ReorderLevel" dataType="i2" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[ReorderLevel]" />
+                    <externalMetadataColumn name="Discontinued" dataType="bool" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[Discontinued]" />
+                    <externalMetadataColumn name="ProductRowVersion" dataType="bytes" length="8" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[ProductRowVersion]" />
+                    <externalMetadataColumn name="CategoryRowVersion" dataType="bytes" length="8" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[CategoryRowVersion]" />
                   </externalMetadataColumns>
                 </output>
-                <output
-                  refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output]"
-                  isErrorOut="true"
-                  name="OLE DB Source Error Output">
+                <output refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output]" isErrorOut="true" name="OLE DB Source Error Output">
                   <outputColumns>
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ProductID]"
-                      dataType="i4"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ProductID]"
-                      name="ProductID" />
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ProductName]"
-                      dataType="wstr"
-                      length="40"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ProductName]"
-                      name="ProductName" />
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[QuantityPerUnit]"
-                      dataType="wstr"
-                      length="20"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[QuantityPerUnit]"
-                      name="QuantityPerUnit" />
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[CategoryID]"
-                      dataType="i4"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[CategoryID]"
-                      name="CategoryID" />
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[CategoryName]"
-                      dataType="wstr"
-                      length="15"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[CategoryName]"
-                      name="CategoryName" />
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[SupplierID]"
-                      dataType="i4"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[SupplierID]"
-                      name="SupplierID" />
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[SupplierName]"
-                      dataType="wstr"
-                      length="40"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[SupplierName]"
-                      name="SupplierName" />
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[SupplierCountry]"
-                      dataType="wstr"
-                      length="15"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[SupplierCountry]"
-                      name="SupplierCountry" />
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[Discontinued]"
-                      dataType="bool"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[Discontinued]"
-                      name="Discontinued" />
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ProductRowVersion]"
-                      dataType="bytes"
-                      length="8"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ProductRowVersion]"
-                      name="ProductRowVersion" />
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[CategoryRowVersion]"
-                      dataType="bytes"
-                      length="8"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[CategoryRowVersion]"
-                      name="CategoryRowVersion" />
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[SupplierRowVersion]"
-                      dataType="bytes"
-                      length="8"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[SupplierRowVersion]"
-                      name="SupplierRowVersion" />
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ErrorCode]"
-                      dataType="i4"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ErrorCode]"
-                      name="ErrorCode"
-                      specialFlags="1" />
-                    <outputColumn
-                      refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ErrorColumn]"
-                      dataType="i4"
-                      lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ErrorColumn]"
-                      name="ErrorColumn"
-                      specialFlags="2" />
+                    <outputColumn lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ProductID]" dataType="i4" name="ProductID" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ProductID]" />
+                    <outputColumn lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ProductName]" dataType="wstr" length="40" name="ProductName" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ProductName]" />
+                    <outputColumn lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[QuantityPerUnit]" dataType="wstr" length="20" name="QuantityPerUnit" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[QuantityPerUnit]" />
+                    <outputColumn lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[CategoryID]" dataType="i4" name="CategoryID" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[CategoryID]" />
+                    <outputColumn lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[CategoryName]" dataType="wstr" length="15" name="CategoryName" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[CategoryName]" />
+                    <outputColumn lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[CategoryDescription]" dataType="nText" name="CategoryDescription" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[CategoryDescription]" />
+                    <outputColumn lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[SupplierID]" dataType="i4" name="SupplierID" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[SupplierID]" />
+                    <outputColumn lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[UnitsInStock]" dataType="i2" name="UnitsInStock" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[UnitsInStock]" />
+                    <outputColumn lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[UnitsOnOrder]" dataType="i2" name="UnitsOnOrder" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[UnitsOnOrder]" />
+                    <outputColumn lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ReorderLevel]" dataType="i2" name="ReorderLevel" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ReorderLevel]" />
+                    <outputColumn lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[Discontinued]" dataType="bool" name="Discontinued" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[Discontinued]" />
+                    <outputColumn lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ProductRowVersion]" dataType="bytes" length="8" name="ProductRowVersion" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ProductRowVersion]" />
+                    <outputColumn lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[CategoryRowVersion]" dataType="bytes" length="8" name="CategoryRowVersion" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[CategoryRowVersion]" />
+                    <outputColumn lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ErrorCode]" dataType="i4" specialFlags="1" name="ErrorCode" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ErrorCode]" />
+                    <outputColumn lineageId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ErrorColumn]" dataType="i4" specialFlags="2" name="ErrorColumn" refId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ErrorColumn]" />
                   </outputColumns>
                   <externalMetadataColumns />
                 </output>
@@ -689,166 +184,53 @@
             </component>
           </components>
           <paths>
-            <path
-              refId="Package\Extraer a staging.Paths[OLE DB Source Output]"
-              endId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input]"
-              name="OLE DB Source Output"
-              startId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output]" />
+            <path refId="Package\Extraer a staging.Paths[OLE DB Source Output]" endId="Package\Extraer a staging\OLE DB Destination.Inputs[OLE DB Destination Input]" name="OLE DB Source Output" startId="Package\Extraer a staging\OLE DB Source.Outputs[OLE DB Source Output]" />
           </paths>
         </pipeline>
       </DTS:ObjectData>
     </DTS:Executable>
-    <DTS:Executable
-      DTS:refId="Package\Leer ultimo avance"
-      DTS:CreationName="Microsoft.ExecuteSQLTask"
-      DTS:DTSID="{2FA79CB7-3E07-4C9F-B5A2-644B2D7DDF38}"
-      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
-      DTS:FailPackageOnFailure="True"
-      DTS:FailParentOnFailure="True"
-      DTS:LocaleID="-1"
-      DTS:ObjectName="Leer ultimo avance"
-      DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-      DTS:ThreadHint="0">
+    <DTS:Executable DTS:refId="Package\Leer ultimo avance" DTS:CreationName="Microsoft.ExecuteSQLTask" DTS:DTSID="{2FA79CB7-3E07-4C9F-B5A2-644B2D7DDF38}" DTS:ExecutableType="Microsoft.ExecuteSQLTask" DTS:FailPackageOnFailure="True" DTS:FailParentOnFailure="True" DTS:LocaleID="-1" DTS:ObjectName="Leer ultimo avance" DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1" DTS:ThreadHint="0">
       <DTS:Variables />
       <DTS:ObjectData>
-        <SQLTask:SqlTaskData
-          SQLTask:Connection="{1D8C7EF7-DAF1-4DE3-8127-36946FB9AFEF}"
-          SQLTask:SqlStatementSource="DECLARE @v binary(8);EXEC dbo.GetLastPackageRowVersion N'Producto',@v OUTPUT;SELECT CONVERT(bigint,@v);"
-          SQLTask:ResultType="ResultSetType_SingleRow" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
-          <SQLTask:ResultBinding
-            SQLTask:ResultName="0"
-            SQLTask:DtsVariableName="User::StartRow" />
+        <SQLTask:SqlTaskData SQLTask:Connection="{1D8C7EF7-DAF1-4DE3-8127-36946FB9AFEF}" SQLTask:SqlStatementSource="DECLARE @v binary(8);EXEC dbo.GetLastPackageRowVersion N'Producto',@v OUTPUT;SELECT CONVERT(bigint,@v);" SQLTask:ResultType="ResultSetType_SingleRow" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+          <SQLTask:ResultBinding SQLTask:ResultName="0" SQLTask:DtsVariableName="User::StartRow" />
         </SQLTask:SqlTaskData>
       </DTS:ObjectData>
     </DTS:Executable>
-    <DTS:Executable
-      DTS:refId="Package\Liberar bloqueo de entidad"
-      DTS:CreationName="Microsoft.ExecuteSQLTask"
-      DTS:DTSID="{0C9FA492-06AC-4B38-B095-EF81DE3F5B8D}"
-      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
-      DTS:FailPackageOnFailure="True"
-      DTS:FailParentOnFailure="True"
-      DTS:LocaleID="-1"
-      DTS:ObjectName="Liberar bloqueo de entidad"
-      DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-      DTS:ThreadHint="0">
+    <DTS:Executable DTS:refId="Package\Liberar bloqueo de entidad" DTS:CreationName="Microsoft.ExecuteSQLTask" DTS:DTSID="{0C9FA492-06AC-4B38-B095-EF81DE3F5B8D}" DTS:ExecutableType="Microsoft.ExecuteSQLTask" DTS:FailPackageOnFailure="True" DTS:FailParentOnFailure="True" DTS:LocaleID="-1" DTS:ObjectName="Liberar bloqueo de entidad" DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1" DTS:ThreadHint="0">
       <DTS:Variables />
       <DTS:ObjectData>
-        <SQLTask:SqlTaskData
-          SQLTask:Connection="{1D8C7EF7-DAF1-4DE3-8127-36946FB9AFEF}"
-          SQLTask:SqlStatementSource="EXEC sys.sp_releaseapplock @Resource=N'Northwind.Warehouse.Load',@LockOwner=N'Session';" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+        <SQLTask:SqlTaskData SQLTask:Connection="{1D8C7EF7-DAF1-4DE3-8127-36946FB9AFEF}" SQLTask:SqlStatementSource="EXEC sys.sp_releaseapplock @Resource=N'Northwind.Warehouse.Load',@LockOwner=N'Session';" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
       </DTS:ObjectData>
     </DTS:Executable>
-    <DTS:Executable
-      DTS:refId="Package\Preparar staging"
-      DTS:CreationName="Microsoft.ExecuteSQLTask"
-      DTS:DTSID="{57AB433C-8EC6-47BD-9338-D618463D0C08}"
-      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
-      DTS:FailPackageOnFailure="True"
-      DTS:FailParentOnFailure="True"
-      DTS:LocaleID="-1"
-      DTS:ObjectName="Preparar staging"
-      DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-      DTS:ThreadHint="0">
+    <DTS:Executable DTS:refId="Package\Preparar staging" DTS:CreationName="Microsoft.ExecuteSQLTask" DTS:DTSID="{57AB433C-8EC6-47BD-9338-D618463D0C08}" DTS:ExecutableType="Microsoft.ExecuteSQLTask" DTS:FailPackageOnFailure="True" DTS:FailParentOnFailure="True" DTS:LocaleID="-1" DTS:ObjectName="Preparar staging" DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1" DTS:ThreadHint="0">
       <DTS:Variables />
-      <DTS:PropertyExpression
-        DTS:Name="SqlStatementSource">"IF " + (DT_WSTR,20)@[User::EndRow] + " &lt; " + (DT_WSTR,20)@[User::StartRow] + " THROW 52401,'Corte incompatible con el avance.',1; DELETE std.Producto;"</DTS:PropertyExpression>
+      <DTS:PropertyExpression DTS:Name="SqlStatementSource">"IF " + (DT_WSTR,20)@[User::EndRow] + " &lt; " + (DT_WSTR,20)@[User::StartRow] + " THROW 52401,'Corte incompatible con el avance.',1; DELETE std.Producto;"</DTS:PropertyExpression>
       <DTS:ObjectData>
-        <SQLTask:SqlTaskData
-          SQLTask:Connection="{1D8C7EF7-DAF1-4DE3-8127-36946FB9AFEF}"
-          SQLTask:SqlStatementSource="IF 0 &lt; 0 THROW 52401,'Corte incompatible con el avance.',1; DELETE std.Producto;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+        <SQLTask:SqlTaskData SQLTask:Connection="{1D8C7EF7-DAF1-4DE3-8127-36946FB9AFEF}" SQLTask:SqlStatementSource="IF 0 &lt; 0 THROW 52401,'Corte incompatible con el avance.',1; DELETE std.Producto;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
       </DTS:ObjectData>
     </DTS:Executable>
-    <DTS:Executable
-      DTS:refId="Package\Validar destino y bloquear"
-      DTS:CreationName="Microsoft.ExecuteSQLTask"
-      DTS:DTSID="{60AF769E-748D-42D4-81F4-8FAB7AECB028}"
-      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
-      DTS:FailPackageOnFailure="True"
-      DTS:FailParentOnFailure="True"
-      DTS:LocaleID="-1"
-      DTS:ObjectName="Validar destino y bloquear"
-      DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-      DTS:ThreadHint="0">
+    <DTS:Executable DTS:refId="Package\Validar destino y bloquear" DTS:CreationName="Microsoft.ExecuteSQLTask" DTS:DTSID="{60AF769E-748D-42D4-81F4-8FAB7AECB028}" DTS:ExecutableType="Microsoft.ExecuteSQLTask" DTS:FailPackageOnFailure="True" DTS:FailParentOnFailure="True" DTS:LocaleID="-1" DTS:ObjectName="Validar destino y bloquear" DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1" DTS:ThreadHint="0">
       <DTS:Variables />
       <DTS:ObjectData>
-        <SQLTask:SqlTaskData
-          SQLTask:Connection="{1D8C7EF7-DAF1-4DE3-8127-36946FB9AFEF}"
-          SQLTask:SqlStatementSource="IF DB_NAME()&lt;&gt;N'Northwind_DW' AND NOT EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'NorthwindPracticeTestDatabase' AND CONVERT(nvarchar(128),value)=N'Northwind_DW') THROW 51002,'SSIS: use Northwind_DW o una copia de practica identificada.',1;DECLARE @r int;EXEC @r=sys.sp_getapplock @Resource=N'Northwind.Warehouse.Load',@LockMode=N'Exclusive',@LockOwner=N'Session',@LockTimeout=0;IF @r&lt;0 THROW 52402,'DW ocupado por otra carga; staging intacto.',1;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+        <SQLTask:SqlTaskData SQLTask:Connection="{1D8C7EF7-DAF1-4DE3-8127-36946FB9AFEF}" SQLTask:SqlStatementSource="IF DB_NAME()&lt;&gt;N'Northwind_DW' AND NOT EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'NorthwindPracticeTestDatabase' AND CONVERT(nvarchar(128),value)=N'Northwind_DW') THROW 51002,'SSIS: use Northwind_DW o una copia de practica identificada.',1;DECLARE @r int;EXEC @r=sys.sp_getapplock @Resource=N'Northwind.Warehouse.Load',@LockMode=N'Exclusive',@LockOwner=N'Session',@LockTimeout=0;IF @r&lt;0 THROW 52402,'DW ocupado por otra carga; staging intacto.',1;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
       </DTS:ObjectData>
     </DTS:Executable>
-    <DTS:Executable
-      DTS:refId="Package\Validar origen y fijar corte"
-      DTS:CreationName="Microsoft.ExecuteSQLTask"
-      DTS:DTSID="{0A7859E3-D1E2-4287-AE79-C663C51E77FF}"
-      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
-      DTS:FailPackageOnFailure="True"
-      DTS:FailParentOnFailure="True"
-      DTS:LocaleID="-1"
-      DTS:ObjectName="Validar origen y fijar corte"
-      DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-      DTS:ThreadHint="0">
+    <DTS:Executable DTS:refId="Package\Validar origen y fijar corte" DTS:CreationName="Microsoft.ExecuteSQLTask" DTS:DTSID="{0A7859E3-D1E2-4287-AE79-C663C51E77FF}" DTS:ExecutableType="Microsoft.ExecuteSQLTask" DTS:FailPackageOnFailure="True" DTS:FailParentOnFailure="True" DTS:LocaleID="-1" DTS:ObjectName="Validar origen y fijar corte" DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1" DTS:ThreadHint="0">
       <DTS:Variables />
       <DTS:ObjectData>
-        <SQLTask:SqlTaskData
-          SQLTask:Connection="{36408304-1EEF-431A-A523-4229BE67C90E}"
-          SQLTask:SqlStatementSource="IF DB_NAME()&lt;&gt;N'NorthWind' AND NOT EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'NorthwindPracticeTestDatabase' AND CONVERT(nvarchar(128),value)=N'NorthWind') THROW 51002,'SSIS: use NorthWind o una copia de practica identificada.',1;EXEC dbo.GetDatabaseRowVersion;"
-          SQLTask:ResultType="ResultSetType_SingleRow" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
-          <SQLTask:ResultBinding
-            SQLTask:ResultName="0"
-            SQLTask:DtsVariableName="User::EndRow" />
+        <SQLTask:SqlTaskData SQLTask:Connection="{36408304-1EEF-431A-A523-4229BE67C90E}" SQLTask:SqlStatementSource="IF DB_NAME()&lt;&gt;N'NorthWind' AND NOT EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'NorthwindPracticeTestDatabase' AND CONVERT(nvarchar(128),value)=N'NorthWind') THROW 51002,'SSIS: use NorthWind o una copia de practica identificada.',1;EXEC dbo.GetDatabaseRowVersion;" SQLTask:ResultType="ResultSetType_SingleRow" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+          <SQLTask:ResultBinding SQLTask:ResultName="0" SQLTask:DtsVariableName="User::EndRow" />
         </SQLTask:SqlTaskData>
       </DTS:ObjectData>
     </DTS:Executable>
   </DTS:Executables>
   <DTS:PrecedenceConstraints>
-    <DTS:PrecedenceConstraint
-      DTS:refId="Package.PrecedenceConstraints[{2843ECD9-394A-4997-84DA-C28987D9E450\}]"
-      DTS:CreationName=""
-      DTS:DTSID="{2843ECD9-394A-4997-84DA-C28987D9E450}"
-      DTS:From="Package\Aplicar y confirmar avance"
-      DTS:LogicalAnd="True"
-      DTS:ObjectName="{2843ECD9-394A-4997-84DA-C28987D9E450}"
-      DTS:To="Package\Liberar bloqueo de entidad" />
-    <DTS:PrecedenceConstraint
-      DTS:refId="Package.PrecedenceConstraints[{2F288C34-7575-45C6-BCE2-A4E37A0D6B88\}]"
-      DTS:CreationName=""
-      DTS:DTSID="{2F288C34-7575-45C6-BCE2-A4E37A0D6B88}"
-      DTS:From="Package\Extraer a staging"
-      DTS:LogicalAnd="True"
-      DTS:ObjectName="{2F288C34-7575-45C6-BCE2-A4E37A0D6B88}"
-      DTS:To="Package\Aplicar y confirmar avance" />
-    <DTS:PrecedenceConstraint
-      DTS:refId="Package.PrecedenceConstraints[{4F3173E8-33B9-4F8E-8F56-1161C0DBE8FD\}]"
-      DTS:CreationName=""
-      DTS:DTSID="{4F3173E8-33B9-4F8E-8F56-1161C0DBE8FD}"
-      DTS:From="Package\Validar destino y bloquear"
-      DTS:LogicalAnd="True"
-      DTS:ObjectName="{4F3173E8-33B9-4F8E-8F56-1161C0DBE8FD}"
-      DTS:To="Package\Leer ultimo avance" />
-    <DTS:PrecedenceConstraint
-      DTS:refId="Package.PrecedenceConstraints[{614C954E-F093-4D8E-9D59-0E388902CCC4\}]"
-      DTS:CreationName=""
-      DTS:DTSID="{614C954E-F093-4D8E-9D59-0E388902CCC4}"
-      DTS:From="Package\Leer ultimo avance"
-      DTS:LogicalAnd="True"
-      DTS:ObjectName="{614C954E-F093-4D8E-9D59-0E388902CCC4}"
-      DTS:To="Package\Validar origen y fijar corte" />
-    <DTS:PrecedenceConstraint
-      DTS:refId="Package.PrecedenceConstraints[{90892F7C-EEF3-4BEB-B8B4-8B61118844E6\}]"
-      DTS:CreationName=""
-      DTS:DTSID="{90892F7C-EEF3-4BEB-B8B4-8B61118844E6}"
-      DTS:From="Package\Validar origen y fijar corte"
-      DTS:LogicalAnd="True"
-      DTS:ObjectName="{90892F7C-EEF3-4BEB-B8B4-8B61118844E6}"
-      DTS:To="Package\Preparar staging" />
-    <DTS:PrecedenceConstraint
-      DTS:refId="Package.PrecedenceConstraints[{F2D93F10-5792-4822-BEE6-41AE566F59BC\}]"
-      DTS:CreationName=""
-      DTS:DTSID="{F2D93F10-5792-4822-BEE6-41AE566F59BC}"
-      DTS:From="Package\Preparar staging"
-      DTS:LogicalAnd="True"
-      DTS:ObjectName="{F2D93F10-5792-4822-BEE6-41AE566F59BC}"
-      DTS:To="Package\Extraer a staging" />
+    <DTS:PrecedenceConstraint DTS:refId="Package.PrecedenceConstraints[{2843ECD9-394A-4997-84DA-C28987D9E450\}]" DTS:CreationName="" DTS:DTSID="{2843ECD9-394A-4997-84DA-C28987D9E450}" DTS:From="Package\Aplicar y confirmar avance" DTS:LogicalAnd="True" DTS:ObjectName="{2843ECD9-394A-4997-84DA-C28987D9E450}" DTS:To="Package\Liberar bloqueo de entidad" />
+    <DTS:PrecedenceConstraint DTS:refId="Package.PrecedenceConstraints[{2F288C34-7575-45C6-BCE2-A4E37A0D6B88\}]" DTS:CreationName="" DTS:DTSID="{2F288C34-7575-45C6-BCE2-A4E37A0D6B88}" DTS:From="Package\Extraer a staging" DTS:LogicalAnd="True" DTS:ObjectName="{2F288C34-7575-45C6-BCE2-A4E37A0D6B88}" DTS:To="Package\Aplicar y confirmar avance" />
+    <DTS:PrecedenceConstraint DTS:refId="Package.PrecedenceConstraints[{4F3173E8-33B9-4F8E-8F56-1161C0DBE8FD\}]" DTS:CreationName="" DTS:DTSID="{4F3173E8-33B9-4F8E-8F56-1161C0DBE8FD}" DTS:From="Package\Validar destino y bloquear" DTS:LogicalAnd="True" DTS:ObjectName="{4F3173E8-33B9-4F8E-8F56-1161C0DBE8FD}" DTS:To="Package\Leer ultimo avance" />
+    <DTS:PrecedenceConstraint DTS:refId="Package.PrecedenceConstraints[{614C954E-F093-4D8E-9D59-0E388902CCC4\}]" DTS:CreationName="" DTS:DTSID="{614C954E-F093-4D8E-9D59-0E388902CCC4}" DTS:From="Package\Leer ultimo avance" DTS:LogicalAnd="True" DTS:ObjectName="{614C954E-F093-4D8E-9D59-0E388902CCC4}" DTS:To="Package\Validar origen y fijar corte" />
+    <DTS:PrecedenceConstraint DTS:refId="Package.PrecedenceConstraints[{90892F7C-EEF3-4BEB-B8B4-8B61118844E6\}]" DTS:CreationName="" DTS:DTSID="{90892F7C-EEF3-4BEB-B8B4-8B61118844E6}" DTS:From="Package\Validar origen y fijar corte" DTS:LogicalAnd="True" DTS:ObjectName="{90892F7C-EEF3-4BEB-B8B4-8B61118844E6}" DTS:To="Package\Preparar staging" />
+    <DTS:PrecedenceConstraint DTS:refId="Package.PrecedenceConstraints[{F2D93F10-5792-4822-BEE6-41AE566F59BC\}]" DTS:CreationName="" DTS:DTSID="{F2D93F10-5792-4822-BEE6-41AE566F59BC}" DTS:From="Package\Preparar staging" DTS:LogicalAnd="True" DTS:ObjectName="{F2D93F10-5792-4822-BEE6-41AE566F59BC}" DTS:To="Package\Extraer a staging" />
   </DTS:PrecedenceConstraints>
 </DTS:Executable>

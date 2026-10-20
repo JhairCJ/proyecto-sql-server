@@ -1,55 +1,52 @@
 # 07. Ejecutar SSIS
 
-## 1. Preparar las bases, solo la primera vez
+## 1. Preparar las bases
 
-Completa [03](03-preparar-origen.md) y [05](05-preparar-dw.md). Si los proyectos SQL ya están publicados en `NorthWind` y `Northwind_DW`, pasa al paso 2.
+Completa [03](03-preparar-origen.md) y [05](05-preparar-dw.md). El proyecto está configurado para `NorthWind` y `Northwind_DW`; cambia los parámetros solo si tus bases tienen otros nombres.
 
-## 2. Abrir en Visual Studio
+## 2. Revisar el proyecto
 
-1. **Archivo > Abrir > Proyecto o solución**: selecciona `Northwind.sln`.
-2. Abre **Ver > Explorador de soluciones** (atajo `Ctrl+Alt+L`). Expande `Northwind.ETL` y abre `Project.params`.
-3. Comprueba los valores predeterminados:
-
-| Parámetro | Valor |
-| --- | --- |
-| SourceServer | localhost |
-| WarehouseServer | localhost |
-| SourceDatabase | NorthWind |
-| WarehouseDatabase | Northwind_DW |
-| LogDirectory | . |
-
-En tu equipo usa esos valores tal como están. Solo cámbialos si el servidor o los nombres de las bases son distintos; deja `LogDirectory` como está para la primera ejecución.
-
-4. En el **Explorador de soluciones**, expande `Northwind.ETL > Connection Managers`. Ahí están `Origen.conmgr` y `DW.conmgr`. También aparecen abajo en el diseñador SSIS con el prefijo `(project)`. Ambos lugares muestran las mismas conexiones del proyecto; no crees conexiones nuevas.
-5. No hace falta editar ni probar las conexiones si usarás los valores de la tabla: el proyecto ya está configurado con `MSOLEDBSQL.1` y autenticación de Windows. Si cambiaste el servidor o la base, haz doble clic en cada `.conmgr`, pulsa **Probar conexión** y guarda con **Aceptar**.
-6. Clic derecho en `Northwind.ETL` > **Propiedades**. Comprueba que `TargetServerVersion` indique `SQL Server 2025`; ya está configurado así. No necesitas cambiar propiedades para ejecutar la carga.
+1. Abre `Northwind.sln` en Visual Studio y expande `Northwind.ETL`.
+2. Abre `Project.params` y comprueba `SourceServer = localhost`, `SourceDatabase = NorthWind`, `WarehouseServer = localhost`, `WarehouseDatabase = Northwind_DW` y `LogDirectory = .`.
+3. En **Connection Managers**, comprueba `Origen.conmgr` y `DW.conmgr`. Usan `MSOLEDBSQL.1` y autenticación integrada de Windows.
+4. Si cambiaste servidor o base, actualiza también ambas conexiones y usa **Probar conexión**.
 
 ## 3. Cargar los datos
 
-1. En **Explorador de soluciones > Northwind.ETL > SSIS Packages**, haz doble clic en `CargarNorthwind.dtsx`.
-2. Abre la pestaña **Flujo de control / Control Flow**. Cada rectángulo llamado `Cargar Cliente`, `Cargar Empleado`, `Cargar Producto`, `Cargar Transportista` o `Cargar Ventas` es un **Sequence Container**: contiene las tareas que cargan esa entidad, en orden.
-3. Si el rectángulo está contraído, pulsa la flecha pequeña de su esquina superior izquierda para expandirlo. Dentro, busca la tarea `Extraer a staging`.
-4. Haz doble clic en `Extraer a staging`. Se abre el **Flujo de datos / Data Flow**, donde verás **OLE DB Source** conectado con **OLE DB Destination**. Vuelve a **Control Flow** con su pestaña.
-5. En el espacio de diseño, clic derecho en `CargarNorthwind.dtsx` > **Ejecutar paquete**.
-6. Espera **Package execution completed with success**. Detén la depuración con **Mayús+F5**.
+1. Abre `Northwind.ETL > SSIS Packages > CargarNorthwind.dtsx`.
+2. En **Control Flow**, el paquete organiza seis contenedores: `Cargar Cliente`, `Cargar Empleado`, `Cargar Proveedor`, `Cargar Producto`, `Cargar Transportista` y `Cargar Ventas`.
+3. Los primeros cinco actualizan dimensiones; Ventas carga las líneas del pedido con fechas, cliente, empleado, transportista, proveedor, destino, importes y Freight del encabezado.
+4. Para ver un flujo, expande su contenedor y abre **Extraer a staging**. Vuelve a **Control Flow** al terminar.
+5. Clic derecho en el fondo y selecciona **Ejecutar paquete**. Espera `Package execution completed with success` y detén la depuración con **Mayús+F5**.
+
+El principal ya ejecuta los seis procesos en el orden necesario. No lances otro paquete de carga mientras esté activo.
 
 ## 4. Comprobar y repetir
 
-En SSMS, conecta a `localhost` con **Autenticación de Windows**. En **Nueva consulta**, ejecuta con **F5**:
+En SSMS, conecta al motor `localhost`, abre una consulta en `Northwind_DW` y ejecuta:
 
 ```sql
 USE Northwind_DW;
-SELECT COUNT(*) Lineas, COUNT(DISTINCT OrderID) Pedidos,
-       SUM(Cantidad) Unidades, SUM(ImporteNeto) Neto
-FROM dbo.Fact_Ventas;
-SELECT PackageName, CONVERT(bigint,LastRowVersion) Marca, LastSuccessfulLoad
+SELECT COUNT_BIG(*) AS Lines,
+       COUNT(DISTINCT OrderID) AS Orders,
+       SUM(CONVERT(bigint,Quantity)) AS Units,
+       SUM(GrossAmount) AS GrossAmount,
+       SUM(DiscountAmount) AS DiscountAmount,
+       SUM(NetAmount) AS NetAmount
+FROM dbo.FactSales;
+
+SELECT PackageName,CONVERT(bigint,LastRowVersion) AS RowVersion,
+       LastSuccessfulLoad
 FROM dbo.PackageConfig ORDER BY PackageName;
+
+SELECT OrderID,ProductKey,Quantity,Freight,NetAmount
+FROM dbo.FactSales WHERE OrderID=10248 ORDER BY ProductKey;
 ```
 
-Resultado esperado en las bases reales: **2155 líneas, 830 pedidos, 51317 unidades, neto 1265792.76**; cinco marcas con fecha. Ejecuta nuevamente el paquete: los conteos y el neto se mantienen.
+Resultado de referencia: **2.155 líneas, 830 pedidos y 51.317 unidades**. Los importes netos suman **1.265.792,76**. Hay seis controles de carga con fecha de éxito. Para el pedido 10248, Freight es **32,38** en sus tres líneas porque pertenece al pedido; las medidas analíticas lo cuentan una sola vez.
 
-## 5. Localizar un error
+Ejecuta `CargarNorthwind.dtsx` otra vez y repite la consulta. Sin cambios en el origen, los conteos e importes se mantienen. No trunques tablas ni reinicies las marcas de `PackageConfig`.
 
-En Visual Studio abre **Progreso / Progress** del paquete y lee el primer error rojo.
+## 5. Si ocurre un error
 
-Si aparece `SQLNCLI11 ... not registered`, cambia el proveedor a `MSOLEDBSQL.1`. Si falla una conexión, revisa los cuatro parámetros del paso 2 y **Probar conexión**. Si aparece `DW ocupado`, espera a que termine la otra carga y vuelve a ejecutar el principal.
+En Visual Studio abre **Progress** y revisa el primer error rojo. Si el proveedor no está registrado, instala OLE DB Driver 18 x64 y confirma `MSOLEDBSQL.1`. Si falla una conexión, revisa los parámetros y administradores de conexión. Si el DW está ocupado, espera a que finalice la otra carga antes de reintentar.

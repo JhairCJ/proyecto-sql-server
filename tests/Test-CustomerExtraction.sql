@@ -5,13 +5,21 @@ SET XACT_ABORT OFF;
 DECLARE @cut TABLE(DBTS bigint);
 INSERT @cut EXEC dbo.GetDatabaseRowVersion;
 DECLARE @end bigint=(SELECT DBTS FROM @cut);
-CREATE TABLE #Customers(CustomerID nchar(5),CompanyName nvarchar(40),ContactName nvarchar(30),
-    ContactTitle nvarchar(30),City nvarchar(15),Region nvarchar(15),PostalCode nvarchar(10),
-    Country nvarchar(15),SourceRowVersion binary(8));
+CREATE TABLE #Customers(CustomerID nchar(5) COLLATE DATABASE_DEFAULT,
+    CompanyName nvarchar(40) COLLATE DATABASE_DEFAULT,ContactName nvarchar(30) COLLATE DATABASE_DEFAULT,
+    ContactTitle nvarchar(30) COLLATE DATABASE_DEFAULT,[Address] nvarchar(60) COLLATE DATABASE_DEFAULT,
+    City nvarchar(15) COLLATE DATABASE_DEFAULT,Region nvarchar(15) COLLATE DATABASE_DEFAULT,
+    PostalCode nvarchar(10) COLLATE DATABASE_DEFAULT,Country nvarchar(15) COLLATE DATABASE_DEFAULT,
+    Phone nvarchar(24) COLLATE DATABASE_DEFAULT,Fax nvarchar(24) COLLATE DATABASE_DEFAULT,
+    SourceRowVersion binary(8));
 INSERT #Customers EXEC dbo.GetCustomerChangesByRowVersion 0,@end;
 IF (SELECT COUNT(*) FROM #Customers)<>91 THROW 51201,'La referencia no devuelve 91 clientes.',1;
 IF EXISTS(SELECT CustomerID FROM #Customers GROUP BY CustomerID HAVING COUNT(*)<>1)
     THROW 51202,'Clientes duplicados.',1;
+IF EXISTS(SELECT 1 FROM #Customers c JOIN dbo.Customers s ON s.CustomerID=c.CustomerID
+    WHERE c.CompanyName<>s.CompanyName OR ISNULL(c.[Address],N'')<>ISNULL(s.[Address],N'')
+       OR ISNULL(c.Phone,N'')<>ISNULL(s.Phone,N'') OR ISNULL(c.Fax,N'')<>ISNULL(s.Fax,N''))
+    THROW 51202,'Atributos completos del cliente difieren del origen.',1;
 SELECT N'Referencia: 91 clientes, una fila por identidad y contrato std.Cliente' AS Passed;
 
 DECLARE @values TABLE(Value bigint);

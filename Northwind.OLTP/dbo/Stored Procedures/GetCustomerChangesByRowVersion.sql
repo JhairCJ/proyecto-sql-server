@@ -10,9 +10,9 @@ BEGIN
     DECLARE @start BINARY(8), @end BINARY(8);
     EXEC dbo.BigIntToRowVersion @startRow, @start OUTPUT;
     EXEC dbo.BigIntToRowVersion @endRow, @end OUTPUT;
-    -- Contrato de std.Cliente. Demografia no aporta atributos de esta dimension.
+    -- Una fila por cliente; las clasificaciones demograficas no forman parte del DW.
     SELECT c.CustomerID, c.CompanyName, c.ContactName, c.ContactTitle,
-           c.City, c.Region, c.PostalCode, c.Country,
+           c.[Address], c.City, c.Region, c.PostalCode, c.Country, c.Phone, c.Fax,
            CONVERT(BINARY(8), c.[rowversion]) AS SourceRowVersion
     FROM dbo.Customers AS c
     WHERE c.[rowversion] > @start AND c.[rowversion] <= @end;

@@ -11,8 +11,13 @@ BEGIN
     EXEC dbo.BigIntToRowVersion @startRow, @start OUTPUT;
     EXEC dbo.BigIntToRowVersion @endRow, @end OUTPUT;
 
-    SELECT e.EmployeeID, e.FirstName, e.LastName, e.Title,
-           e.City, e.Region, e.Country, e.ReportsTo,
+    SELECT e.EmployeeID, e.FirstName, e.LastName,
+           CONVERT(NVARCHAR(60), CONCAT(e.FirstName, N' ', e.LastName)) AS FullName,
+           e.Title, e.TitleOfCourtesy,
+           CONVERT(DATE, e.BirthDate) AS BirthDate,
+           CONVERT(DATE, e.HireDate) AS HireDate,
+           e.[Address], e.City, e.Region, e.Country, e.PostalCode,
+           e.HomePhone, e.Extension, e.ReportsTo,
            CONVERT(BINARY(8), e.[rowversion]) AS SourceRowVersion,
            CASE WHEN s.EmployeeID IS NULL THEN CONVERT(NVARCHAR(60), NULL)
                 ELSE CONVERT(NVARCHAR(60), CONCAT(s.FirstName, N' ', s.LastName)) END AS SupervisorName

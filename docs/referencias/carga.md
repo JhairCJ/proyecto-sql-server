@@ -1,35 +1,30 @@
 # Aplicación, staging y recuperación
 
-La ruta principal ejecuta `CargarNorthwind.dtsx` desde Visual Studio o SSISDB sobre `NorthWind` → `Northwind_DW`. Sigue la secuencia de BikeStores: extracción, staging, dimensiones, hechos y control. `scripts/Load-NorthwindWarehouse.ps1` y las copias `_Test` sirven para pruebas automatizadas aisladas.
+La ruta principal es `CargarNorthwind.dtsx` en Visual Studio o SSISDB: `NorthWind` → staging `std` → `Northwind_DW`. `Load-NorthwindWarehouse.ps1` es el ejecutor de apoyo para pruebas aisladas.
 
-Las tablas std son permanentes en SQL Server, pero sus filas son preparación reconstruible. No son tablas temporales #. Cada intento reemplaza únicamente el staging de su entidad; dimensiones, hechos y controles permanecen. Staging puede quedar parcial si falla el transporte y se reconstruye al reintentar.
+## Contrato de carga
 
-## Contrato por entidad
+1. El paquete principal toma un bloqueo exclusivo de sesión en el DW antes de cambiar staging. Las cargas que compiten se detienen sin reemplazar staging.
+2. El corte se obtiene con `GetDatabaseRowVersion`; `PackageConfig` conserva una marca por proceso. Los seis procesos son `Cliente`, `Empleado`, `Proveedor`, `Producto`, `Transportista` y `Ventas`.
+3. La extracción carga el intervalo incremental a `std`. Para Ventas, los pedidos afectados se devuelven completos, con datos de Orders, líneas y proveedor actual del producto. Si alguna dependencia está fuera del corte, se difiere el pedido completo.
+4. `DW_ApplyPackage` valida inicio/corte y aplica la dimensión o el hecho junto con el avance de la marca en la misma transacción. Un error revierte esos cambios y detiene los procesos dependientes.
+5. El orden es Cliente, Empleado, Proveedor, Producto, Transportista y Ventas. Las ventas resuelven referencias, fechas y destino en su transacción. Los importes usan `OrderDetails.UnitPrice`, nunca el precio actual del catálogo.
 
-1. Abrir conexiones al origen configurado y al DW, y retener un bloqueo exclusivo de sesión, recurso Northwind.Warehouse.Load, en el DW. Un intento competidor falla sin modificar staging.
-2. Fijar el corte confirmado con GetDatabaseRowVersion. Leer el control con GetLastPackageRowVersion; no inventa procesos ni interpreta controles ausentes como cero. Rechaza valores BINARY(8) no representables y destino comercial vacío con avance.
-3. Extraer el intervalo (marca anterior, corte] y poblar std. Los cambios de dependencias pueden incluir una marca propia antigua. Por ello, la aplicación verifica que las marcas disponibles estén presentes y no superen el corte, sin exigir que todas sean mayores al inicio.
-4. Llamar DW_ApplyPackage @PackageName, @StartRow, @EndRow, con marcas BIGINT. Acepta Cliente/Empleado/Producto/Transportista/Ventas y compara el inicio con el control actual. Un inicio incompatible, corte inferior o marca modificada aborta la carga.
-5. En una sola transacción local del DW: aplicar la entidad y ejecutar UpdateLastPackageRowVersion con marca esperada. Solo al confirmar quedan visibles datos, nueva marca y LastSuccessfulLoad. Ante error se revierte la transacción. Los procedimientos internos de aplicación también son transaccionales y usan el mismo bloqueo.
-6. Cerrar la conexión libera el bloqueo incluso ante error. El principal detiene las entidades dependientes; las entidades confirmadas antes del fallo conservan su éxito.
+Staging puede quedar parcialmente poblado después de un error de transporte y se reconstruye al reintentar. No se usa transacción distribuida con el OLTP ni se capturan borrados físicos.
 
-No se usa una transacción distribuida con el origen ni se promete una fotografía histórica conjunta bajo escrituras concurrentes. No hay propagación de borrados físicos. Detectar un corte inferior al control evita seguir tras ciertos reinicios/restauraciones del origen; no identifica toda sustitución de origen con marcas numéricamente compatibles.
+## Hechos, destinos y freight
 
-## Aplicación
+`DW_MergeFactVentas` inserta o actualiza por `OrderID` + `ProductKey`, conservando `SalesKey`. Un cambio de cabecera vuelve a aplicar el pedido completo; una modificación del destino de una orden no modifica otros pedidos que compartan la misma dirección. Geography normaliza cinco componentes `Ship*`, reutiliza la tupla completa y usa GeographyKey cero cuando todos son desconocidos.
 
-DW_MergeDimCliente/Empleado/Producto/Transportista reutilizan la identidad comercial para actualizar atributos tipo 1 e insertar solo identidades nuevas, conservando SK. Las claves reservadas de cliente/empleado no pueden entrar como entidades comerciales.
+SupplierKey es la asociación actual del producto. Una reasignación de proveedor cambia la dimensión ligada al hecho al recargar la orden; GrossAmount, DiscountAmount y NetAmount permanecen basados en la línea vendida. No se afirma que SupplierKey sea una fotografía histórica.
 
-DW_MergeFactVentas valida cantidad/precio/descuento, resuelve dimensiones y las tres fechas mediante LEFT JOIN y falla con OrderID/ProductID y referencia cuando una identidad no nula falta. Los nulos legítimos de cliente/empleado/fecha de pedido se relacionan con SK 0; transportista/requerida/envío permanecen NULL. Una fecha real 1900-01-01 se rechaza porque está reservada. El calendario abarca el rango combinado existente y las nuevas fechas para no dejar huecos al extenderlo.
+Freight viene de `Orders` y se replica por línea para permitir filtros analíticos. Debe ser idéntico en todas las líneas de cada pedido, incluso cuando el valor es NULL. En informes se suma una vez por OrderID; NULL significa no informado y cero es un importe explícito. Nunca se agrega al neto de ventas.
 
-Cada línea se aplica por OrderID/ProductID y conserva Venta_SK. Actualizaciones de cabecera cambian sus referencias/fechas; cambios de detalle recalculan las medidas con DW_CalculateAmounts. Ventas normaliza REAL a DECIMAL(9,6) en SQL antes de BulkCopy y utiliza el precio vendido de OrderDetails, nunca el catálogo.
+Las marcas anteriores se conservan al migrar. Solo el nuevo proceso Proveedor parte del corte fuente una vez completada su carga inicial. El estado de migración se inspecciona en `WarehouseMigrationState`; no se reinician controles para recuperar una carga.
 
-UpdateLastPackageRowVersion es una operación interna: exige transacción, proceso registrado, valor representable, avance no descendente y control esperado. No crea controles nuevos ni se utiliza directamente para adelantar una carga.
+## Comprobaciones y apoyo
 
-## Verificación y recuperación
-
-tests/Test-Application.sql contiene las pruebas SQL de altas, cambios, repetición, claves y nulos; Test-Application.ps1 las ejecuta con staging de referencia y rollback, e inyecta fallos de aplicación/control y estados incompatibles. Test-Load.ps1 verifica el cargador real, competencia, fallo y reintento incremental. La inyección de fallo usa un trigger solo en DW de prueba marcado, retirado en finally. Las modificaciones comerciales de origen de Test-Load se restauran y se cargan de nuevo; rowversion avanza solamente en la copia.
-
-Comandos técnicos desde la raíz del repo:
+La prueba de aplicación cubre SK estables, importes, resolución de referencias, destino compartido y reasignación de proveedor. La prueba de carga cubre repetición, competencia antes de staging, rollback de marca/hechos y reintento.
 
 ```powershell
 & '.\tests\Test-Application.ps1'
@@ -37,6 +32,4 @@ Comandos técnicos desde la raíz del repo:
 & '.\scripts\Compare-NorthwindWarehouse.ps1'
 ```
 
-Si falla una entidad, corregir el diagnóstico y repetir el cargador completo. No truncar finales ni reiniciar marcas. Destino vacío con avance requiere investigar cómo se vació y planificar una reconstrucción explícita; la sincronización incremental no puede reconstruir filas antiguas omitidas por la marca.
-
-[Guía operativa](../06-cargar-datos.md). [Evidencias](../validacion.md).
+Estos scripts validan exclusivamente copias identificadas. Una carga real se ejecuta desde Visual Studio/SSIS siguiendo [06](../06-cargar-datos.md).

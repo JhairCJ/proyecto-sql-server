@@ -4,7 +4,7 @@ Esta guía comienza en un equipo Windows sin las bases de la práctica. El recor
 
 | Nombre | Programa | Uso en esta práctica |
 | --- | --- | --- |
-| `NorthWind` | Motor de base de datos SQL Server | Origen de clientes, empleados, productos, transportistas y pedidos. Se restaura desde el archivo incluido en el proyecto. |
+| `NorthWind` | Motor de base de datos SQL Server | Origen de clientes, empleados, productos, proveedores, transportistas y pedidos. Se restaura desde el archivo incluido en el proyecto. |
 | `Northwind_DW` | Motor de base de datos SQL Server | Almacén de datos. Se crea vacío y el proyecto DW crea su esquema. |
 | `SSISDB` | Catálogo de Integration Services en SQL Server | Guarda los paquetes publicados y sus parámetros de ejecución. |
 | `NorthwindOLAP` | Analysis Services, modo Tabular | Modelo analítico que lee `Northwind_DW`; no es una base del motor relacional. |
@@ -112,14 +112,14 @@ SELECT name
 FROM sys.procedures
 WHERE name IN (N'GetDatabaseRowVersion',N'GetCustomerChangesByRowVersion',
  N'GetEmployeeChangesByRowVersion',N'GetProductChangesByRowVersion',
- N'GetShipperChangesByRowVersion',N'GetSalesChangesByRowVersion',
+ N'GetShipperChangesByRowVersion',N'GetSupplierChangesByRowVersion',N'GetSalesChangesByRowVersion',
  N'RowVersionToBigInt',N'BigIntToRowVersion')
 ORDER BY name;
 SELECT COUNT(*) AS Pedidos FROM dbo.Orders;
 SELECT COUNT(*) AS Lineas FROM dbo.OrderDetails;
 ```
 
-**Resultado:** aparecen ocho procedimientos; siguen existiendo los mismos 830 pedidos y 2.155 líneas. Si falta uno, repite la publicación de `Northwind.OLTP` con el perfil `NorthWind.publish.xml`.
+**Resultado:** aparecen nueve procedimientos; siguen existiendo los mismos 830 pedidos y 2.155 líneas. Si falta uno, repite la publicación de `Northwind.OLTP` con el perfil `NorthWind.publish.xml`.
 
 ## 06. Ejecuta los extractores para ver los datos que leerá SSIS
 
@@ -138,10 +138,11 @@ EXEC dbo.GetCustomerChangesByRowVersion 0,@fin;
 EXEC dbo.GetEmployeeChangesByRowVersion 0,@fin;
 EXEC dbo.GetProductChangesByRowVersion 0,@fin;
 EXEC dbo.GetShipperChangesByRowVersion 0,@fin;
+EXEC dbo.GetSupplierChangesByRowVersion 0,@fin;
 EXEC dbo.GetSalesChangesByRowVersion 0,@fin;
 ```
 
-**Resultado de referencia:** 91 clientes, 9 empleados, 77 productos, 3 transportistas y 2.155 líneas de venta. Si aparece “Could not find stored procedure”, vuelve al paso 05 y publica en `NorthWind`.
+**Resultado de referencia:** 91 clientes, 9 empleados, 77 productos, 3 transportistas, 29 proveedores y 2.155 líneas de venta. Las ventas se devuelven completas por pedido y contienen Freight, destino y proveedor del producto actual. Si aparece “Could not find stored procedure”, vuelve al paso 05 y publica en `NorthWind`.
 
 ## 07. Prepara el esquema de Northwind_DW
 
@@ -152,22 +153,13 @@ En SSMS, ejecuta esta comprobación en `Northwind_DW`:
 ```sql
 USE Northwind_DW;
 SELECT (SELECT COUNT(*) FROM sys.tables) AS TotalTablas,
-       OBJECT_ID(N'dbo.Dim_Cliente',N'U') AS DimCliente,
-       OBJECT_ID(N'dbo.Fact_Ventas',N'U') AS Hechos;
+       OBJECT_ID(N'dbo.DimCustomer',N'U') AS DimCustomer,
+       OBJECT_ID(N'dbo.FactSales',N'U') AS FactSales;
 ```
 
-Si `TotalTablas` es 0 y los otros dos resultados son `NULL`, `Northwind_DW` está vacío: **omite 07.2 y pasa a 07.3**. Si ambas tablas de proyecto aparecen, ejecuta 07.2 antes de publicar. Si el conteo es mayor que 0 pero falta una de esas tablas, detente y revisa el esquema; no ejecutes la migración sobre una estructura incompleta.
+Si `TotalTablas` es 0 y los otros dos resultados son `NULL`, el DW está vacío. Si aparecen ambas tablas, se detectó el modelo anterior. En ambos casos continúa con la publicación; si el DW tiene un esquema parcial, detente y revísalo antes de seguir.
 
-### 07.2 Ejecuta la migración controlada si reutilizas el DW anterior
-
-1. En SSMS, conéctate al **Motor de base de datos > localhost**.
-2. Selecciona **Archivo > Abrir > Archivo** y abre `Northwind.DW/Deployment/Prepare-LegacyWarehouse.sql`.
-3. En la lista desplegable de bases, selecciona `Northwind_DW`. Comprueba el nombre antes de ejecutar.
-4. Pulsa **F5** y espera el mensaje de finalización correcta.
-
-La migración usa una transacción y valida que las filas existentes puedan conservarse. Si se detiene por duplicados, claves o importes incompatibles, no fuerces el script; conserva el mensaje de error y revísalo antes de publicar.
-
-### 07.3 Publica el proyecto DW
+### 07.2 Publica el proyecto DW
 
 1. Regresa a Visual Studio.
 2. En el Explorador de soluciones, clic derecho en `Northwind.DW` > **Publicar**.
@@ -178,6 +170,14 @@ La migración usa una transacción y valida que las filas existentes puedan cons
 
 El perfil usa `BlockOnPossibleDataLoss=True` y `DropObjectsNotInSource=False`: detiene cambios con pérdida posible y no borra objetos ajenos al proyecto.
 
+### 07.3 Registra y valida la migración
+
+1. Haz una copia de seguridad de `Northwind_DW` y confirma que `NorthWind` es el origen actualizado.
+2. En SSMS, abre `Northwind.DW/Deployment/Migrate-NorthwindStar.sql` y selecciona la base `Northwind_DW`.
+3. Pulsa **F5**. El script registra `SkippedEmpty` si el almacén estaba vacío, o `Validated` si migró y concilió los hechos anteriores.
+
+Las tablas anteriores permanecen disponibles durante el cambio. Si hay duplicados, referencias ambiguas o diferencias, detente y revisa el error antes de continuar. La retirada posterior requiere conciliar la carga y procesar el modelo analítico; está descrita en [modelo y migración del DW](referencias/modelo-dw.md#retirada-explícita-del-modelo-anterior).
+
 ### 07.4 Verifica el esquema y los controles iniciales
 
 En SSMS, abre una consulta en `Northwind_DW` y ejecuta:
@@ -186,13 +186,13 @@ En SSMS, abre una consulta en `Northwind_DW` y ejecuta:
 USE Northwind_DW;
 SELECT PackageName,CONVERT(bigint,LastRowVersion) AS Marca,LastSuccessfulLoad
 FROM dbo.PackageConfig ORDER BY PackageName;
-SELECT COUNT(*) AS FilasHecho FROM dbo.Fact_Ventas;
-SELECT Cliente_SK,CustomerID FROM dbo.Dim_Cliente WHERE Cliente_SK=0;
-SELECT Empleado_SK,EmployeeID FROM dbo.Dim_Empleado WHERE Empleado_SK=0;
-SELECT Tiempo_SK,Fecha FROM dbo.Dim_Tiempo WHERE Tiempo_SK=0;
+SELECT COUNT_BIG(*) AS SalesLines FROM dbo.FactSales;
+SELECT CustomerKey,CustomerID FROM dbo.DimCustomer WHERE CustomerKey=0;
+SELECT EmployeeKey,EmployeeID FROM dbo.DimEmployee WHERE EmployeeKey=0;
+SELECT DateKey,FullDate FROM dbo.DimDate WHERE DateKey=0;
 ```
 
-**Resultado:** cinco controles —Cliente, Empleado, Producto, Transportista y Ventas—; cero hechos antes de la carga; y las filas técnicas desconocidas de Cliente, Empleado y Tiempo. No elimines estos registros: son parte del modelo.
+**Resultado:** seis controles —Cliente, Empleado, Proveedor, Producto, Transportista y Ventas—; cero líneas antes de la carga y miembros desconocidos de Cliente, Empleado y Fecha. No elimines estos registros técnicos.
 
 ## 08. Llena el calendario
 
@@ -207,12 +207,12 @@ FROM NorthWind.dbo.Orders
 CROSS APPLY (VALUES(CONVERT(date,OrderDate)),
                    (CONVERT(date,RequiredDate)),
                    (CONVERT(date,ShippedDate))) f(Fecha);
-EXEC dbo.DW_LoadDimTiempo @FechaInicio=@Desde,@FechaFin=@Hasta;
-SELECT COUNT(*) AS Dias,MIN(Fecha) AS Desde,MAX(Fecha) AS Hasta
-FROM dbo.Dim_Tiempo WHERE Tiempo_SK<>0;
+EXEC dbo.DW_LoadDimDate @StartDate=@Desde,@EndDate=@Hasta;
+SELECT COUNT(*) AS Dias,MIN(FullDate) AS Desde,MAX(FullDate) AS Hasta
+FROM dbo.DimDate WHERE IsUnknown=0;
 ```
 
-**Resultado de referencia:** 708 días, del 1996-07-04 al 1998-06-11. El procedimiento puede ejecutarse otra vez: amplía el calendario si aparecen fechas nuevas y no duplica las existentes.
+**Resultado de referencia:** 708 días, del 1996-07-04 al 1998-06-11. La carga puede repetirse: amplía el calendario si aparecen fechas nuevas y no duplica las existentes.
 
 ## 09. Ejecuta la carga SSIS desde Visual Studio
 
@@ -236,12 +236,12 @@ FROM dbo.Dim_Tiempo WHERE Tiempo_SK<>0;
 
 1. Expande `Northwind.ETL > SSIS Packages` y abre `CargarNorthwind.dtsx`.
 2. Selecciona la pestaña **Flujo de control / Control Flow**.
-3. Los grupos llamados `Cargar Cliente`, `Cargar Empleado`, `Cargar Producto`, `Cargar Transportista` y `Cargar Ventas` son contenedores de secuencia. Cada uno agrupa las tareas de una entidad y las ejecuta en orden.
+3. Los grupos `Cargar Cliente`, `Cargar Empleado`, `Cargar Proveedor`, `Cargar Producto`, `Cargar Transportista` y `Cargar Ventas` son contenedores de secuencia. Cada uno agrupa las tareas de una entidad y las ejecuta en orden.
 4. Para inspeccionar un grupo, pulsa el pequeño triángulo de su esquina. Dentro, haz doble clic en **Extraer a staging** para ver el flujo de datos desde el origen OLE DB al destino de staging. Vuelve a **Flujo de control** al terminar.
 5. Haz clic derecho en el fondo del diseñador y elige **Ejecutar paquete / Execute Package**.
 6. Espera a que el estado termine como **Package execution completed with success**. Detén la depuración con **Mayús+F5**.
 
-El paquete principal ejecuta las cinco entidades. No ejecutes los paquetes individuales además del principal durante la misma carga.
+El paquete principal ejecuta los seis procesos con las dimensiones antes de Ventas. No ejecutes paquetes individuales durante la misma carga.
 
 ## 10. Verifica la carga y vuelve a ejecutarla
 
@@ -251,18 +251,24 @@ En SSMS, conéctate al **Motor de base de datos > localhost** y ejecuta en `Nort
 
 ```sql
 USE Northwind_DW;
-SELECT COUNT(*) AS Lineas,
+SELECT COUNT_BIG(*) AS Lineas,
        COUNT(DISTINCT OrderID) AS Pedidos,
-       SUM(CONVERT(bigint,Cantidad)) AS Unidades,
-       SUM(ImporteNeto) AS Neto
-FROM dbo.Fact_Ventas;
+       SUM(CONVERT(bigint,Quantity)) AS Unidades,
+       SUM(GrossAmount) AS GrossAmount,
+       SUM(DiscountAmount) AS DiscountAmount,
+       SUM(NetAmount) AS NetAmount
+FROM dbo.FactSales;
+SELECT SUM(Freight) AS FreightOncePerOrder
+FROM (SELECT OrderID,MAX(Freight) AS Freight
+      FROM dbo.FactSales GROUP BY OrderID) AS Orders;
 SELECT PackageName,CONVERT(bigint,LastRowVersion) AS Marca,LastSuccessfulLoad
 FROM dbo.PackageConfig ORDER BY PackageName;
-SELECT OrderID,ProductID,Cantidad,ImporteNeto
-FROM dbo.Fact_Ventas WHERE OrderID=10248 ORDER BY ProductID;
+SELECT f.OrderID,p.ProductID,f.Quantity,f.Freight,f.NetAmount
+FROM dbo.FactSales AS f JOIN dbo.DimProduct AS p ON p.ProductKey=f.ProductKey
+WHERE f.OrderID=10248 ORDER BY p.ProductID;
 ```
 
-**Resultado:** 2.155 líneas, 830 pedidos, 51.317 unidades y neto 1.265.792,76; cinco controles con fecha de éxito. El pedido 10248 tiene tres líneas y 27 unidades, con neto total 440,00.
+**Resultado:** 2.155 líneas, 830 pedidos, 51.317 unidades y neto 1.265.792,76; seis controles con fecha de éxito. El Freight de 32,38 del pedido 10248 se repite en sus tres líneas, pero la consulta lo suma solo una vez por pedido.
 
 ### 10.2 Comprueba que la repetición es segura
 
@@ -312,7 +318,7 @@ FROM dbo.Fact_Ventas WHERE OrderID=10248 ORDER BY ProductID;
 
 1. En SSMS, conectado al **Motor de base de datos > localhost**, abre `scripts/sql/Configure-NorthwindOLAPAccess.sql`.
 2. Comprueba que la primera línea diga `USE [Northwind_DW]` y que el servicio indicado sea `NT SERVICE\MSSQLServerOLAPService`.
-3. Ejecuta con **F5**. El resultado indica acceso `SELECT` a las seis tablas del modelo.
+3. Ejecuta con **F5**. El resultado indica acceso `SELECT` a las ocho tablas del modelo.
 
 ### 12.2 Implementa el modelo tabular
 
@@ -341,7 +347,7 @@ Para comprobar un filtro por categoría y año, ejecuta:
 ```DAX
 EVALUATE
 ROW("Ventas netas",CALCULATE([Ventas netas],
-    Dim_Tiempo[Anio]=1996,Dim_Producto[Categoria]="Beverages"))
+    DimDate[YearNumber]=1996,DimProduct[CategoryName]="Beverages"))
 ```
 
 **Resultado:** 47.919,00.
@@ -399,8 +405,8 @@ No restaures `NorthWind` ni pongas en cero los controles del DW para “empezar 
 | --- | --- |
 | No aparece `NorthWind` o falta la tabla `Orders` | Repite la restauración de `Files/NorthWind.bak` del paso 02.1; verifica que el destino se llame `NorthWind`. |
 | `Operating system error 5 (Access is denied)` al restaurar | Copia `NorthWind.bak` a la ruta **Copias de seguridad / Backup** del servidor indicada en SSMS y vuelve a seleccionarlo desde allí. |
-| `Northwind_DW` tiene 0 tablas | Si acabas de crearla, es el resultado esperado; publica `Northwind.DW` en el paso 07.3. |
-| El script de migración dice que falta una tabla | Si la base está vacía, omite 07.2; si tiene tablas parciales, detente y revisa el DW antes de publicar. |
+| `Northwind_DW` tiene 0 tablas | Si acabas de crearla, es el resultado esperado; publica `Northwind.DW` en el paso 07.2. |
+| El script de migración dice que falta una tabla | Confirma que publicaste el nuevo esquema en 07.2 y que elegiste `Northwind_DW`; si hay tablas parciales, detente y revisa el DW. |
 | Un proyecto aparece incompatible en Visual Studio | Confirma Visual Studio 2026 y las extensiones SSIS y Analysis Services; reinicia Visual Studio después de instalarlas. |
 | El servicio SQL Server Agent no existe | Instala la edición Developer y el Database Engine; Express no incluye SQL Server Agent. |
 | No aparece `MSOLEDBSQL.1` | Instala OLE DB Driver 18 x64. El driver 19 usa otro nombre de proveedor. |
@@ -410,7 +416,7 @@ No restaures `NorthWind` ni pongas en cero los controles del DW para “empezar 
 | SSIS dice que necesita una copia marcada | Se está ejecutando un paquete antiguo. Recompila la solución, vuelve a desplegar `Northwind.ETL` y usa los valores reales del entorno `Northwind`. |
 | No aparece el entorno en SSISDB | Ejecuta `Configure-NorthwindSSIS.sql` antes y después de implementar el proyecto. |
 | El paquete termina con error rojo | En Visual Studio abre **Progreso / Progress** y lee el primer error. En SSMS abre el informe de ejecución y **Todos los mensajes**. Corrige la causa antes de repetir. |
-| No se procesa NorthwindOLAP | Confirma que SSAS esté iniciado, que el modelo lea `Northwind_DW` y que la cuenta del servicio tenga `SELECT` en las seis tablas. |
+| No se procesa NorthwindOLAP | Confirma que SSAS esté iniciado, que el modelo lea `Northwind_DW` y que la cuenta del servicio tenga `SELECT` en las ocho tablas. |
 | El job falla en su segundo paso | Confirma el rol `NorthwindBIJobProcessor`, su miembro de SQL Server Agent y que el modelo se llame `NorthwindOLAP`. |
 | La carga informa que el DW está ocupado | Espera a que termine la otra ejecución. No lances dos paquetes de carga a la vez. |
 

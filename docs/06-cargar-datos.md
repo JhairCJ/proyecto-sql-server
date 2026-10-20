@@ -1,28 +1,32 @@
-# 06. Comprobar y repetir la carga
+# 06. Cargar y comprobar el DW
 
-## 1. Cargar
+## Ejecutar
 
-Ejecuta `CargarNorthwind.dtsx` con [07](07-ejecutar-ssis.md).
+1. En Visual Studio, abre `Northwind.ETL`, confirma `NorthWind` como origen y `Northwind_DW` como destino en los parámetros del proyecto.
+2. Ejecuta `CargarNorthwind.dtsx`. La secuencia aplica Cliente, Empleado, Proveedor, Producto, Transportista y Ventas.
+3. Si una tarea falla, corrige el primer error y vuelve a ejecutar el paquete principal. No reinicies las marcas de `PackageConfig`.
 
-## 2. Comprobar en SSMS
+## Comprobar
 
-Conecta al motor `localhost`. En **Nueva consulta**, ejecuta con **F5**:
+En SSMS, ejecuta:
 
 ```sql
 USE Northwind_DW;
-SELECT COUNT(*) AS Lineas,COUNT(DISTINCT OrderID) AS Pedidos,
-       SUM(CONVERT(bigint,Cantidad)) AS Unidades,SUM(ImporteNeto) AS Neto
-FROM dbo.Fact_Ventas;
-SELECT PackageName,LastRowVersion,LastSuccessfulLoad
+SELECT COUNT_BIG(*) AS Lineas,
+       COUNT(DISTINCT OrderID) AS Pedidos,
+       SUM(CONVERT(bigint, Quantity)) AS Unidades,
+       SUM(GrossAmount) AS Bruto,
+       SUM(DiscountAmount) AS Descuento,
+       SUM(NetAmount) AS Neto
+FROM dbo.FactSales;
+SELECT PackageName, CONVERT(bigint, LastRowVersion) AS LastRowVersion,
+       LastSuccessfulLoad
 FROM dbo.PackageConfig ORDER BY PackageName;
-SELECT OrderID,ProductID,Cantidad,ImporteNeto
-FROM dbo.Fact_Ventas WHERE OrderID=10248 ORDER BY ProductID;
+SELECT f.OrderID, p.ProductID, f.Quantity, f.GrossAmount,
+       f.DiscountAmount, f.NetAmount, f.Freight
+FROM dbo.FactSales AS f
+JOIN dbo.DimProduct AS p ON p.ProductKey=f.ProductKey
+WHERE f.OrderID=10248 ORDER BY p.ProductID;
 ```
 
-**Resultado de referencia:** 2.155 líneas, 830 pedidos, 51.317 unidades, neto 1.265.792,76; cinco controles con fecha de éxito. Pedido 10248: tres líneas, 27 unidades y neto total 440,00.
-
-## 3. Repetir
-
-Vuelve a ejecutar el paquete principal y la consulta.
-
-**Resultado sin cambios del origen:** mismos conteos e importes. Si falla, abre **Progreso / Progress**, corrige el primer error rojo y repite el paquete completo. Si indica «DW ocupado», espera a que termine la otra ejecución.
+**Resultado de referencia:** 2.155 líneas, 830 pedidos y 51.317 unidades; bruto 1.354.458,59, descuento 88.665,83 y neto 1.265.792,76. Para el modelo, reglas de repetición y suma de flete, consulta [aplicación y recuperación](referencias/carga.md).

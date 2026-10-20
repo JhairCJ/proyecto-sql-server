@@ -55,7 +55,7 @@ function Dax([int]$Order) {
     try {
         $connection.Open()
         $command = $connection.CreateCommand()
-        $command.CommandText = "EVALUATE ROW(`"Neto`",CALCULATE([Ventas netas],Fact_Ventas[OrderID]=$Order))"
+        $command.CommandText = "EVALUATE ROW(`"Neto`",CALCULATE([Ventas netas],FactSales[OrderID]=$Order))"
         try {
             $reader = $command.ExecuteReader()
             try {
@@ -95,7 +95,7 @@ ORDER BY instance_id;
 }
 
 function Original-Snapshot {
-    return (Sql 'Northwind_DW' 'SELECT * FROM dbo.PackageConfig ORDER BY PackageName; SELECT * FROM dbo.Fact_Ventas ORDER BY Venta_SK;').GetXml() +
+    return (Sql 'Northwind_DW' 'SELECT * FROM dbo.PackageConfig ORDER BY PackageName; SELECT * FROM dbo.FactSales ORDER BY SalesKey;').GetXml() +
         (Sql 'NorthWind' 'SELECT COUNT_BIG(*) Clientes FROM dbo.Customers;SELECT COUNT_BIG(*) Pedidos FROM dbo.Orders;SELECT COUNT_BIG(*) Lineas FROM dbo.OrderDetails;').GetXml()
 }
 function Marks([switch]$Dates) {
@@ -104,11 +104,11 @@ function Marks([switch]$Dates) {
 }
 function Add-Fixture([int]$Order) {
     [void](Invoke-NorthwindTestSql -Server $Server -Database $warehouse -Commit -Sql @"
-IF EXISTS(SELECT 1 FROM dbo.Fact_Ventas WHERE OrderID=$Order) THROW 51403,'ID de fixture ocupado.',1;
-INSERT dbo.Fact_Ventas(Cliente_SK,Empleado_SK,Producto_SK,Transportista_SK,FechaPedido_SK,FechaRequerida_SK,FechaEnvio_SK,
- OrderID,ProductID,Cantidad,PrecioUnitario,Descuento,ImporteBruto,ImporteDescuento,ImporteNeto)
-SELECT TOP(1) Cliente_SK,Empleado_SK,Producto_SK,Transportista_SK,FechaPedido_SK,FechaRequerida_SK,FechaEnvio_SK,
- $Order,ProductID,2,20,0.1,40,4,36 FROM dbo.Fact_Ventas ORDER BY Venta_SK;
+IF EXISTS(SELECT 1 FROM dbo.FactSales WHERE OrderID=$Order) THROW 51403,'ID de fixture ocupado.',1;
+INSERT dbo.FactSales(OrderID,OrderDateKey,RequiredDateKey,ShippedDateKey,ProductKey,CustomerKey,EmployeeKey,
+ ShipperKey,SupplierKey,GeographyKey,Quantity,UnitPrice,Discount,Freight,GrossAmount,DiscountAmount,NetAmount)
+SELECT TOP(1) $Order,OrderDateKey,RequiredDateKey,ShippedDateKey,ProductKey,CustomerKey,EmployeeKey,
+ ShipperKey,SupplierKey,GeographyKey,2,20,0.1,0,40,4,36 FROM dbo.FactSales ORDER BY SalesKey;
 IF @@ROWCOUNT<>1 THROW 51404,'Falta la fila de referencia del fixture.',1;
 "@)
 }
@@ -177,7 +177,7 @@ finally {
         if ($stepCommand) { [void](Sql 'msdb' 'EXEC dbo.sp_update_jobstep @job_name=@job,@step_id=2,@command=@command;' @{ '@job'=$job; '@command'=$stepCommand }) }
         if ($fixtures.Count -gt 0) {
             $ids = $fixtures -join ','
-            [void](Invoke-NorthwindTestSql -Server $Server -Database $warehouse -Commit -Sql "DELETE dbo.Fact_Ventas WHERE OrderID IN($ids); IF @@ROWCOUNT<>$($fixtures.Count) THROW 51406,'No se limpiaron los fixtures del job.',1;")
+            [void](Invoke-NorthwindTestSql -Server $Server -Database $warehouse -Commit -Sql "DELETE dbo.FactSales WHERE OrderID IN($ids); IF @@ROWCOUNT<>$($fixtures.Count) THROW 51406,'No se limpiaron los fixtures del job.',1;")
             & (Join-Path $PSScriptRoot '../scripts/Process-NorthwindOLAP.ps1') -AnalysisServer $AnalysisServer -WarehouseServer $Server -LogDirectory $EvidenceDirectory
         }
         [void](Sql 'msdb' @'

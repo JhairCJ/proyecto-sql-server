@@ -341,3 +341,33 @@ La evidencia de sesión y los artefactos generados se mantienen locales y exclui
 Sección 8 completada: **41 de 41 tareas**. Confirmación gráfica final del usuario registrada; la validación queda local y sin commit/push.
 
 Durante el cierre, la primera repetición de Test-Load detectó una diferencia inmediatamente después de la prueba de rowversion. Se ejecutó una carga de estabilización, dos cargas consecutivas dieron estados idénticos y la suite completa de repetición, concurrencia, fallo/reintento y reconciliación pasó. La comparación final del origen y DW y la consulta OLAP también pasaron. La diferencia inicial no volvió a reproducirse; no se atribuye una causa sin evidencia.
+
+## Sustitución Northwind — extracción OLTP
+
+Validación ejecutada sobre `Northwind_Test`, copia marcada creada desde `NorthWind`. `NorthWind` y `Northwind_DW` no fueron destinos de escritura. La compilación de `Northwind.OLTP.sqlproj` terminó sin errores y generó su DACPAC; permanecen las advertencias heredadas SQL71502 de procedimientos de ejemplo que hacen referencia a `Order Details`, tabla no declarada en este proyecto.
+
+| Comprobación | Resultado ejecutado |
+| --- | --- |
+| Cliente, empleado, producto y transportista | 91, 9, 77 y 3 identidades; pruebas completas aprobadas, incluidas relaciones opcionales, atributos, categoría, territorios/demografía y calendario independiente |
+| Proveedor | 29 en la referencia; prueba aprobada con proveedor sin productos, atributos nulos, HomePage de 1.200 caracteres, cambio descriptivo e intervalo vacío/inválido |
+| Ventas | 2.155 líneas, 830 pedidos y 51.317 unidades; pedido 10248 conserva productos 11/42/72, 27 unidades y 440,00 bruto |
+| Cabecera | Freight `17,1234` y destino se entregan igual en las tres líneas; los NULL de flete, fechas, identidades y destino también se conservan |
+| Dependencias incrementales | Cambio de detalle o producto devuelve todas las líneas; una dependencia posterior al corte difiere el pedido y el intervalo siguiente lo recupera completo |
+| Precio vendido | Cambiar el precio de catálogo vuelve a seleccionar los pedidos del producto, sin cambiar el precio de sus líneas vendidas |
+| Marcas y concurrencia | `Test-RowVersion.ps1` aprobó aislamiento READ COMMITTED, corte frente a transacción pendiente, recuperación tras commit, límites Int64 y parámetros Binary(8)/BigInt |
+
+Se ejecutaron `Test-CustomerExtraction.sql`, `Test-EmployeeExtraction.sql`, `Test-ProductExtraction.sql`, `Test-ShipperExtraction.sql`, `Test-SupplierExtraction.sql`, `Test-SalesExtraction.sql` y `Test-RowVersion.ps1`. Los fixtures SQL finalizaron con rollback; la prueba de concurrencia restauró los nombres de clientes en `Northwind_Test`. Las guías y el mapa de contratos se actualizaron para el proveedor nuevo y la extracción coherente de pedidos.
+
+## Sustitución del modelo estrella — implementación actual
+
+Fecha: 16 de octubre de 2026. Se implementó en el árbol de trabajo el modelo final con `FactSales`, siete dimensiones en inglés y seis procesos de carga. Se mantuvieron `GrossAmount`, `DiscountAmount`, `NetAmount` y `Freight`; no se agregó `FreightAmount` ni un segundo hecho. Se incorporaron la migración aditiva, el corte explícito del legado, las consultas y guías actualizadas.
+
+| Comprobación de compilación | Resultado |
+| --- | --- |
+| `Northwind.OLTP.sqlproj` | Compilación correcta; se generó DACPAC. |
+| `Northwind.DW.sqlproj` | Compilación correcta; se generó DACPAC. |
+| Proyecto `Northwind.ETL` | Compilación correcta; se generó `Northwind.ETL.ispac` con seis paquetes. |
+| Scripts PowerShell principales y pruebas adaptadas | Parser de PowerShell sin errores. |
+| Cambios de texto | `git diff --check` sin errores de whitespace. |
+
+Los scripts de migración y retirada no se ejecutaron contra `Northwind` ni `Northwind_DW`, y no se publicaron cambios en esas bases. La aceptación runtime del nuevo ciclo completo, incluida la migración en copia cargada, repetición SSIS y corte del legado, queda pendiente de ejecutarse en las copias identificadas; los archivos de prueba correspondientes ya están adaptados.

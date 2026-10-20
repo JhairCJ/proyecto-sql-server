@@ -122,34 +122,41 @@
   <Import Condition="'$(SQLDBExtensionsRefPath)' == ''" Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
   <ItemGroup>
     <Build Include="dbo\Functions\DW_CalculateAmounts.sql" />
-    <Build Include="dbo\Procedures\DW_LoadDimTiempo.sql" />
+    <Build Include="dbo\Procedures\DW_LoadDimDate.sql" />
     <Build Include="dbo\Procedures\DW_MergeFactVentas.sql" />
     <Build Include="dbo\Procedures\DW_ApplyPackage.sql" />
     <Build Include="dbo\Procedures\DW_MergeDimCliente.sql" />
     <Build Include="dbo\Procedures\DW_MergeDimEmpleado.sql" />
     <Build Include="dbo\Procedures\DW_MergeDimProducto.sql" />
     <Build Include="dbo\Procedures\DW_MergeDimTransportista.sql" />
+    <Build Include="dbo\Procedures\DW_MergeDimProveedor.sql" />
     <Build Include="dbo\Procedures\GetLastPackageRowVersion.sql" />
     <Build Include="dbo\Procedures\UpdateLastPackageRowVersion.sql" />
-    <Build Include="dbo\Tables\Dim_Cliente.sql" />
-    <Build Include="dbo\Tables\Dim_Empleado.sql" />
-    <Build Include="dbo\Tables\Dim_Producto.sql" />
-    <Build Include="dbo\Tables\Dim_Tiempo.sql" />
-    <Build Include="dbo\Tables\Dim_Transportista.sql" />
-    <Build Include="dbo\Tables\Fact_Ventas.sql" />
     <Build Include="dbo\Tables\PackageConfig.sql" />
+    <Build Include="dbo\Tables\DimDate.sql" />
+    <Build Include="dbo\Tables\DimProduct.sql" />
+    <Build Include="dbo\Tables\DimCustomer.sql" />
+    <Build Include="dbo\Tables\DimEmployee.sql" />
+    <Build Include="dbo\Tables\DimShipper.sql" />
+    <Build Include="dbo\Tables\DimSupplier.sql" />
+    <Build Include="dbo\Tables\DimGeography.sql" />
+    <Build Include="dbo\Tables\FactSales.sql" />
+    <Build Include="dbo\Tables\WarehouseMigrationState.sql" />
     <Build Include="std\Schema.sql" />
     <Build Include="std\Tables\Cliente.sql" />
     <Build Include="std\Tables\Empleado.sql" />
     <Build Include="std\Tables\Producto.sql" />
     <Build Include="std\Tables\Transportista.sql" />
     <Build Include="std\Tables\Ventas.sql" />
+    <Build Include="std\Tables\Proveedor.sql" />
     <ArtifactReference Include="$(DacPacRootPath)\Extensions\Microsoft\SQLDB\Extensions\SqlServer\170\SQLSchemas\master.dacpac">
       <DatabaseVariableLiteralValue>master</DatabaseVariableLiteralValue>
       <SuppressMissingDependenciesErrors>False</SuppressMissingDependenciesErrors>
     </ArtifactReference>
     <PostDeploy Include="Deployment\Seed.sql" />
     <None Include="Deployment\Prepare-LegacyWarehouse.sql" />
+    <None Include="Deployment\Migrate-NorthwindStar.sql" />
+    <None Include="Deployment\Retire-LegacyWarehouse.sql" />
 
   </ItemGroup>
 </Project>

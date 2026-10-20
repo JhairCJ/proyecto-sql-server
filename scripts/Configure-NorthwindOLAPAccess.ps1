@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [string]$Server = 'localhost',
-    [ValidateSet('Northwind_DW', 'Northwind_DW_Test')]
+    [ValidatePattern('^(Northwind_DW|Northwind_DW_(?:[A-Za-z0-9]+_)*Test)$')]
     [string]$WarehouseDatabase = 'Northwind_DW_Test'
 )
 
@@ -44,8 +44,8 @@ WHERE class = 0
   AND name = N''NorthwindPracticeTestDatabase''
   AND CONVERT(nvarchar(128), value) = N''Northwind_DW'';';
 EXEC sys.sp_executesql @sql, N'@isMarkedTest bit OUTPUT', @isMarkedTest OUTPUT;
-IF @database = N'Northwind_DW_Test' AND @isMarkedTest = 0
-    THROW 51202, 'Northwind_DW_Test debe estar marcada como copia aislada.', 1;
+IF (@database = N'Northwind_DW_Test' OR @database LIKE N'Northwind_DW[_]%[_]Test') AND @isMarkedTest = 0
+    THROW 51202, 'El destino de prueba debe estar marcado como copia aislada.', 1;
 IF @database = N'Northwind_DW' AND @isMarkedTest = 1
     THROW 51203, 'Northwind_DW está marcada como copia de prueba; se rechazó el acceso.', 1;
 
@@ -59,12 +59,20 @@ SET @sql = N'
 USE ' + QUOTENAME(@database) + N';
 IF USER_ID(@principal) IS NULL
     CREATE USER ' + QUOTENAME(@principal) + N' FOR LOGIN ' + QUOTENAME(@principal) + N';
-GRANT SELECT ON OBJECT::dbo.Dim_Cliente TO ' + QUOTENAME(@principal) + N';
-GRANT SELECT ON OBJECT::dbo.Dim_Empleado TO ' + QUOTENAME(@principal) + N';
-GRANT SELECT ON OBJECT::dbo.Dim_Producto TO ' + QUOTENAME(@principal) + N';
-GRANT SELECT ON OBJECT::dbo.Dim_Transportista TO ' + QUOTENAME(@principal) + N';
-GRANT SELECT ON OBJECT::dbo.Dim_Tiempo TO ' + QUOTENAME(@principal) + N';
-GRANT SELECT ON OBJECT::dbo.Fact_Ventas TO ' + QUOTENAME(@principal) + N';';
+IF OBJECT_ID(N''dbo.Dim_Cliente'',N''U'') IS NOT NULL REVOKE SELECT ON OBJECT::dbo.Dim_Cliente FROM ' + QUOTENAME(@principal) + N';
+IF OBJECT_ID(N''dbo.Dim_Empleado'',N''U'') IS NOT NULL REVOKE SELECT ON OBJECT::dbo.Dim_Empleado FROM ' + QUOTENAME(@principal) + N';
+IF OBJECT_ID(N''dbo.Dim_Producto'',N''U'') IS NOT NULL REVOKE SELECT ON OBJECT::dbo.Dim_Producto FROM ' + QUOTENAME(@principal) + N';
+IF OBJECT_ID(N''dbo.Dim_Transportista'',N''U'') IS NOT NULL REVOKE SELECT ON OBJECT::dbo.Dim_Transportista FROM ' + QUOTENAME(@principal) + N';
+IF OBJECT_ID(N''dbo.Dim_Tiempo'',N''U'') IS NOT NULL REVOKE SELECT ON OBJECT::dbo.Dim_Tiempo FROM ' + QUOTENAME(@principal) + N';
+IF OBJECT_ID(N''dbo.Fact_Ventas'',N''U'') IS NOT NULL REVOKE SELECT ON OBJECT::dbo.Fact_Ventas FROM ' + QUOTENAME(@principal) + N';
+GRANT SELECT ON OBJECT::dbo.DimDate TO ' + QUOTENAME(@principal) + N';
+GRANT SELECT ON OBJECT::dbo.DimProduct TO ' + QUOTENAME(@principal) + N';
+GRANT SELECT ON OBJECT::dbo.DimCustomer TO ' + QUOTENAME(@principal) + N';
+GRANT SELECT ON OBJECT::dbo.DimEmployee TO ' + QUOTENAME(@principal) + N';
+GRANT SELECT ON OBJECT::dbo.DimShipper TO ' + QUOTENAME(@principal) + N';
+GRANT SELECT ON OBJECT::dbo.DimSupplier TO ' + QUOTENAME(@principal) + N';
+GRANT SELECT ON OBJECT::dbo.DimGeography TO ' + QUOTENAME(@principal) + N';
+GRANT SELECT ON OBJECT::dbo.FactSales TO ' + QUOTENAME(@principal) + N';';
 EXEC sys.sp_executesql @sql, N'@principal sysname', @principal;
 '@
     [void]$command.Parameters.AddWithValue('@WarehouseDatabase', $WarehouseDatabase)

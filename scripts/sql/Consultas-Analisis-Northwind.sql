@@ -1,55 +1,63 @@
 USE [Northwind_DW];
 GO
 
--- Clientes con mayores ventas netas. El pais corresponde al pais del cliente.
+-- Clientes: Country describe la ubicación del cliente, no el destino del pedido.
 SELECT TOP (10)
-    c.CustomerID,
-    c.NombreEmpresa AS Cliente,
-    c.Pais AS PaisCliente,
+    c.CustomerID, c.CompanyName AS Cliente, c.Country AS PaisCliente,
     COUNT(DISTINCT f.OrderID) AS Pedidos,
-    SUM(CONVERT(bigint, f.Cantidad)) AS Unidades,
-    CONVERT(decimal(18,2), SUM(f.ImporteNeto)) AS VentasNetas
-FROM dbo.Fact_Ventas AS f
-INNER JOIN dbo.Dim_Cliente AS c ON c.Cliente_SK = f.Cliente_SK
-GROUP BY c.CustomerID, c.NombreEmpresa, c.Pais
-ORDER BY VentasNetas DESC, c.CustomerID;
+    SUM(CONVERT(bigint,f.Quantity)) AS Unidades,
+    CONVERT(decimal(19,2),SUM(f.NetAmount)) AS VentasNetas
+FROM dbo.FactSales AS f
+JOIN dbo.DimCustomer AS c ON c.CustomerKey=f.CustomerKey
+GROUP BY c.CustomerID,c.CompanyName,c.Country
+ORDER BY VentasNetas DESC,c.CustomerID;
 GO
 
--- Productos mas comprados, ordenados por unidades vendidas.
+-- Productos: la categoría se guarda en DimProduct; las ventas usan el precio de la línea.
 SELECT TOP (10)
-    p.ProductID,
-    p.NombreProducto AS Producto,
-    p.Categoria,
-    SUM(CONVERT(bigint, f.Cantidad)) AS UnidadesVendidas,
+    p.ProductID,p.ProductName,p.CategoryName,
+    SUM(CONVERT(bigint,f.Quantity)) AS UnidadesVendidas,
     COUNT(DISTINCT f.OrderID) AS Pedidos,
-    CONVERT(decimal(18,2), SUM(f.ImporteNeto)) AS VentasNetas
-FROM dbo.Fact_Ventas AS f
-INNER JOIN dbo.Dim_Producto AS p ON p.Producto_SK = f.Producto_SK
-GROUP BY p.ProductID, p.NombreProducto, p.Categoria
-ORDER BY UnidadesVendidas DESC, p.ProductID;
+    CONVERT(decimal(19,2),SUM(f.NetAmount)) AS VentasNetas
+FROM dbo.FactSales AS f
+JOIN dbo.DimProduct AS p ON p.ProductKey=f.ProductKey
+GROUP BY p.ProductID,p.ProductName,p.CategoryName
+ORDER BY UnidadesVendidas DESC,p.ProductID;
 GO
 
--- Categorias mas compradas, ordenadas por unidades vendidas.
+-- Proveedores: asociación actual del producto. Los importes vendidos no se revalorizan.
 SELECT TOP (10)
-    COALESCE(NULLIF(LTRIM(RTRIM(p.Categoria)), N''), N'Sin categoria') AS Categoria,
-    SUM(CONVERT(bigint, f.Cantidad)) AS UnidadesVendidas,
+    s.SupplierID,s.CompanyName AS Proveedor,
+    SUM(CONVERT(bigint,f.Quantity)) AS UnidadesVendidas,
     COUNT(DISTINCT f.OrderID) AS Pedidos,
-    COUNT_BIG(*) AS LineasDeVenta,
-    CONVERT(decimal(18,2), SUM(f.ImporteNeto)) AS VentasNetas
-FROM dbo.Fact_Ventas AS f
-INNER JOIN dbo.Dim_Producto AS p ON p.Producto_SK = f.Producto_SK
-GROUP BY COALESCE(NULLIF(LTRIM(RTRIM(p.Categoria)), N''), N'Sin categoria')
-ORDER BY UnidadesVendidas DESC, Categoria;
+    CONVERT(decimal(19,2),SUM(f.NetAmount)) AS VentasNetas
+FROM dbo.FactSales AS f
+JOIN dbo.DimSupplier AS s ON s.SupplierKey=f.SupplierKey
+GROUP BY s.SupplierID,s.CompanyName
+ORDER BY VentasNetas DESC,s.SupplierID;
 GO
 
--- Paises de clientes con mayores ventas netas; no representa el pais de envio.
+-- Destino: Freight se reduce a una fila por OrderID antes de sumarse.
+WITH OrderFreight AS
+(
+    SELECT OrderID,GeographyKey,MAX(Freight) AS Freight
+    FROM dbo.FactSales
+    GROUP BY OrderID,GeographyKey
+)
 SELECT TOP (10)
-    COALESCE(NULLIF(LTRIM(RTRIM(c.Pais)), N''), N'Sin pais') AS PaisCliente,
-    COUNT(DISTINCT f.OrderID) AS Pedidos,
-    SUM(CONVERT(bigint, f.Cantidad)) AS Unidades,
-    CONVERT(decimal(18,2), SUM(f.ImporteNeto)) AS VentasNetas
-FROM dbo.Fact_Ventas AS f
-INNER JOIN dbo.Dim_Cliente AS c ON c.Cliente_SK = f.Cliente_SK
-GROUP BY COALESCE(NULLIF(LTRIM(RTRIM(c.Pais)), N''), N'Sin pais')
-ORDER BY VentasNetas DESC, PaisCliente;
+    g.ShipCountry AS PaisDestino,g.ShipCity AS CiudadDestino,
+    COUNT_BIG(*) AS Pedidos,
+    CONVERT(decimal(19,4),SUM(o.Freight)) AS FleteTotal
+FROM OrderFreight AS o
+JOIN dbo.DimGeography AS g ON g.GeographyKey=o.GeographyKey
+GROUP BY g.ShipCountry,g.ShipCity
+ORDER BY FleteTotal DESC,g.ShipCountry,g.ShipCity;
+GO
+
+-- Un pedido de referencia tiene tres líneas, pero el flete se cuenta una vez.
+SELECT OrderID,COUNT_BIG(*) AS Lineas,MAX(Freight) AS FreightUnaVez,
+       SUM(GrossAmount) AS Bruto,SUM(DiscountAmount) AS Descuento,SUM(NetAmount) AS Neto
+FROM dbo.FactSales
+WHERE OrderID=10248
+GROUP BY OrderID;
 GO

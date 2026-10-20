@@ -1,227 +1,178 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param(
-    [string]$SqlServer = 'localhost',
-    [ValidateSet('Northwind_DW', 'Northwind_DW_Test')]
-    [string]$WarehouseDatabase = 'Northwind_DW_Test',
-    [string]$AnalysisServer = 'localhost',
-    [ValidateSet('NorthwindOLAP', 'NorthwindOLAP_Test')]
-    [string]$ModelDatabase = 'NorthwindOLAP_Test',
-    [string]$Category = 'Beverages',
-    [int]$Year = 1996,
-    [string]$CustomerId = 'ALFKI',
+    [string]$SqlServer='localhost',
+    [ValidatePattern('^(Northwind_DW|Northwind_DW_(?:[A-Za-z0-9]+_)*Test)$')]
+    [string]$WarehouseDatabase='Northwind_DW_Test',
+    [string]$AnalysisServer='localhost',
+    [ValidateSet('NorthwindOLAP','NorthwindOLAP_Test')]
+    [string]$ModelDatabase='NorthwindOLAP_Test',
+    [string]$CustomerId='ALFKI',
     [string]$EvidenceDirectory
 )
-
 Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
-$expectedModelDatabase = if ($WarehouseDatabase -eq 'Northwind_DW') { 'NorthwindOLAP' } else { 'NorthwindOLAP_Test' }
-if ($ModelDatabase -ne $expectedModelDatabase) {
-    throw 'Use Northwind_DW/NorthwindOLAP together, or Northwind_DW_Test/NorthwindOLAP_Test together.'
-}
-
-if ([string]::IsNullOrWhiteSpace($EvidenceDirectory)) {
-    $EvidenceDirectory = Join-Path $PSScriptRoot '../docs/evidencias/olap'
-}
-
+$ErrorActionPreference='Stop'
+$expectedModel=if($WarehouseDatabase -eq 'Northwind_DW'){'NorthwindOLAP'}else{'NorthwindOLAP_Test'}
+if($ModelDatabase -ne $expectedModel){throw 'Use Northwind_DW/NorthwindOLAP together or a marked test DW/NorthwindOLAP_Test.'}
+if([string]::IsNullOrWhiteSpace($EvidenceDirectory)){$EvidenceDirectory=Join-Path $PSScriptRoot '../docs/evidencias/olap'}
+New-Item -ItemType Directory -Force -Path $EvidenceDirectory | Out-Null
 & (Join-Path $PSScriptRoot 'Import-NorthwindAnalysisServices.ps1') -Adomd
 
 function Invoke-DaxRow([string]$Query) {
-    $connection = [Microsoft.AnalysisServices.AdomdClient.AdomdConnection]::new(
-        "Data Source=$AnalysisServer;Initial Catalog=$ModelDatabase"
-    )
-    try {
-        $connection.Open()
-        $command = $connection.CreateCommand()
-        $command.CommandText = $Query
-        $reader = $command.ExecuteReader()
-        try {
-            if (-not $reader.Read()) {
-                throw 'La consulta DAX no devolvió una fila.'
-            }
-            $row = [ordered]@{}
-            for ($index = 0; $index -lt $reader.FieldCount; $index++) {
-                $value = $reader.GetValue($index)
-                if ($value -is [System.DBNull]) { $value = $null }
-                $name = $reader.GetName($index).TrimStart('[').TrimEnd(']')
-                $row[$name] = $value
+    $connection=[Microsoft.AnalysisServices.AdomdClient.AdomdConnection]::new("Data Source=$AnalysisServer;Initial Catalog=$ModelDatabase")
+    try{
+        $connection.Open();$command=$connection.CreateCommand();$command.CommandText=$Query
+        $reader=$command.ExecuteReader()
+        try{
+            if(-not $reader.Read()){throw 'La consulta DAX no devolvió fila.'}
+            $row=[ordered]@{}
+            for($i=0;$i -lt $reader.FieldCount;$i++){
+                $value=$reader.GetValue($i);if($value -is [DBNull]){$value=$null}
+                $row[$reader.GetName($i).TrimStart('[').TrimEnd(']')]=$value
             }
             return [pscustomobject]$row
-        }
-        finally {
-            $reader.Dispose()
-            $command.Dispose()
-        }
-    }
-    finally {
-        $connection.Dispose()
-    }
+        }finally{$reader.Dispose();$command.Dispose()}
+    }finally{$connection.Dispose()}
 }
 
-function Invoke-SqlRow([string]$Database, [string]$Sql, [hashtable]$Parameters = @{}) {
-    $builder = [System.Data.SqlClient.SqlConnectionStringBuilder]::new()
-    $builder['Data Source'] = $SqlServer
-    $builder['Initial Catalog'] = $Database
-    $builder['Integrated Security'] = $true
-    $builder['Encrypt'] = $true
-    $builder['TrustServerCertificate'] = $true
-    $connection = [System.Data.SqlClient.SqlConnection]::new($builder.ConnectionString)
-    try {
-        $connection.Open()
-        $command = $connection.CreateCommand()
-        $command.CommandText = $Sql
-        foreach ($name in $Parameters.Keys) {
-            [void]$command.Parameters.AddWithValue($name, $Parameters[$name])
-        }
-        $reader = $command.ExecuteReader()
-        try {
-            if (-not $reader.Read()) {
-                throw 'La consulta SQL no devolvió una fila.'
-            }
-            $row = [ordered]@{}
-            for ($index = 0; $index -lt $reader.FieldCount; $index++) {
-                $value = $reader.GetValue($index)
-                if ($value -is [System.DBNull]) { $value = $null }
-                $row[$reader.GetName($index)] = $value
+function Invoke-SqlRow([string]$Sql,[hashtable]$Parameters=@{}) {
+    $builder=[Data.SqlClient.SqlConnectionStringBuilder]::new()
+    $builder['Data Source']=$SqlServer;$builder['Initial Catalog']=$WarehouseDatabase
+    $builder['Integrated Security']=$true;$builder['Encrypt']=$true;$builder['TrustServerCertificate']=$true
+    $connection=[Data.SqlClient.SqlConnection]::new($builder.ConnectionString)
+    try{
+        $connection.Open();$command=$connection.CreateCommand();$command.CommandTimeout=120;$command.CommandText=$Sql
+        foreach($name in $Parameters.Keys){[void]$command.Parameters.AddWithValue($name,$Parameters[$name])}
+        $reader=$command.ExecuteReader()
+        try{
+            if(-not $reader.Read()){throw 'La consulta SQL no devolvió fila.'}
+            $row=[ordered]@{}
+            for($i=0;$i -lt $reader.FieldCount;$i++){
+                $value=$reader.GetValue($i);if($value -is [DBNull]){$value=$null};$row[$reader.GetName($i)]=$value
             }
             return [pscustomobject]$row
-        }
-        finally {
-            $reader.Dispose()
-            $command.Dispose()
-        }
-    }
-    finally {
-        $connection.Dispose()
-    }
+        }finally{$reader.Dispose();$command.Dispose()}
+    }finally{$connection.Dispose()}
 }
 
-function Assert-Equal($Actual, $Expected, [string]$Name, [int]$Scale = 0) {
-    if ($null -eq $Actual -or $null -eq $Expected) {
-        if ($null -ne $Actual -or $null -ne $Expected) {
-            throw "$Name no coincide: modelo='$Actual', DW='$Expected'."
-        }
-        return
-    }
-    $actualValue = if ($Scale -gt 0) { [decimal]::Round([decimal]$Actual, $Scale) } else { [decimal]$Actual }
-    $expectedValue = if ($Scale -gt 0) { [decimal]::Round([decimal]$Expected, $Scale) } else { [decimal]$Expected }
-    if ($actualValue -ne $expectedValue) {
-        throw "$Name no coincide: modelo='$actualValue', DW='$expectedValue'."
-    }
+function Assert-Equal($Actual,$Expected,[string]$Name,[int]$Scale=0) {
+    if($null -eq $Actual -or $null -eq $Expected){if($null -ne $Actual -or $null -ne $Expected){throw "${Name}: modelo='$Actual', DW='$Expected'."};return}
+    $actualValue=if($Scale){[decimal]::Round([decimal]$Actual,$Scale)}else{[decimal]$Actual}
+    $expectedValue=if($Scale){[decimal]::Round([decimal]$Expected,$Scale)}else{[decimal]$Expected}
+    if($actualValue -ne $expectedValue){throw "${Name}: modelo='$actualValue', DW='$expectedValue'."}
 }
 
-$overallSql = Invoke-SqlRow $WarehouseDatabase @'
-SELECT COUNT(DISTINCT OrderID) AS Pedidos,
-       SUM(CONVERT(bigint, Cantidad)) AS Unidades,
-       SUM(ImporteBruto) AS Bruto,
-       SUM(ImporteDescuento) AS Descuento,
-       SUM(ImporteNeto) AS Neto
-FROM dbo.Fact_Ventas;
+$preflight=Invoke-SqlRow @'
+SELECT (SELECT COUNT(*) FROM sys.tables WHERE schema_id=SCHEMA_ID(N'dbo') AND name IN
+ (N'DimDate',N'DimProduct',N'DimCustomer',N'DimEmployee',N'DimShipper',N'DimSupplier',N'DimGeography',N'FactSales')) AS ModelTables,
+ (SELECT COUNT(*) FROM sys.foreign_keys WHERE parent_object_id=OBJECT_ID(N'dbo.FactSales')) AS FactRelationships,
+ (SELECT COUNT(*) FROM sys.columns WHERE object_id=OBJECT_ID(N'dbo.FactSales') AND name=N'FreightAmount') AS FreightAmountColumns,
+ (SELECT COUNT(*) FROM (SELECT OrderID FROM dbo.FactSales GROUP BY OrderID
+   HAVING MIN(Freight)<>MAX(Freight) OR (COUNT(Freight)>0 AND COUNT(Freight)<COUNT_BIG(*))) AS x) AS InconsistentFreight;
 '@
-$overallDax = Invoke-DaxRow @'
+if($preflight.ModelTables -ne 8 -or $preflight.FactRelationships -ne 9 -or $preflight.FreightAmountColumns -ne 0 -or $preflight.InconsistentFreight -ne 0){
+    throw 'DW no tiene las ocho tablas/nueve relaciones esperadas, contiene Freight inconsistente o tiene FreightAmount.'
+}
+
+$sqlOverall=Invoke-SqlRow @'
+WITH OrderFreight AS (SELECT OrderID,MAX(Freight) Freight FROM dbo.FactSales GROUP BY OrderID)
+SELECT COUNT(DISTINCT f.OrderID) Orders,SUM(CONVERT(bigint,f.Quantity)) Units,
+ SUM(f.GrossAmount) GrossAmount,SUM(f.DiscountAmount) DiscountAmount,SUM(f.NetAmount) NetAmount,
+ (SELECT COALESCE(SUM(Freight),0) FROM OrderFreight) Freight,
+ (SELECT COUNT_BIG(*) FROM OrderFreight WHERE Freight IS NULL) MissingFreightOrders
+FROM dbo.FactSales AS f;
+'@
+$daxOverall=Invoke-DaxRow @'
 EVALUATE ROW(
-    "Pedidos", [Pedidos distintos],
-    "Unidades", [Unidades],
-    "Bruto", [Ventas brutas],
-    "Descuento", [Descuentos aplicados],
-    "Neto", [Ventas netas]
-)
+ "Orders",[Pedidos distintos],"Units",[Unidades],"GrossAmount",[Ventas brutas],
+ "DiscountAmount",[Descuentos aplicados],"NetAmount",[Ventas netas],
+ "Freight",[Flete total],"MissingFreightOrders",[Pedidos sin flete informado])
 '@
-foreach ($measure in @('Pedidos', 'Unidades', 'Bruto', 'Descuento', 'Neto')) {
-    $scale = if ($measure -in @('Bruto', 'Descuento', 'Neto')) { 2 } else { 0 }
-    Assert-Equal $overallDax.$measure $overallSql.$measure "Total $measure" $scale
+foreach($name in @('Orders','Units','GrossAmount','DiscountAmount','NetAmount','Freight','MissingFreightOrders')){
+    $scale=if($name -in @('GrossAmount','DiscountAmount','NetAmount')){2}elseif($name -eq 'Freight'){4}else{0}
+    Assert-Equal $daxOverall.$name $sqlOverall.$name "Total $name" $scale
 }
 
-$orderSql = Invoke-SqlRow $WarehouseDatabase @'
-SELECT COUNT(DISTINCT OrderID) AS Pedidos,
-       SUM(CONVERT(bigint, Cantidad)) AS Unidades,
-       SUM(ImporteBruto) AS Bruto,
-       SUM(ImporteDescuento) AS Descuento,
-       SUM(ImporteNeto) AS Neto
-FROM dbo.Fact_Ventas WHERE OrderID = 10248;
+$orderSql=Invoke-SqlRow @'
+SELECT COUNT(DISTINCT OrderID) Orders,SUM(CONVERT(bigint,Quantity)) Units,
+ SUM(GrossAmount) GrossAmount,SUM(DiscountAmount) DiscountAmount,SUM(NetAmount) NetAmount,
+ MAX(Freight) Freight
+FROM dbo.FactSales WHERE OrderID=10248;
 '@
-$orderDax = Invoke-DaxRow @'
-EVALUATE ROW(
-    "Pedidos", CALCULATE([Pedidos distintos], Fact_Ventas[OrderID] = 10248),
-    "Unidades", CALCULATE([Unidades], Fact_Ventas[OrderID] = 10248),
-    "Bruto", CALCULATE([Ventas brutas], Fact_Ventas[OrderID] = 10248),
-    "Descuento", CALCULATE([Descuentos aplicados], Fact_Ventas[OrderID] = 10248),
-    "Neto", CALCULATE([Ventas netas], Fact_Ventas[OrderID] = 10248)
-)
+$orderDax=Invoke-DaxRow @'
+EVALUATE CALCULATETABLE(ROW(
+ "Orders",[Pedidos distintos],"Units",[Unidades],"GrossAmount",[Ventas brutas],
+ "DiscountAmount",[Descuentos aplicados],"NetAmount",[Ventas netas],"Freight",[Flete total]),
+ FactSales[OrderID]=10248)
 '@
-foreach ($measure in @('Pedidos', 'Unidades', 'Bruto', 'Descuento', 'Neto')) {
-    $scale = if ($measure -in @('Bruto', 'Descuento', 'Neto')) { 2 } else { 0 }
-    Assert-Equal $orderDax.$measure $orderSql.$measure "Pedido 10248: $measure" $scale
+foreach($name in @('Orders','Units','GrossAmount','DiscountAmount','NetAmount','Freight')){
+    $scale=if($name -in @('GrossAmount','DiscountAmount','NetAmount')){2}elseif($name -eq 'Freight'){4}else{0}
+    Assert-Equal $orderDax.$name $orderSql.$name "Order 10248 $name" $scale
 }
 
-$categorySql = Invoke-SqlRow $WarehouseDatabase @'
-SELECT SUM(f.ImporteNeto) AS Neto
-FROM dbo.Fact_Ventas AS f
-JOIN dbo.Dim_Tiempo AS t ON t.Tiempo_SK = f.FechaPedido_SK
-JOIN dbo.Dim_Producto AS p ON p.Producto_SK = f.Producto_SK
-WHERE t.Anio = @Year AND p.Categoria = @Category;
-'@ @{ '@Year' = $Year; '@Category' = $Category }
-$escapedCategory = $Category.Replace('"', '""')
-$categoryDax = Invoke-DaxRow @"
-EVALUATE ROW(
-    "Neto",
-    CALCULATE([Ventas netas], Dim_Tiempo[Anio] = $Year, Dim_Producto[Categoria] = "$escapedCategory")
-)
+$customer=Invoke-SqlRow @'
+SELECT TOP(1) CustomerID,Country FROM dbo.DimCustomer WHERE CustomerID=@CustomerId;
+'@ @{ '@CustomerId'=$CustomerId }
+if($null -eq $customer.Country){throw "Customer '$CustomerId' has no country for the location filter."}
+$customerSql=Invoke-SqlRow @'
+SELECT COUNT(DISTINCT f.OrderID) Orders,SUM(CONVERT(bigint,f.Quantity)) Units,SUM(f.NetAmount) NetAmount
+FROM dbo.FactSales AS f JOIN dbo.DimCustomer AS c ON c.CustomerKey=f.CustomerKey
+WHERE c.CustomerID=@CustomerId AND c.Country=@Country;
+'@ @{ '@CustomerId'=$CustomerId;'@Country'=$customer.Country }
+$escapedCustomer=([string]$CustomerId).Replace('"','""');$escapedCountry=([string]$customer.Country).Replace('"','""')
+$customerDax=Invoke-DaxRow @"
+EVALUATE CALCULATETABLE(ROW("Orders",[Pedidos distintos],"Units",[Unidades],"NetAmount",[Ventas netas]),
+ DimCustomer[CustomerID]="$escapedCustomer",DimCustomer[Country]="$escapedCountry")
 "@
-Assert-Equal $categoryDax.Neto $categorySql.Neto "Categoría $Category / año $Year" 2
+foreach($name in @('Orders','Units','NetAmount')){Assert-Equal $customerDax.$name $customerSql.$name "Customer location $name" $(if($name -eq 'NetAmount'){2}else{0})}
 
-$customerSql = Invoke-SqlRow $WarehouseDatabase @'
-SELECT COUNT(DISTINCT f.OrderID) AS Pedidos,
-       SUM(CONVERT(bigint, f.Cantidad)) AS Unidades,
-       SUM(f.ImporteBruto) AS Bruto,
-       SUM(f.ImporteDescuento) AS Descuento,
-       SUM(f.ImporteNeto) AS Neto
-FROM dbo.Fact_Ventas AS f
-JOIN dbo.Dim_Cliente AS c ON c.Cliente_SK = f.Cliente_SK
-WHERE c.CustomerID = @CustomerId;
-'@ @{ '@CustomerId' = $CustomerId }
-$customerCountry = (Invoke-SqlRow $WarehouseDatabase @'
-SELECT Pais FROM dbo.Dim_Cliente WHERE CustomerID = @CustomerId;
-'@ @{ '@CustomerId' = $CustomerId }).Pais
-if ($null -eq $customerCountry) {
-    throw "No se encontró el país del cliente '$CustomerId'."
-}
-$escapedCustomer = $CustomerId.Replace('"', '""')
-$escapedCountry = ([string]$customerCountry).Replace('"', '""')
-$customerDax = Invoke-DaxRow @"
+$destination=Invoke-SqlRow @'
+SELECT TOP(1) g.GeographyKey,g.ShipCountry FROM dbo.FactSales AS f
+JOIN dbo.DimGeography AS g ON g.GeographyKey=f.GeographyKey
+WHERE f.OrderID=10248 ORDER BY g.GeographyKey;
+'@
+$destinationSql=Invoke-SqlRow @'
+SELECT COUNT(DISTINCT f.OrderID) Orders,SUM(CONVERT(bigint,f.Quantity)) Units,SUM(f.NetAmount) NetAmount
+FROM dbo.FactSales AS f JOIN dbo.DimGeography AS g ON g.GeographyKey=f.GeographyKey
+WHERE f.OrderID=10248 AND g.GeographyKey=@GeographyKey;
+'@ @{ '@GeographyKey'=$destination.GeographyKey }
+$destinationDax=Invoke-DaxRow "EVALUATE CALCULATETABLE(ROW(`"Orders`",[Pedidos distintos],`"Units`",[Unidades],`"NetAmount`",[Ventas netas]),FactSales[OrderID]=10248,DimGeography[GeographyKey]=$($destination.GeographyKey))"
+foreach($name in @('Orders','Units','NetAmount')){Assert-Equal $destinationDax.$name $destinationSql.$name "Order destination $name" $(if($name -eq 'NetAmount'){2}else{0})}
+
+$supplier=Invoke-SqlRow @'
+SELECT TOP(1) s.SupplierID,s.SupplierKey FROM dbo.FactSales AS f
+JOIN dbo.DimSupplier AS s ON s.SupplierKey=f.SupplierKey
+WHERE f.OrderID=10248 ORDER BY s.SupplierKey;
+'@
+$supplierSql=Invoke-SqlRow @'
+SELECT COUNT(DISTINCT f.OrderID) Orders,SUM(CONVERT(bigint,f.Quantity)) Units,SUM(f.NetAmount) NetAmount
+FROM dbo.FactSales AS f JOIN dbo.DimSupplier AS s ON s.SupplierKey=f.SupplierKey
+WHERE f.OrderID=10248 AND s.SupplierKey=@SupplierKey;
+'@ @{ '@SupplierKey'=$supplier.SupplierKey }
+$supplierDax=Invoke-DaxRow "EVALUATE CALCULATETABLE(ROW(`"Orders`",[Pedidos distintos],`"Units`",[Unidades],`"NetAmount`",[Ventas netas]),FactSales[OrderID]=10248,DimSupplier[SupplierKey]=$($supplier.SupplierKey))"
+foreach($name in @('Orders','Units','NetAmount')){Assert-Equal $supplierDax.$name $supplierSql.$name "Current supplier $name" $(if($name -eq 'NetAmount'){2}else{0})}
+
+$unknown=Invoke-DaxRow @'
 EVALUATE ROW(
-    "Pedidos", CALCULATE([Pedidos distintos], Dim_Cliente[CustomerID] = "$escapedCustomer", Dim_Cliente[Pais] = "$escapedCountry"),
-    "Unidades", CALCULATE([Unidades], Dim_Cliente[CustomerID] = "$escapedCustomer", Dim_Cliente[Pais] = "$escapedCountry"),
-    "Bruto", CALCULATE([Ventas brutas], Dim_Cliente[CustomerID] = "$escapedCustomer", Dim_Cliente[Pais] = "$escapedCountry"),
-    "Descuento", CALCULATE([Descuentos aplicados], Dim_Cliente[CustomerID] = "$escapedCustomer", Dim_Cliente[Pais] = "$escapedCountry"),
-    "Neto", CALCULATE([Ventas netas], Dim_Cliente[CustomerID] = "$escapedCustomer", Dim_Cliente[Pais] = "$escapedCountry")
-)
-"@
-foreach ($measure in @('Pedidos', 'Unidades', 'Bruto', 'Descuento', 'Neto')) {
-    $scale = if ($measure -in @('Bruto', 'Descuento', 'Neto')) { 2 } else { 0 }
-    Assert-Equal $customerDax.$measure $customerSql.$measure "Cliente $CustomerId / ${customerCountry}: $measure" $scale
+ "Customer",CALCULATE(SELECTEDVALUE(DimCustomer[CompanyName]),DimCustomer[CustomerKey]=0),
+ "Employee",CALCULATE(SELECTEDVALUE(DimEmployee[FullName]),DimEmployee[EmployeeKey]=0),
+ "Shipper",CALCULATE(SELECTEDVALUE(DimShipper[CompanyName]),DimShipper[ShipperKey]=0),
+ "Supplier",CALCULATE(SELECTEDVALUE(DimSupplier[CompanyName]),DimSupplier[SupplierKey]=0),
+ "UnknownDateRows",COUNTROWS(FILTER(DimDate,DimDate[DateKey]=0 && DimDate[IsUnknown]=TRUE())),
+ "UnknownDestination",CALCULATE(SELECTEDVALUE(DimGeography[DestinationName]),DimGeography[GeographyKey]=0))
+'@
+if($unknown.Customer -ne 'Desconocido' -or $unknown.Employee -ne 'Desconocido' -or $unknown.Shipper -ne 'Desconocido' -or $unknown.Supplier -ne 'Desconocido' -or $unknown.UnknownDateRows -ne 1 -or $unknown.UnknownDestination -ne 'Desconocido'){
+    throw 'El modelo no muestra de manera clara los miembros desconocidos.'
 }
 
-$unknownCustomer = Invoke-DaxRow 'EVALUATE SELECTCOLUMNS(FILTER(Dim_Cliente, Dim_Cliente[Cliente_SK] = 0), "Etiqueta", Dim_Cliente[NombreEmpresa])'
-$unknownEmployee = Invoke-DaxRow 'EVALUATE SELECTCOLUMNS(FILTER(Dim_Empleado, Dim_Empleado[Empleado_SK] = 0), "Etiqueta", Dim_Empleado[NombreCompleto])'
-$unknownTime = Invoke-DaxRow 'EVALUATE SELECTCOLUMNS(FILTER(Dim_Tiempo, Dim_Tiempo[Tiempo_SK] = 0), "Tipo", Dim_Tiempo[TipoFecha])'
-if ($unknownCustomer.Etiqueta -ne 'Desconocido' -or $unknownEmployee.Etiqueta -ne 'Desconocido' -or $unknownTime.Tipo -ne 'Desconocida') {
-    throw 'Falta la etiqueta de un miembro desconocido o la distinción entre fecha real y fila técnica.'
+$report=[ordered]@{
+    Result='PASS';Server=$AnalysisServer;Model=$ModelDatabase;Warehouse="$SqlServer/$WarehouseDatabase"
+    Totals=$daxOverall;Order10248=$orderDax
+    CustomerLocation=@{Customer=$CustomerId;Country=$customer.Country;Measures=$customerDax}
+    OrderDestination=@{Order=10248;Country=$destination.ShipCountry;Measures=$destinationDax}
+    CurrentSupplier=@{SupplierID=$supplier.SupplierID;Measures=$supplierDax}
+    UnknownMembers=$unknown;FreightScale=4;FreightConsistency='PASS'
 }
-
-$report = [ordered]@{
-    Result = 'PASS'
-    Server = $AnalysisServer
-    Model = $ModelDatabase
-    Warehouse = "$SqlServer/$WarehouseDatabase"
-    Totals = $overallDax
-    Order10248 = $orderDax
-    CategoryYear = @{Category = $Category; Year = $Year; NetSales = $categoryDax.Neto}
-    Customer = @{CustomerId = $CustomerId; Country = $customerCountry; Measures = $customerDax}
-    UnknownMembers = @{Customer = $unknownCustomer.Etiqueta; Employee = $unknownEmployee.Etiqueta; Time = $unknownTime.Tipo}
-}
-New-Item -ItemType Directory -Path $EvidenceDirectory -Force | Out-Null
-$stamp = Get-Date -Format 'yyyyMMdd-HHmmss-fff'
-$evidencePath = Join-Path (Resolve-Path -LiteralPath $EvidenceDirectory).Path "comparacion-$stamp.json"
-$report | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $evidencePath -Encoding utf8
-Write-Output "PASS: modelo y DW coinciden; 10248=$($orderDax.Pedidos) pedido, $($orderDax.Unidades) unidades, neto=$($orderDax.Neto). Evidencia: $evidencePath"
+$stamp=Get-Date -Format 'yyyyMMdd-HHmmss-fff'
+$path=Join-Path $EvidenceDirectory "comparacion-olap-$stamp.json"
+$report | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $path -Encoding utf8
+Write-Output "PASS: medidas, fechas, cliente, destino, proveedor actual y flete coinciden con el DW. Evidencia: $path"

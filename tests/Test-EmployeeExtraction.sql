@@ -1,9 +1,14 @@
 -- Batch de fixtures para Invoke-NorthwindTestSql, revertido al terminar.
 SET NOCOUNT ON;
 SET XACT_ABORT OFF; -- Capturar rechazos deliberados dentro del fixture.
-CREATE TABLE #Employees(EmployeeID int,FirstName nvarchar(10),LastName nvarchar(20),
-    Title nvarchar(30),City nvarchar(15),Region nvarchar(15),Country nvarchar(15),
-    ReportsTo int,SourceRowVersion binary(8),SupervisorName nvarchar(60));
+CREATE TABLE #Employees(EmployeeID int,FirstName nvarchar(10) COLLATE DATABASE_DEFAULT,
+    LastName nvarchar(20) COLLATE DATABASE_DEFAULT,FullName nvarchar(60) COLLATE DATABASE_DEFAULT,
+    Title nvarchar(30) COLLATE DATABASE_DEFAULT,TitleOfCourtesy nvarchar(25) COLLATE DATABASE_DEFAULT,
+    BirthDate date,HireDate date,[Address] nvarchar(60) COLLATE DATABASE_DEFAULT,
+    City nvarchar(15) COLLATE DATABASE_DEFAULT,Region nvarchar(15) COLLATE DATABASE_DEFAULT,
+    Country nvarchar(15) COLLATE DATABASE_DEFAULT,PostalCode nvarchar(10) COLLATE DATABASE_DEFAULT,
+    HomePhone nvarchar(24) COLLATE DATABASE_DEFAULT,Extension nvarchar(4) COLLATE DATABASE_DEFAULT,
+    ReportsTo int,SourceRowVersion binary(8),SupervisorName nvarchar(60) COLLATE DATABASE_DEFAULT);
 DECLARE @cut TABLE(DBTS bigint);
 INSERT @cut EXEC dbo.GetDatabaseRowVersion;
 DECLARE @end bigint=(SELECT DBTS FROM @cut);
@@ -13,6 +18,12 @@ IF (SELECT COUNT(*) FROM #Employees)<>9
     THROW 51301,'La referencia no devuelve nueve empleados unicos.',1;
 IF NOT EXISTS(SELECT 1 FROM #Employees WHERE EmployeeID=2 AND ReportsTo IS NULL AND SupervisorName IS NULL)
     THROW 51302,'Se perdio el empleado sin supervisor.',1;
+IF EXISTS(SELECT 1 FROM #Employees e JOIN dbo.Employees s ON s.EmployeeID=e.EmployeeID
+    WHERE e.FullName<>CONCAT(s.FirstName,N' ',s.LastName)
+       OR ISNULL(e.[Address],N'')<>ISNULL(s.[Address],N'')
+       OR ISNULL(e.HomePhone,N'')<>ISNULL(s.HomePhone,N'')
+       OR ISNULL(e.Extension,N'')<>ISNULL(s.Extension,N''))
+    THROW 51302,'Atributos completos del empleado difieren del origen.',1;
 SELECT N'Referencia: 9 empleados unicos y contrato std.Empleado compatible' AS Passed;
 
 DELETE dbo.EmployeeTerritories WHERE EmployeeID=1;

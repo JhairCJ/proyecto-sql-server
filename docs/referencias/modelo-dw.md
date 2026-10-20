@@ -1,38 +1,62 @@
-# Modelo y publicación del DW
+# Modelo y migración del DW
 
-Northwind.DW es el propietario declarativo de los objetos del almacén. Northwind.OLTP contiene únicamente el origen. La solución Northwind.sln integra OLTP, DW, ETL y OLAP; SQL Server Agent coordina carga y procesamiento, como en BikeStores.
+`Northwind.DW` administra esquema, staging, aplicación y controles de `Northwind_DW`. El modelo final contiene una tabla de hechos a nivel de línea y siete dimensiones, todas en inglés. Los nombres para informes y guías permanecen en español.
 
-| Tabla | Identidad comercial | Clave del DW | Relación con hechos |
-| --- | --- | --- | --- |
-| Dim_Cliente | CustomerID único | Cliente_SK | Cliente_SK obligatorio; 0 si falta cliente |
-| Dim_Empleado | EmployeeID único | Empleado_SK | Empleado_SK obligatorio; 0 si falta empleado |
-| Dim_Producto | ProductID único | Producto_SK | Producto_SK obligatorio; referencia no resuelta es error |
-| Dim_Transportista | ShipperID único | Transportista_SK | NULL si falta transportista |
-| Dim_Tiempo | Fecha única | AAAAMMDD; 0 desconocido | Pedido obligatorio; requerida/envío admiten NULL |
-| Fact_Ventas | OrderID/ProductID único | Venta_SK | Una fila por línea, siete relaciones a dimensiones |
-
-Cliente desconocido: SK 0, CustomerID ~UNK~. Empleado desconocido: SK 0, EmployeeID 0. Fecha desconocida: SK 0, 1900-01-01, excluida del calendario real. Los controles y miembros se crean solo si faltan. Las dimensiones son tipo 1: cambian atributos conservando SK, sin historia. Precio y descuento son DECIMAL(19,4)/DECIMAL(9,6), cantidad SMALLINT positiva. Las restricciones rechazan duplicados, precio negativo, descuento fuera de 0..1 y claves inexistentes.
-
-DW_LoadDimTiempo usa el rango de las tres fechas de staging o parámetros explícitos; genera días continuos, nombres españoles independientes de idioma/DATEFIRST y amplía sin duplicar. La preparación de la práctica usa el rango observado en NorthWind.
-
-Regla monetaria por línea: bruto = ROUND(cantidad × precio,2); descuento monetario = ROUND(bruto × proporción normalizada a seis decimales,2); neto = bruto − descuento monetario. SQL ROUND aleja los empates de cero. Los totales suman resultados por línea. DW_CalculateAmounts aplica la regla; las verificaciones calculan una referencia independiente sobre OrderDetails. Freight no se repite y el precio de catálogo no interviene. Ejemplo: cantidad 10, precio 20, descuento 0,1 → 200/20/180. Precio 0,0050 por una unidad → bruto 0,01; bruto 1 con proporción 0,005000 → descuento 0,01.
-
-La transferencia REAL → decimal de BulkCopy puede truncar valores; la carga normaliza en SQL antes del transporte. Los paquetes SSIS conservan esa conversión explícita; las pruebas comparan sus importes con una referencia SQL independiente.
-
-La migración deriva ProductID desde Dim_Producto antes de hacerla obligatoria, rechaza identidades ambiguas o importes incompatibles y convierte explícitamente los tipos. La publicación conserva BlockOnPossibleDataLoss=True, propiedades extendidas y opciones de base. No elimina objetos ajenos ni reinicia datos/marcas. Las opciones se basan en [SqlPackage Publish](https://learn.microsoft.com/en-us/sql/tools/sqlpackage/sqlpackage-publish).
-
-| Archivo anterior | Propietario/archivo final | Cambio |
+| Tabla | Uso | Identidad de negocio |
 | --- | --- | --- |
-| OLTP/Scripts/DW y dimensiones.sql, Fact.sql, Indices_Fact.sql | Northwind.DW/dbo/Tables/*.sql | Definiciones compiladas, claves y restricciones |
-| OLTP/Scripts/Esquema_y_tablas.sql | Northwind.DW/std/Schema.sql y Tables/*.sql | SupervisorName declarativo; tipos decimales de ventas |
-| OLTP/Scripts/Control/PackageConfig.sql | Northwind.DW/dbo/Tables/PackageConfig.sql y Deployment/Seed.sql | Esquema y filas iniciales separados/repetibles |
-| OLTP/Scripts/Control y Procedures/GetLast/UpdateLastPackageRowVersion.sql | Northwind.DW/dbo/Procedures/*.sql | Un propietario; control estricto y avance transaccional |
-| OLTP/Scripts/DW_Merge.sql | Northwind.DW/dbo/Procedures/DW_MergeDim*.sql, DW_LoadDimTiempo.sql | Reutilizar dimensiones; calendario corregido |
-| OLTP/Scripts/DW_Merge.sql, procedimiento de hechos | Northwind.DW/dbo/Procedures/DW_MergeFactVentas.sql | Aplicación compilada, claves validadas y actualización por pedido/producto |
-| OLTP/PostDeploy VerificarPackages.sql | Retirado | El OLTP no consulta ni configura el DW al publicarse |
+| `DimDate` | Fecha de pedido, requerida y envío | `FullDate`; `DateKey` usa YYYYMMDD |
+| `DimProduct` | Producto, categoría e inventario actual | `ProductID` |
+| `DimCustomer` | Cliente y ubicación propia | `CustomerID` |
+| `DimEmployee` | Empleado y supervisor actual | `EmployeeID` |
+| `DimShipper` | Transportista actual | `ShipperID` |
+| `DimSupplier` | Proveedor actual | `SupplierID` |
+| `DimGeography` | Destino de envío de la orden | Tupla de cinco campos `Ship*` |
+| `FactSales` | Una fila por `OrderID` y `ProductKey` | `OrderID` + `ProductKey` |
 
-La publicación actualiza el procedimiento de hechos al contrato compilado. Publicar prepara el esquema; poblar el calendario y ejecutar `CargarNorthwind.dtsx` en Visual Studio carga las entidades comerciales de `NorthWind` en `Northwind_DW`. Las pruebas automatizadas usan `Load-NorthwindWarehouse.ps1` y copias aisladas. El contrato de aplicación y recuperación está en [carga](carga.md).
+`FactSales` tiene nueve claves foráneas: tres roles de fecha y una hacia cada una de las otras seis dimensiones. Producto conserva su `ProductID` mediante `DimProduct`; no hay `FactOrder`, ni relación directa entre dimensiones. Customer representa la ubicación del cliente; Geography representa el destino de cada pedido.
 
-BikeStores: OLTP ↔ Northwind.OLTP; DW/staging/control ↔ Northwind.DW; ETL ↔ Northwind.ETL; tabular ↔ Northwind.OLAP; Agent ↔ NorthwindBIJob. No hay tiendas equivalentes; Northwind usa transportistas.
+## Medidas y semántica
 
-[Guía de publicación](../05-preparar-dw.md). [Resultados](../validacion.md).
+- `GrossAmount = ROUND(Quantity * UnitPrice, 2)`; `DiscountAmount = ROUND(GrossAmount * Discount, 2)`; `NetAmount = GrossAmount - DiscountAmount`. Los tres valores son `DECIMAL(19,2)` calculados por línea.
+- `Freight` es el importe del encabezado de Orders, `DECIMAL(19,4)` y puede ser NULL. Se repite en las líneas para poder filtrar la venta, por lo que al totalizar se suma una vez por pedido después de comprobar que todas las líneas del pedido tienen el mismo valor, incluyendo la distinción NULL/cero. No se distribuye entre productos ni se suma a NetAmount.
+- `DimProduct` contiene el inventario actual, no inventario histórico. `DimSupplier` refleja el proveedor actual del producto. Cambiar ese proveedor corrige la asociación de las ventas recargadas, pero el origen no registra el proveedor histórico de cada unidad.
+- Las dimensiones comerciales usan cambios tipo 1: se conserva la clave sustituta y se actualizan atributos actuales. No se modelan historial tipo 2 ni borrados físicos del origen.
+
+Los miembros desconocidos usan clave cero para fechas, clientes, empleados, transportistas, proveedores y geografía. No existe producto ficticio: una línea con ProductID sin resolver se rechaza. Las fechas requerida y envío y el Freight desconocido permanecen NULL. Los destinos se normalizan quitando espacios externos y tratando cadena vacía como NULL; la combinación completa se reutiliza, sin sobrescribir otros pedidos.
+
+## Publicación y migración
+
+La publicación DACPAC es aditiva (`BlockOnPossibleDataLoss=True`, `DropObjectsNotInSource=False`) y los seeds son condicionales. `Migrate-NorthwindStar.sql` registra una etapa simple en `WarehouseMigrationState`. En un DW vacío registra `SkippedEmpty`; con hechos anteriores carga desde la copia estable del OLTP, conserva `SalesKey`, claves existentes, importes y marcas previas, y registra `Validated`. La operación de copia es transaccional, se puede reintentar y detiene ambigüedades o referencias no recuperables. La marca de Proveedor se inicializa al corte solo tras la carga completa.
+
+La migración conserva las tablas anteriores para recuperación y consumidores activos. Solo se retiran después de actualizar ETL/SSAS/permisos y conciliar el corte. La publicación normal nunca borra esas tablas.
+
+## Retirada explícita del modelo anterior
+
+La retirada es un paso manual posterior al corte, no forma parte de la publicación normal. Antes, completa la carga de los seis procesos y comprueba el comparador DW contra el OLTP; procesa `NorthwindOLAP`, confirma que sus ocho tablas y medidas coinciden con el DW, y actualiza los permisos y consumidores que aún usen nombres anteriores. Conserva una copia de seguridad y el resultado de conciliación.
+
+Después, abre `Northwind.DW/Deployment/Retire-LegacyWarehouse.sql` en SSMS conectado a la base que vas a retirar. Revisa el destino y cambia `@ConfirmCutover` de `0` a `1` solo para ese corte aprobado. Ejecuta el script una vez y comprueba `WarehouseMigrationState.Stage = 'Cutover'`. El script exige la etapa de migración validada (o almacén vacío), los seis procesos cargados y Freight coherente por pedido; si alguna condición falla, se detiene. Luego publica de nuevo el DACPAC con el perfil habitual y verifica que el esquema final sigue teniendo las ocho tablas y seis controles.
+
+| Anterior | Final |
+| --- | --- |
+| `Dim_Tiempo` / `Tiempo_SK` | `DimDate` / `DateKey` |
+| `Dim_Producto` / `Producto_SK` | `DimProduct` / `ProductKey` |
+| `Dim_Cliente` / `Cliente_SK` | `DimCustomer` / `CustomerKey` |
+| `Dim_Empleado` / `Empleado_SK` | `DimEmployee` / `EmployeeKey` |
+| `Dim_Transportista` / `Transportista_SK` | `DimShipper` / `ShipperKey` |
+| — | `DimSupplier` / `SupplierKey` |
+| — | `DimGeography` / `GeographyKey` |
+| `Fact_Ventas` / `Venta_SK` | `FactSales` / `SalesKey` |
+
+```sql
+SELECT MigrationName, SchemaVersion, Stage, SourceDatabase,
+       CONVERT(bigint, SourceCut) AS SourceCut, UpdatedAt
+FROM dbo.WarehouseMigrationState
+WHERE MigrationName=N'ReplaceNorthwindStarModel';
+SELECT t.name AS TableName
+FROM sys.tables AS t
+WHERE t.name IN (N'DimDate',N'DimProduct',N'DimCustomer',N'DimEmployee',
+ N'DimShipper',N'DimSupplier',N'DimGeography',N'FactSales')
+ORDER BY t.name;
+```
+
+La ruta de publicación está en [05](../05-preparar-dw.md); los pasos de carga y su transacción están en [carga](carga.md).
