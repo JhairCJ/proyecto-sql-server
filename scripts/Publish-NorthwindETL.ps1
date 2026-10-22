@@ -239,9 +239,11 @@ SELECT COUNT_BIG(*)
 FROM catalog.packages AS k
 JOIN catalog.projects AS p ON p.project_id = k.project_id
 JOIN catalog.folders AS f ON f.folder_id = p.folder_id
-WHERE f.name = @Folder AND p.name = @Project AND k.name = @Package;
+WHERE f.name = @Folder AND p.name = @Project
+ AND k.name IN(N'CargarNorthwind.dtsx',N'Cliente.dtsx',N'Empleado.dtsx',N'Proveedor.dtsx',
+              N'Producto.dtsx',N'Transportista.dtsx',N'Ventas.dtsx');
 '@ @{ '@Folder' = $Folder; '@Project' = $project; '@Package' = $package } -Scalar
-if ([long]$packageExists -ne 1) { throw "El proyecto desplegado no contiene el paquete '$package'." }
+if ([long]$packageExists -ne 7) { throw 'El proyecto desplegado no contiene los siete paquetes actuales; vuelva a compilar y publicar Northwind.ETL.' }
 
 $parameters = Invoke-Sql 'SSISDB' @'
 SELECT parameter_name

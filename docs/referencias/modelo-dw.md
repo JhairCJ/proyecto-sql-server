@@ -15,6 +15,21 @@
 
 `FactSales` tiene nueve claves foráneas: tres roles de fecha y una hacia cada una de las otras seis dimensiones. Producto conserva su `ProductID` mediante `DimProduct`; no hay `FactOrder`, ni relación directa entre dimensiones. Customer representa la ubicación del cliente; Geography representa el destino de cada pedido.
 
+## Relaciones del modelo final
+
+```mermaid
+erDiagram
+    DimDate ||--o{ FactSales : "pedido activa; requerida y envío inactivas en SSAS"
+    DimProduct ||--o{ FactSales : ProductKey
+    DimCustomer ||--o{ FactSales : CustomerKey
+    DimEmployee ||--o{ FactSales : EmployeeKey
+    DimShipper ||--o{ FactSales : ShipperKey
+    DimSupplier ||--o{ FactSales : SupplierKey
+    DimGeography ||--o{ FactSales : GeographyKey
+```
+
+La línea de DimDate representa tres relaciones distintas. Power BI conectado en vivo utiliza las relaciones y medidas publicadas en SSAS.
+
 ## Medidas y semántica
 
 - `GrossAmount = ROUND(Quantity * UnitPrice, 2)`; `DiscountAmount = ROUND(GrossAmount * Discount, 2)`; `NetAmount = GrossAmount - DiscountAmount`. Los tres valores son `DECIMAL(19,2)` calculados por línea.

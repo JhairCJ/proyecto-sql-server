@@ -2,11 +2,11 @@
 
 | Responsabilidad | BikeStores | Northwind | Adaptación |
 | --- | --- | --- | --- |
-| Origen operativo | OLTP | Northwind.OLTP / NorthWind | Clientes, empleados, productos, transportistas y pedidos; sin equivalente a tiendas |
-| Extracción incremental | Procedimientos por entidad | DW_Get*ByRowVersion | Corte estable y cambios indirectos de cabeceras, categorías y proveedores |
+| Origen operativo | OLTP | Northwind.OLTP / NorthWind | Clientes, empleados, proveedores, productos, transportistas y pedidos; sin equivalente a tiendas |
+| Extracción incremental | Procedimientos por entidad | Get*ChangesByRowVersion | Corte estable y cambios indirectos de cabeceras, categorías y proveedores |
 | Almacén, staging y control | DW | Northwind.DW / Northwind_DW | Estrella de líneas de pedido; dimensiones tipo 1 y tres fechas |
-| Transferencia y aplicación | ETL | Northwind.ETL / CargarNorthwind.dtsx | Cinco grupos de secuencia, dimensiones antes de ventas, bloqueo por almacén |
-| Modelo analítico | OLAP tabular | Northwind.OLAP / NorthwindOLAP | Pedidos distintos, unidades e importes; fechas de pedido, requerida y envío |
+| Transferencia y aplicación | ETL | Northwind.ETL / CargarNorthwind.dtsx | Seis grupos de secuencia, dimensiones antes de ventas, bloqueo por almacén |
+| Modelo analítico | OLAP tabular | Northwind.OLAP / NorthwindOLAP | Ocho tablas; pedidos distintos, unidades, importes y flete por pedido; fechas de pedido, requerida y envío |
 | Publicación SSIS | Catálogo y carpeta propios | SSISDB / Northwind / Northwind.ETL | Entorno Northwind, autenticación de Windows, bases reales |
 | Automatización | BikeStoresJob | NorthwindBIJob | Dos etapas nativas: SSIS y procesamiento tabular; horario diario configurable, deshabilitado inicialmente |
 

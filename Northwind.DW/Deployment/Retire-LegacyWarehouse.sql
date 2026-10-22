@@ -11,7 +11,7 @@ IF @ConfirmCutover<>1
     THROW 52180,'Retirada detenida: confirme la conciliación y cambie ConfirmCutover a 1.',1;
 
 IF @TargetDatabase<>N'Northwind_DW'
-   AND NOT (@TargetDatabase LIKE N'Northwind_DW[_]%[_]Test'
+   AND NOT ((@TargetDatabase=N'Northwind_DW_Test' OR @TargetDatabase LIKE N'Northwind_DW[_]%[_]Test')
        AND EXISTS(SELECT 1 FROM sys.extended_properties
           WHERE class=0 AND name=N'NorthwindPracticeTestDatabase'
             AND CONVERT(NVARCHAR(128),value)=N'Northwind_DW'))

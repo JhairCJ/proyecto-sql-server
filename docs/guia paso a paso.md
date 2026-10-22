@@ -363,7 +363,7 @@ WHERE f.OrderID=10248 ORDER BY p.ProductID;
 ### 12.3 Procesa y consulta
 
 1. En SSMS, abre **Conectar > Analysis Services**, servidor `localhost`, autenticación Windows.
-2. Expande **Bases de datos**, actualiza la vista y confirma `NorthwindOLAP`.
+2. Expande **Bases de datos > NorthwindOLAP > Tablas**, actualiza la vista y confirma las ocho tablas: `FactSales`, `DimDate`, `DimProduct`, `DimCustomer`, `DimEmployee`, `DimShipper`, `DimSupplier` y `DimGeography`. Si aparecen nombres anteriores como `Dim_Tiempo`, vuelve a implementar el modelo actualizado antes de continuar.
 3. Clic derecho en `NorthwindOLAP` > **Procesar base de datos / Process Database**.
 4. Selecciona **Procesar completo / Process Full**, pulsa **Aceptar** y espera el resultado correcto.
 5. Clic derecho en `NorthwindOLAP` > **Nueva consulta > DAX**. Ejecuta:
@@ -387,6 +387,20 @@ ROW("Ventas netas",CALCULATE([Ventas netas],
 ```
 
 **Resultado:** 47.919,00.
+
+### 12.4 Conecta Power BI Desktop
+
+1. En SSMS conectado a **Analysis Services > localhost**, abre **NorthwindOLAP > Roles**. Crea un rol con permiso **Lectura / Read** y agrega el usuario Windows que abrirá Power BI. El permiso del Agent del paso 13.1 es independiente.
+2. Como alternativa para dar lectura al usuario actual, abre PowerShell en la carpeta de la solución con una cuenta administradora de SSAS y ejecuta:
+
+```powershell
+.\scripts\Configure-NorthwindPowerBIAccess.ps1 -ModelDatabase NorthwindOLAP
+```
+
+3. En Power BI Desktop, selecciona **Obtener datos > SQL Server Analysis Services**, servidor `localhost`, base `NorthwindOLAP` y **Conectar en vivo**.
+4. Comprueba que aparecen las ocho tablas finales y usa las medidas existentes, como `[Ventas netas]`, `[Pedidos distintos]` y `[Flete total]`.
+
+**Resultado:** Power BI consulta el modelo procesado sin duplicar sus relaciones ni cálculos. Cada integrante que ejecute todo localmente usa su propio `localhost` después de publicar y procesar el proyecto actualizado.
 
 ## 13. Crea y prueba NorthwindBIJob
 

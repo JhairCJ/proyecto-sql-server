@@ -74,8 +74,7 @@ GRANT SELECT,INSERT,UPDATE,DELETE,EXECUTE TO [NorthwindFixture];
 "@)
 
     $buildLog=Join-Path $EvidenceDirectory "build-$stamp.txt"
-    & $MSBuildPath (Join-Path $repo 'Northwind.DW\Northwind.DW.sqlproj') /t:Build /p:VisualStudioVersion=18.0 /nologo /v:minimal *> $buildLog
-    if($LASTEXITCODE -ne 0){throw "Falló la compilación del DW. Evidencia: $buildLog"}
+    & (Join-Path $repo 'scripts/Build-NorthwindWarehouse.ps1') -MSBuildPath $MSBuildPath *> $buildLog
 
     $dacpac=Join-Path $repo 'Northwind.DW\bin\Debug\Northwind.DW.dacpac'
     $builder=[System.Data.SqlClient.SqlConnectionStringBuilder]::new()

@@ -24,7 +24,7 @@
 4. Si abres el asistente desde SSMS (**SSISDB > Northwind > Proyectos > Implementar proyecto**), selecciona `Northwind.ETL/bin/Development/Northwind.ispac` como archivo de origen y el mismo destino.
 5. Vuelve a ejecutar `Configure-NorthwindSSIS.sql` con **F5** para enlazar los cinco parámetros al entorno.
 
-**Resultado:** `SSISDB > Northwind > Proyectos > Northwind.ETL`, seis paquetes y referencia `Northwind`.
+**Resultado:** `SSISDB > Northwind > Proyectos > Northwind.ETL`, siete paquetes (`CargarNorthwind`, `Cliente`, `Empleado`, `Proveedor`, `Producto`, `Transportista` y `Ventas`) y referencia `Northwind`.
 
 ## 4. Ejecutar desde SSMS
 

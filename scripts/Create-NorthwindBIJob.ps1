@@ -122,6 +122,16 @@ if (([string]$catalogRow.folder_description).Trim() -cne 'Northwind practice fol
 
 $expectedSourceDatabase = if ($JobName -eq 'NorthwindBIJob_Test') { 'Northwind_Test' } else { 'NorthWind' }
 $expectedWarehouseDatabase = if ($JobName -eq 'NorthwindBIJob_Test') { 'Northwind_DW_Test' } else { 'Northwind_DW' }
+$packages=Get-SqlTable 'SSISDB' @'
+SELECT k.name FROM catalog.packages k JOIN catalog.projects p ON p.project_id=k.project_id
+JOIN catalog.folders f ON f.folder_id=p.folder_id
+WHERE f.name=@Folder AND p.name=@Project;
+'@ @{ '@Folder'=$Folder; '@Project'=$Project }
+foreach($required in 'CargarNorthwind','Cliente','Empleado','Proveedor','Producto','Transportista','Ventas'){
+    if(@($packages.Rows | Where-Object {$_.name -eq "$required.dtsx"}).Count -ne 1){
+        throw "Falta $required.dtsx en SSISDB; publique el proyecto actual antes de crear el job."
+    }
+}
 $environmentValues = Get-SqlTable 'SSISDB' @'
 SELECT v.name, CONVERT(nvarchar(4000), v.value) AS value
 FROM catalog.environment_variables AS v
@@ -137,6 +147,17 @@ if ($sourceValue.Count -ne 1 -or $warehouseValue.Count -ne 1 -or
     [string]$warehouseValue[0].value -cne $expectedWarehouseDatabase) {
     throw "El entorno '$Environment' no apunta a '$expectedSourceDatabase' y '$expectedWarehouseDatabase'; no se creó el job."
 }
+
+& (Join-Path $PSScriptRoot 'Import-NorthwindAnalysisServices.ps1') -Tabular
+$analysis=[Microsoft.AnalysisServices.Server]::new()
+try{
+    $analysis.Connect($AnalysisServer)
+    $model=$analysis.Databases.FindByName($ModelDatabase)
+    if(-not $model){throw "No existe $ModelDatabase en Analysis Services ($AnalysisServer); publique y procese el modelo antes de crear el job."}
+    foreach($required in 'FactSales','DimDate','DimProduct','DimCustomer','DimEmployee','DimShipper','DimSupplier','DimGeography'){
+        if(-not $model.Model.Tables.Find($required)){throw "El modelo $ModelDatabase no contiene $required; publique el modelo estrella actual."}
+    }
+}finally{$analysis.Dispose()}
 
 $subsystems = Get-SqlTable 'msdb' @'
 SELECT subsystem, agent_exe FROM dbo.syssubsystems WHERE subsystem IN (N'SSIS', N'ANALYSISCOMMAND');

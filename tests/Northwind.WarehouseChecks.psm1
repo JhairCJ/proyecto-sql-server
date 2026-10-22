@@ -1,6 +1,17 @@
 Set-StrictMode -Version Latest
 Import-Module (Join-Path $PSScriptRoot 'Northwind.TestTools.psm1') -Force
 
+function New-MetricsConnection([string]$Database,[string]$Server) {
+    if($Database -notin @('NorthWind','Northwind_DW')){
+        return New-NorthwindTestConnection -Database $Database -Server $Server
+    }
+    $builder=[Data.SqlClient.SqlConnectionStringBuilder]::new()
+    $builder['Data Source']=$Server;$builder['Initial Catalog']=$Database
+    $builder['Integrated Security']=$true;$builder['Encrypt']=$true;$builder['TrustServerCertificate']=$true
+    $connection=[Data.SqlClient.SqlConnection]::new($builder.ConnectionString)
+    try{$connection.Open();return $connection}catch{$connection.Dispose();throw}
+}
+
 function Read-WarehouseMetrics {
     param($Connection,[string]$Sql,$Transaction)
     $command=$Connection.CreateCommand()
@@ -17,16 +28,17 @@ function Get-NorthwindWarehouseComparison {
     [CmdletBinding()]
     param(
         [string]$Server='localhost',
-        [ValidatePattern('^Northwind_DW_(?:[A-Za-z0-9]+_)*Test$')]
+        [ValidatePattern('^(Northwind_DW|Northwind_DW_(?:[A-Za-z0-9]+_)*Test)$')]
         [string]$WarehouseDatabase='Northwind_DW_Test',
         $WarehouseConnection,
         $WarehouseTransaction
     )
     $ErrorActionPreference='Stop'
-    $source=New-NorthwindTestConnection -Database Northwind_Test -Server $Server
+    $sourceDatabase=if($WarehouseDatabase -eq 'Northwind_DW'){'NorthWind'}else{'Northwind_Test'}
+    $source=New-MetricsConnection -Database $sourceDatabase -Server $Server
     $ownWarehouse=$null -eq $WarehouseConnection
     try {
-        if($ownWarehouse){$WarehouseConnection=New-NorthwindTestConnection -Database $WarehouseDatabase -Server $Server}
+        if($ownWarehouse){$WarehouseConnection=New-MetricsConnection -Database $WarehouseDatabase -Server $Server}
         $src=Read-WarehouseMetrics $source @'
 SELECT (SELECT COUNT_BIG(*) FROM dbo.Customers) Customers,
        (SELECT COUNT_BIG(*) FROM dbo.Employees) Employees,
@@ -53,8 +65,8 @@ CROSS APPLY
 ) AS amounts;
 '@
         $dst=Read-WarehouseMetrics $WarehouseConnection @'
-IF DB_NAME()<>N'Northwind_DW_Test' AND DB_NAME() NOT LIKE N'Northwind_DW[_]%[_]Test'
-    THROW 52201,'Comparación requiere una copia DW de prueba.',1;
+IF DB_NAME() NOT IN(N'Northwind_DW',N'Northwind_DW_Test') AND DB_NAME() NOT LIKE N'Northwind_DW[_]%[_]Test'
+    THROW 52201,'Comparación requiere Northwind_DW o una copia DW de prueba.',1;
 SELECT (SELECT COUNT_BIG(*) FROM dbo.DimCustomer WHERE CustomerKey<>0) Customers,
        (SELECT COUNT_BIG(*) FROM dbo.DimEmployee WHERE EmployeeKey<>0) Employees,
        (SELECT COUNT_BIG(*) FROM dbo.DimProduct) Products,
