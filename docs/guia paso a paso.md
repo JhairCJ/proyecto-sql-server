@@ -152,12 +152,30 @@ En SSMS, ejecuta esta comprobación en `Northwind_DW`:
 
 ```sql
 USE Northwind_DW;
-SELECT (SELECT COUNT(*) FROM sys.tables) AS TotalTablas,
-       OBJECT_ID(N'dbo.DimCustomer',N'U') AS DimCustomer,
-       OBJECT_ID(N'dbo.FactSales',N'U') AS FactSales;
+WITH Esquema AS
+(
+    SELECT COUNT(*) AS TotalTablas,
+           COUNT(CASE WHEN schema_id=SCHEMA_ID(N'dbo') AND name IN
+               (N'Dim_Cliente',N'Dim_Empleado',N'Dim_Producto',N'Dim_Tiempo',
+                N'Dim_Transportista',N'Fact_Ventas') THEN 1 END) AS TablasAnteriores,
+           COUNT(CASE WHEN schema_id=SCHEMA_ID(N'dbo') AND name IN
+               (N'DimCustomer',N'DimEmployee',N'DimProduct',N'DimDate',
+                N'DimShipper',N'DimSupplier',N'DimGeography',N'FactSales')
+               THEN 1 END) AS TablasActuales
+    FROM sys.tables
+)
+SELECT TotalTablas,TablasAnteriores,TablasActuales,
+       CASE
+           WHEN TotalTablas=0 THEN N'Vacío'
+           WHEN TablasAnteriores=6 AND TablasActuales=0 THEN N'Anterior'
+           WHEN TablasAnteriores=6 AND TablasActuales=8 THEN N'Ambos modelos'
+           WHEN TablasAnteriores=0 AND TablasActuales=8 THEN N'Actual'
+           ELSE N'Parcial: revisar antes de continuar'
+       END AS Estado
+FROM Esquema;
 ```
 
-Si `TotalTablas` es 0 y los otros dos resultados son `NULL`, el DW está vacío. Si aparecen ambas tablas, se detectó el modelo anterior. En ambos casos continúa con la publicación; si el DW tiene un esquema parcial, detente y revísalo antes de seguir.
+Si el estado es `Vacío`, continúa con 07.2. Si es `Anterior` o `Ambos modelos`, haz primero una copia de seguridad y ejecuta `Northwind.DW/Deployment/Prepare-LegacyWarehouse.sql` en `Northwind_DW`; después continúa con 07.2. Si es `Actual`, conserva los datos y continúa con 07.2. Si es `Parcial`, detente y revisa el esquema antes de publicar.
 
 ### 07.2 Publica el proyecto DW
 
@@ -186,13 +204,21 @@ En SSMS, abre una consulta en `Northwind_DW` y ejecuta:
 USE Northwind_DW;
 SELECT PackageName,CONVERT(bigint,LastRowVersion) AS Marca,LastSuccessfulLoad
 FROM dbo.PackageConfig ORDER BY PackageName;
+SELECT MigrationName,SchemaVersion,Stage,SourceDatabase,
+       CONVERT(bigint,SourceCut) AS CorteOrigen
+FROM dbo.WarehouseMigrationState
+WHERE MigrationName=N'ReplaceNorthwindStarModel';
 SELECT COUNT_BIG(*) AS SalesLines FROM dbo.FactSales;
 SELECT CustomerKey,CustomerID FROM dbo.DimCustomer WHERE CustomerKey=0;
 SELECT EmployeeKey,EmployeeID FROM dbo.DimEmployee WHERE EmployeeKey=0;
 SELECT DateKey,FullDate FROM dbo.DimDate WHERE DateKey=0;
+SELECT ShipperKey,ShipperID FROM dbo.DimShipper WHERE ShipperKey=0;
+SELECT SupplierKey,SupplierID FROM dbo.DimSupplier WHERE SupplierKey=0;
+SELECT GeographyKey,ShipAddress,ShipCity,ShipRegion,ShipPostalCode,ShipCountry
+FROM dbo.DimGeography WHERE GeographyKey=0;
 ```
 
-**Resultado:** seis controles —Cliente, Empleado, Proveedor, Producto, Transportista y Ventas—; cero líneas antes de la carga y miembros desconocidos de Cliente, Empleado y Fecha. No elimines estos registros técnicos.
+**Resultado:** seis controles —Cliente, Empleado, Proveedor, Producto, Transportista y Ventas— y seis miembros técnicos con clave cero. Una instalación vacía queda en `SkippedEmpty` y tiene cero líneas antes de cargar; una migración con datos queda en `Validated` y conserva sus líneas. Si el legado ya se retiró, la etapa sigue en `Cutover`. No elimines los registros técnicos ni reinicies los controles.
 
 ## 08. Llena el calendario
 
@@ -254,21 +280,28 @@ USE Northwind_DW;
 SELECT COUNT_BIG(*) AS Lineas,
        COUNT(DISTINCT OrderID) AS Pedidos,
        SUM(CONVERT(bigint,Quantity)) AS Unidades,
-       SUM(GrossAmount) AS GrossAmount,
-       SUM(DiscountAmount) AS DiscountAmount,
-       SUM(NetAmount) AS NetAmount
+       SUM(GrossAmount) AS ImporteBruto,
+       SUM(DiscountAmount) AS Descuentos,
+       SUM(NetAmount) AS ImporteNeto
 FROM dbo.FactSales;
-SELECT SUM(Freight) AS FreightOncePerOrder
-FROM (SELECT OrderID,MAX(Freight) AS Freight
-      FROM dbo.FactSales GROUP BY OrderID) AS Orders;
-SELECT PackageName,CONVERT(bigint,LastRowVersion) AS Marca,LastSuccessfulLoad
+
+SELECT SUM(Flete) AS FleteTotal
+FROM (SELECT OrderID,MAX(Freight) AS Flete
+      FROM dbo.FactSales GROUP BY OrderID) AS Pedidos;
+
+SELECT PackageName AS Proceso,CONVERT(bigint,LastRowVersion) AS Marca,
+       LastSuccessfulLoad AS UltimaCargaCorrecta
 FROM dbo.PackageConfig ORDER BY PackageName;
-SELECT f.OrderID,p.ProductID,f.Quantity,f.Freight,f.NetAmount
+
+SELECT f.OrderID AS Pedido,p.ProductID AS Producto,f.Quantity AS Cantidad,
+       f.UnitPrice AS PrecioUnitario,f.Discount AS TasaDescuento,
+       f.GrossAmount AS ImporteBruto,f.DiscountAmount AS Descuento,
+       f.NetAmount AS ImporteNeto,f.Freight AS FleteDelPedido
 FROM dbo.FactSales AS f JOIN dbo.DimProduct AS p ON p.ProductKey=f.ProductKey
 WHERE f.OrderID=10248 ORDER BY p.ProductID;
 ```
 
-**Resultado:** 2.155 líneas, 830 pedidos, 51.317 unidades y neto 1.265.792,76; seis controles con fecha de éxito. El Freight de 32,38 del pedido 10248 se repite en sus tres líneas, pero la consulta lo suma solo una vez por pedido.
+**Resultado de referencia:** 2.155 líneas, 830 pedidos, 51.317 unidades, bruto 1.354.458,59, descuentos 88.665,83, neto 1.265.792,76 y flete total 64.942,69; seis controles con fecha de éxito. El pedido 10248 tiene tres líneas, 27 unidades y neto 440,00. Su Freight de 32,38 se repite en sus tres líneas, pero la consulta de flete lo suma solo una vez por pedido. Si el origen cambió, los totales pueden variar.
 
 ### 10.2 Comprueba que la repetición es segura
 
@@ -306,7 +339,7 @@ WHERE f.OrderID=10248 ORDER BY p.ProductID;
 ### 11.4 Comprueba y ejecuta el paquete publicado
 
 1. En SSMS, expande **Catálogos de Integration Services > SSISDB > Northwind > Proyectos > Northwind.ETL**.
-2. Confirma que aparecen seis paquetes y que el proyecto tiene una referencia al entorno `Northwind`.
+2. Confirma que aparecen siete paquetes: `CargarNorthwind`, `Cliente`, `Empleado`, `Proveedor`, `Producto`, `Transportista` y `Ventas`, y que el proyecto tiene una referencia al entorno `Northwind`.
 3. Clic derecho en `CargarNorthwind.dtsx` > **Ejecutar**.
 4. Marca **Usar entorno** y elige `Northwind`.
 5. Antes de iniciar, comprueba `SourceDatabase = NorthWind` y `WarehouseDatabase = Northwind_DW`; pulsa **Aceptar**.
@@ -337,10 +370,13 @@ WHERE f.OrderID=10248 ORDER BY p.ProductID;
 
 ```DAX
 EVALUATE
-ROW("Pedidos",[Pedidos distintos],"Unidades",[Unidades],"Neto",[Ventas netas])
+ROW("Pedidos",[Pedidos distintos],"Unidades",[Unidades],
+    "Bruto",[Ventas brutas],"Descuentos",[Descuentos aplicados],
+    "Neto",[Ventas netas],"Flete",[Flete total],
+    "Pedidos sin flete",[Pedidos sin flete informado])
 ```
 
-**Resultado:** 830 pedidos, 51.317 unidades y 1.265.792,76 netos.
+**Resultado de referencia:** 830 pedidos, 51.317 unidades, bruto 1.354.458,59, descuentos 88.665,83, neto 1.265.792,76, flete 64.942,69 y cero pedidos sin flete informado. Debe coincidir con 10.1 para el mismo estado de datos.
 
 Para comprobar un filtro por categoría y año, ejecuta:
 

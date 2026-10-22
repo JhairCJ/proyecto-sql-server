@@ -371,3 +371,21 @@ Fecha: 16 de octubre de 2026. Se implementó en el árbol de trabajo el modelo f
 | Cambios de texto | `git diff --check` sin errores de whitespace. |
 
 Los scripts de migración y retirada no se ejecutaron contra `Northwind` ni `Northwind_DW`, y no se publicaron cambios en esas bases. La aceptación runtime del nuevo ciclo completo, incluida la migración en copia cargada, repetición SSIS y corte del legado, queda pendiente de ejecutarse en las copias identificadas; los archivos de prueba correspondientes ya están adaptados.
+
+## Reparación de NorthwindBIJob — 21 de octubre de 2026
+
+La ejecución de las 23:05 falló en extracción con `VS_NEEDSNEWMETADATA`. El proyecto publicado en SSISDB seguía siendo del 12 de octubre y no contenía `Proveedor.dtsx`. Se guardó una copia del ISPAC anterior y de los pasos del job, se recompiló el proyecto actual y se publicó mediante `Publish-NorthwindETL.ps1` con el entorno `Northwind_Test`. El catálogo contiene ahora siete paquetes: el principal y los seis procesos de carga.
+
+Se ejecutó manualmente el propio `NorthwindBIJob`, con la identidad de SQL Server Agent. La ejecución iniciada a las 23:10:14 terminó correctamente en 17 segundos: paso 1 de carga correcto (SSIS ejecución 10061), paso 2 de procesamiento correcto y resultado global correcto (historial 2179–2181). Las conciliaciones posteriores OLTP/DW y DW/OLAP aprobaron: 2.155 líneas, 830 pedidos, 51.317 unidades y neto 1.265.792,76.
+
+Los destinos se conservaron: `Northwind_Test`, `Northwind_DW_Test` y `NorthwindOLAP_Test`. El job y su horario siguen deshabilitados para ejecución automática; puede iniciarse manualmente desde SSMS. Esta reparación no valida un despliegue del nuevo modelo en las bases principales.
+
+Evidencias locales en `evidencias/reparacion-job-20261021/`: `Northwind.ETL-antes.ispac`, `job-antes.xml`, `publicacion.txt`, `job-despues.xml`, `conciliacion-dw.txt`, `conciliacion-olap.txt` y el JSON de comparación OLAP. No se modificaron los pasos ni la programación del job.
+
+## Consultas de la guía paso a paso — 21 de octubre de 2026
+
+Se revisaron los ocho bloques SQL y los dos bloques DAX de `guia paso a paso.md`. Se corrigió la detección de los modelos anterior y actual en 07.1, se completaron las comprobaciones de migración y miembros técnicos en 07.4, y se actualizaron el detalle monetario de 10.1 y la conciliación de medidas de 12.3. Los nombres antiguos solo se usan para detectar el legado. Se corrigió también la comprobación de siete paquetes publicados.
+
+Los ocho bloques SQL se ejecutaron sustituyendo únicamente los nombres de las bases principales por `Northwind_Test` y `Northwind_DW_Test`, con comprobación de sus marcas y rollback, incluida la carga del calendario. Ambos bloques DAX se ejecutaron sobre `NorthwindOLAP_Test`. Todos terminaron correctamente. Se comprobaron los totales de referencia, seis procesos, tres líneas del pedido 10248, 708 días de calendario y 47.919,00 para Beverages en 1996. Las bases principales no se modificaron.
+
+Evidencia SQL local: `evidencias/consultas-guia-20261021/sql.json` y `sql-1.xml` a `sql-8.xml`. Los resultados DAX quedaron registrados en la salida de la comprobación.
