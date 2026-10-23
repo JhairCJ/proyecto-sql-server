@@ -500,3 +500,4 @@ No restaures `NorthWind` ni pongas en cero los controles del DW para “empezar 
 | La carga informa que el DW está ocupado | Espera a que termine la otra ejecución. No lances dos paquetes de carga a la vez. |
 
 Para realizar pruebas automatizadas aisladas, usa las instrucciones de [pruebas aisladas](referencias/pruebas-aisladas.md). No uses esa ruta para la ejecución principal de la práctica.
+NOTA: Si no conecta el dashboard con la bd, cerrar el error, en la barra de navegacion clic en "Transformar datos" -> Configuración de origen de datos -> Verificar localhost y NorthwindOLAP -> Aceptar -> Seleccionar Modelo. Una vez realizado esto ya se podrán ver las visualizaciones correspondientes
