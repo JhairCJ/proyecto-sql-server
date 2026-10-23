@@ -32,6 +32,10 @@ Año de pedido, categoría y cliente se sincronizan entre las tres páginas. Pro
 
 El neto de la categoría se divide entre el neto de las categorías visibles mediante ALLSELECTED, conservando fecha, cliente y proveedor. El insight enumera los líderes empatados y su participación individual. Los ratios quedan vacíos sin denominador y los insights indican ausencia de datos. El calendario incluye un miembro técnico 1900, sin ventas; no es un período comercial.
 
+## Revisión en otros equipos
+
+Para comprobar el informe en una instalación diferente, utiliza la [lista de verificación visual](../docs/referencias/revision-visual-power-bi.md). El [registro de evidencias](../docs/evidencias/README.md) explica cómo documentar capturas obtenidas realmente sin publicar rutas, cuentas ni credenciales locales.
+
 ## Verificación local
 
 `Northwind.pbix` se guardó, cerró y reabrió en Desktop con las tres páginas y datos de `localhost/NorthwindOLAP`. `Northwind.pbit` se exportó desde Desktop y abrió un informe nuevo con páginas y medidas; permitió guardar otro PBIX. El usuario completó manualmente la reconexión de `Northwind-desde-plantilla-Test.pbix`; se guardó y se verificó dentro del archivo `Initial Catalog=NorthwindOLAP_Test`. Los archivos principales conservan `NorthwindOLAP`. Aceptación integrada final completada: cifras, filtros, estados vacíos, restablecimiento y apertura de PBIX/PBIT comprobados. Registro: [aceptación final](../docs/evidencias/power-bi/aceptacion-final.md).
