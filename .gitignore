@@ -4,6 +4,12 @@
 # Evidencias generadas localmente: rutas, cuentas, identificadores y logs del equipo.
 /docs/evidencias/*
 !/docs/evidencias/README.md
+
+# Índices y estado local regenerables; conservar PBIX/PBIT y fuentes PBIP.
+graphify-out/
+.pbi/
+.ssis-probe/
+diagnostico-ssis/
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 

@@ -1,0 +1,5 @@
+{
+  "version": "2.0",
+  "connectionString": "Data Source=localhost;Initial Catalog=NorthwindOLAP;Cube=Model",
+  "connectionType": "analysisServicesDatabaseLive"
+}

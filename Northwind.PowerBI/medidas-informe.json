@@ -1,0 +1,62 @@
+[
+  {
+    "name": "Ticket promedio",
+    "formatString": "#,0.00",
+    "expression": "DIVIDE([Ventas netas], [Pedidos distintos])"
+  },
+  {
+    "name": "Descuento porcentual",
+    "formatString": "0.00%",
+    "expression": "DIVIDE([Descuentos aplicados], [Ventas brutas])"
+  },
+  {
+    "name": "Pedidos con flete informado",
+    "formatString": "#,0",
+    "expression": "VAR Pedidos = [Pedidos distintos] RETURN IF(NOT ISBLANK(Pedidos), Pedidos - COALESCE([Pedidos sin flete informado], 0))"
+  },
+  {
+    "name": "Flete promedio informado",
+    "formatString": "#,0.00",
+    "expression": "DIVIDE([Flete total], [Pedidos con flete informado])"
+  },
+  {
+    "name": "Pedidos sin fecha de envío",
+    "formatString": "#,0",
+    "expression": "IF(NOT ISBLANK([Pedidos distintos]), COALESCE(CALCULATE([Pedidos distintos], KEEPFILTERS(ISBLANK(FactSales[ShippedDateKey]))), 0))"
+  },
+  {
+    "name": "Participación de categoría",
+    "formatString": "0.00%",
+    "expression": "DIVIDE([Ventas netas], CALCULATE([Ventas netas], ALLSELECTED(DimProduct[CategoryName])))"
+  },
+  {
+    "name": "Insight comercial",
+    "formatString": "",
+    "expression": "VAR Categorias = ADDCOLUMNS(ALLSELECTED(DimProduct[CategoryName]), \"__Neto\", CALCULATE([Ventas netas])) VAR ConVentas = FILTER(Categorias, NOT ISBLANK([__Neto])) VAR Lideres = TOPN(1, ConVentas, [__Neto], DESC) VAR TotalVisible = SUMX(ConVentas, [__Neto]) VAR NetoLider = MAXX(Lideres, [__Neto]) VAR Nombres = CONCATENATEX(Lideres, COALESCE(DimProduct[CategoryName], \"Sin categoría\"), \", \", DimProduct[CategoryName], ASC) RETURN IF(COUNTROWS(ConVentas) = 0 || TotalVisible = 0, \"Sin ventas en la selección.\", IF(COUNTROWS(Lideres) > 1, \"Empate entre \" & Nombres & \"; cada categoría representa \" & FORMAT(DIVIDE(NetoLider, TotalVisible), \"0.0%\") & \" del neto visible.\", Nombres & \" lidera con \" & FORMAT(DIVIDE(NetoLider, TotalVisible), \"0.0%\") & \" del neto visible.\"))"
+  },
+  {
+    "name": "Insight de ticket y descuento",
+    "formatString": "",
+    "expression": "IF(ISBLANK([Pedidos distintos]), \"Sin pedidos en la selección.\", \"Ticket promedio: \" & FORMAT([Ticket promedio], \"#,0.00\") & \" · Descuento sobre bruto: \" & IF(ISBLANK([Descuento porcentual]), \"sin importe bruto\", FORMAT([Descuento porcentual], \"0.00%\")) & \".\")"
+  },
+  {
+    "name": "Insight logístico",
+    "formatString": "",
+    "expression": "IF(ISBLANK([Pedidos distintos]), \"Sin pedidos en la selección.\", FORMAT([Pedidos sin fecha de envío], \"#,0\") & \" pedidos sin fecha de envío registrada; \" & FORMAT(COALESCE([Pedidos sin flete informado], 0), \"#,0\") & \" sin flete informado. No implica retrasos actuales.\")"
+  },
+  {
+    "name": "Rango producto",
+    "formatString": "0",
+    "expression": "IF(NOT ISBLANK([Ventas netas]), RANKX(ALLSELECTED(DimProduct[ProductName]), [Ventas netas], , DESC, DENSE))"
+  },
+  {
+    "name": "Rango cliente",
+    "formatString": "0",
+    "expression": "IF(NOT ISBLANK([Ventas netas]), RANKX(ALLSELECTED(DimCustomer[CompanyName]), [Ventas netas], , DESC, DENSE))"
+  },
+  {
+    "name": "Líneas de pedido",
+    "expression": "COUNTROWS(FactSales)",
+    "formatString": "#,0"
+  }
+]

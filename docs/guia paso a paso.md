@@ -1,5 +1,7 @@
 # Guía paso a paso para ejecutar Northwind en las bases reales
 
+Para abrir el dashboard después de procesar `NorthwindOLAP`, sigue [11. Visualizar Power BI](11-visualizar-power-bi.md).
+
 Esta guía comienza en un equipo Windows sin las bases de la práctica. El recorrido principal trabaja con `NorthWind` y `Northwind_DW`; las copias `_Test` se reservan para pruebas automatizadas. Si ya tienes instalado alguno de los programas, no lo instales otra vez: comprueba su servicio y versión y sigue desde el primer paso que te falte.
 
 | Nombre | Programa | Uso en esta práctica |
@@ -388,7 +390,7 @@ ROW("Ventas netas",CALCULATE([Ventas netas],
 
 **Resultado:** 47.919,00.
 
-### 12.4 Conecta Power BI Desktop
+### 12.4 Prepara el acceso de Power BI
 
 1. En SSMS conectado a **Analysis Services > localhost**, abre **NorthwindOLAP > Roles**. Crea un rol con permiso **Lectura / Read** y agrega el usuario Windows que abrirá Power BI. El permiso del Agent del paso 13.1 es independiente.
 2. Como alternativa para dar lectura al usuario actual, abre PowerShell en la carpeta de la solución con una cuenta administradora de SSAS y ejecuta:
@@ -397,10 +399,36 @@ ROW("Ventas netas",CALCULATE([Ventas netas],
 .\scripts\Configure-NorthwindPowerBIAccess.ps1 -ModelDatabase NorthwindOLAP
 ```
 
-3. En Power BI Desktop, selecciona **Obtener datos > SQL Server Analysis Services**, servidor `localhost`, base `NorthwindOLAP` y **Conectar en vivo**.
-4. Comprueba que aparecen las ocho tablas finales y usa las medidas existentes, como `[Ventas netas]`, `[Pedidos distintos]` y `[Flete total]`.
+### 12.5 Abre el informe y conecta al modelo
 
-**Resultado:** Power BI consulta el modelo procesado sin duplicar sus relaciones ni cálculos. Cada integrante que ejecute todo localmente usa su propio `localhost` después de publicar y procesar el proyecto actualizado.
+1. Abre **Power BI Desktop**. Versión comprobada: **2.159.883.0**. Selecciona **Archivo / File > Abrir / Open > Examinar / Browse** y abre `Northwind.PowerBI/Northwind.pbix` desde la carpeta del proyecto.
+2. Si aparece **Access SQL Server Analysis Services**, selecciona **Use my current credentials** y pulsa **Connect** con la cuenta Windows autorizada en 12.4.
+3. Para revisar o cambiar la conexión, ve a **Inicio / Home** y abre la **flecha** de **Transformar datos / Transform data > Configuración de origen de datos / Data source settings**. En **SQL Server Analysis Services database**, establece **Server = localhost** y **Database = NorthwindOLAP**.
+4. Si cambiaste algún valor, pulsa **Tab > OK**. En **Navigator**, selecciona **Model > OK** y espera a que carguen los visuales. Vuelve a abrir **Data source settings** para confirmar servidor y base; cancela el diálogo para regresar al informe.
+5. Comprueba **Live connection: Connected**, las páginas **Resumen comercial**, **Productos y clientes** y **Logística**, y las ocho tablas: `DimCustomer`, `DimDate`, `DimEmployee`, `DimGeography`, `DimProduct`, `DimShipper`, `DimSupplier` y `FactSales`.
+
+**Resultado:** el informe consulta en vivo `localhost/NorthwindOLAP`, conservando sus páginas y medidas. Cada integrante usa su propio `localhost` después de publicar y procesar el modelo en su equipo. Para usar el dashboard entregado, abre el PBIX; **Obtener datos** inicia un informe nuevo sin su diseño.
+
+### 12.6 Comprueba filtros y cifras
+
+1. En **Resumen comercial**, selecciona el botón **Restablecer** y pulsa **Ctrl+Enter**, o usa **Ctrl+clic**. Comprueba: neto **1.265.792,76**, pedidos **830**, unidades **51.317**, ticket **1.525,05** y descuento **6,55 %**. Los separadores dependen de la configuración regional.
+2. Selecciona **Año del pedido = 1996** y **Categoría = Beverages**: el neto debe ser **47.919,00**.
+3. Cambia a **Productos y clientes** mediante la pestaña inferior: año y categoría deben conservarse. El filtro **Cliente** también se comparte entre las tres páginas.
+4. Usa **Restablecer**. En **Logística**, selecciona **Pedido = 10248**: comprueba **1 pedido**, **3 líneas**, **27 unidades**, neto **440,00** y flete **32,3800**. Restablece antes de guardar con **Ctrl+S**.
+
+### 12.7 Crea una copia desde la plantilla
+
+1. En Desktop, abre `Northwind.PowerBI/Northwind.pbit`; espera a que aparezca un informe nuevo con las tres páginas.
+2. Revisa la conexión siguiendo 12.5. Para la copia de pruebas, usa **Server = localhost** y **Database = NorthwindOLAP_Test**, únicamente si ese modelo compatible ya existe y está procesado. Para otro equipo, introduce su servidor y modelo accesibles con tu cuenta Windows.
+3. Tras escribir el destino, pulsa **Tab > OK**, selecciona **Model > OK** y vuelve a comprobar **Data source settings**. Conserva `NorthwindOLAP` en el informe principal.
+4. Pulsa **F12**, escribe otro nombre, por ejemplo `Northwind-mi-equipo`, selecciona una carpeta local y guarda como **PBIX**.
+
+**Resultado:** un informe independiente con el mismo diseño y cálculos, conectado al destino elegido. Su apertura local no requiere Power BI Service.
+
+### 12.8 Actualiza los visuales
+
+1. Tras cambiar datos del origen, ejecuta la carga SSIS y procesa el modelo mediante el recorrido del paso 13, o repite 09 y 12.2.
+2. En Power BI Desktop, pulsa **Inicio / Home > Actualizar / Refresh** y comprueba las tarjetas de 12.6. Este botón vuelve a consultar SSAS; no ejecuta la carga ni procesa el modelo.
 
 ## 13. Crea y prueba NorthwindBIJob
 
@@ -446,6 +474,7 @@ Para detener ejecuciones futuras, desmarca **Habilitado** en **General**. La eje
 2. Recompila si cambiaste archivos del proyecto.
 3. Para una carga manual, abre `CargarNorthwind.dtsx` y ejecútalo siguiendo 09. Para cargar y procesar de una vez, inicia `NorthwindBIJob` siguiendo 13.3.
 4. Comprueba los resultados con las consultas de 10.1 y 12.3.
+5. Abre `Northwind.PowerBI/Northwind.pbix` y pulsa **Inicio > Actualizar**, siguiendo 12.5–12.8.
 
 No restaures `NorthWind` ni pongas en cero los controles del DW para “empezar de nuevo”. La carga incremental vuelve a leer cambios del origen y actualiza el DW. Si necesitas reconstruir datos reales después de una pérdida o vaciado, detén la práctica y prepara primero una estrategia de respaldo y reconstrucción.
 

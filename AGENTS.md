@@ -6,3 +6,4 @@
 - No hacer commit ni push sin petición expresa. «Commit push y siguiente» publica lo acumulado y luego continúa localmente; no concede permiso permanente para publicar.
 - No incorporar planificación OpenSpec al repositorio. Mantenerla en el directorio del workspace ya existente.
 - Conservar la separación OLTP/DW/ETL/OLAP/job de BikeStores adaptada a Northwind. Probar modificaciones de datos sobre copias identificadas, con guardas y limpieza.
+- Mantener el árbol limpio: experimentos y diagnósticos desechables en el temporal del sistema; no dejar logs sueltos, índices generados, cachés ni copias de recuperación. Al terminar, retirar los intermedios propios y conservar solo fuentes, pruebas mantenidas, datos necesarios, entregables finales y evidencia útil. Mantener las exclusiones de Git actualizadas; ignorar un archivo no sustituye limpiar lo innecesario. Conservar las copias de validación pendientes hasta cerrar su prueba.
