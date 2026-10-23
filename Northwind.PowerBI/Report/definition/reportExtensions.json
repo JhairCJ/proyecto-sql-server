@@ -1,0 +1,204 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/reportExtension/1.0.0/schema.json",
+  "name": "extension",
+  "entities": [
+    {
+      "name": "DimCustomer",
+      "measures": [
+        {
+          "name": "Ticket promedio",
+          "dataType": "Double",
+          "expression": "DIVIDE([Ventas netas], [Pedidos distintos])",
+          "formatString": "#,0.00",
+          "references": {
+            "measures": [
+              {
+                "entity": "FactSales",
+                "name": "Ventas netas"
+              },
+              {
+                "entity": "FactSales",
+                "name": "Pedidos distintos"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Descuento porcentual",
+          "dataType": "Double",
+          "expression": "DIVIDE([Descuentos aplicados], [Ventas brutas])",
+          "formatString": "0.00%",
+          "references": {
+            "measures": [
+              {
+                "entity": "FactSales",
+                "name": "Descuentos aplicados"
+              },
+              {
+                "entity": "FactSales",
+                "name": "Ventas brutas"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Pedidos con flete informado",
+          "dataType": "Double",
+          "expression": "VAR Pedidos = [Pedidos distintos] RETURN IF(NOT ISBLANK(Pedidos), Pedidos - COALESCE([Pedidos sin flete informado], 0))",
+          "formatString": "#,0",
+          "references": {
+            "measures": [
+              {
+                "entity": "FactSales",
+                "name": "Pedidos distintos"
+              },
+              {
+                "entity": "FactSales",
+                "name": "Pedidos sin flete informado"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Flete promedio informado",
+          "dataType": "Double",
+          "expression": "DIVIDE([Flete total], [Pedidos con flete informado])",
+          "formatString": "#,0.00",
+          "references": {
+            "measures": [
+              {
+                "entity": "FactSales",
+                "name": "Flete total"
+              },
+              {
+                "schema": "extension",
+                "entity": "DimCustomer",
+                "name": "Pedidos con flete informado"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Pedidos sin fecha de envío",
+          "dataType": "Double",
+          "expression": "IF(NOT ISBLANK([Pedidos distintos]), COALESCE(CALCULATE([Pedidos distintos], KEEPFILTERS(ISBLANK(FactSales[ShippedDateKey]))), 0))",
+          "formatString": "#,0",
+          "references": {
+            "measures": [
+              {
+                "entity": "FactSales",
+                "name": "Pedidos distintos"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Participación de categoría",
+          "dataType": "Double",
+          "expression": "DIVIDE([Ventas netas], CALCULATE([Ventas netas], ALLSELECTED(DimProduct[CategoryName])))",
+          "formatString": "0.00%",
+          "references": {
+            "measures": [
+              {
+                "entity": "FactSales",
+                "name": "Ventas netas"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Insight comercial",
+          "dataType": "Text",
+          "expression": "VAR Categorias = ADDCOLUMNS(ALLSELECTED(DimProduct[CategoryName]), \"__Neto\", CALCULATE([Ventas netas])) VAR ConVentas = FILTER(Categorias, NOT ISBLANK([__Neto])) VAR Lideres = TOPN(1, ConVentas, [__Neto], DESC) VAR TotalVisible = SUMX(ConVentas, [__Neto]) VAR NetoLider = MAXX(Lideres, [__Neto]) VAR Nombres = CONCATENATEX(Lideres, COALESCE(DimProduct[CategoryName], \"Sin categoría\"), \", \", DimProduct[CategoryName], ASC) RETURN IF(COUNTROWS(ConVentas) = 0 || TotalVisible = 0, \"Sin ventas en la selección.\", IF(COUNTROWS(Lideres) > 1, \"Empate entre \" & Nombres & \"; cada categoría representa \" & FORMAT(DIVIDE(NetoLider, TotalVisible), \"0.0%\") & \" del neto visible.\", Nombres & \" lidera con \" & FORMAT(DIVIDE(NetoLider, TotalVisible), \"0.0%\") & \" del neto visible.\"))",
+          "references": {
+            "measures": [
+              {
+                "entity": "FactSales",
+                "name": "Ventas netas"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Insight de ticket y descuento",
+          "dataType": "Text",
+          "expression": "IF(ISBLANK([Pedidos distintos]), \"Sin pedidos en la selección.\", \"Ticket promedio: \" & FORMAT([Ticket promedio], \"#,0.00\") & \" · Descuento sobre bruto: \" & IF(ISBLANK([Descuento porcentual]), \"sin importe bruto\", FORMAT([Descuento porcentual], \"0.00%\")) & \".\")",
+          "references": {
+            "measures": [
+              {
+                "entity": "FactSales",
+                "name": "Pedidos distintos"
+              },
+              {
+                "schema": "extension",
+                "entity": "DimCustomer",
+                "name": "Ticket promedio"
+              },
+              {
+                "schema": "extension",
+                "entity": "DimCustomer",
+                "name": "Descuento porcentual"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Insight logístico",
+          "dataType": "Text",
+          "expression": "IF(ISBLANK([Pedidos distintos]), \"Sin pedidos en la selección.\", FORMAT([Pedidos sin fecha de envío], \"#,0\") & \" pedidos sin fecha de envío registrada; \" & FORMAT(COALESCE([Pedidos sin flete informado], 0), \"#,0\") & \" sin flete informado. No implica retrasos actuales.\")",
+          "references": {
+            "measures": [
+              {
+                "entity": "FactSales",
+                "name": "Pedidos distintos"
+              },
+              {
+                "schema": "extension",
+                "entity": "DimCustomer",
+                "name": "Pedidos sin fecha de envío"
+              },
+              {
+                "entity": "FactSales",
+                "name": "Pedidos sin flete informado"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Rango producto",
+          "dataType": "Double",
+          "expression": "IF(NOT ISBLANK([Ventas netas]), RANKX(ALLSELECTED(DimProduct[ProductName]), [Ventas netas], , DESC, DENSE))",
+          "formatString": "0",
+          "references": {
+            "measures": [
+              {
+                "entity": "FactSales",
+                "name": "Ventas netas"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Rango cliente",
+          "dataType": "Double",
+          "expression": "IF(NOT ISBLANK([Ventas netas]), RANKX(ALLSELECTED(DimCustomer[CompanyName]), [Ventas netas], , DESC, DENSE))",
+          "formatString": "0",
+          "references": {
+            "measures": [
+              {
+                "entity": "FactSales",
+                "name": "Ventas netas"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Líneas de pedido",
+          "dataType": "Double",
+          "expression": "COUNTROWS(FactSales)",
+          "formatString": "#,0"
+        }
+      ]
+    }
+  ]
+}

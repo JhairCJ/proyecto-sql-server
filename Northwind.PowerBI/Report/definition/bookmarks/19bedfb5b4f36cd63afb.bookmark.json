@@ -1,0 +1,1330 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmark/2.1.0/schema.json",
+  "displayName": "Restablecer filtros",
+  "name": "19bedfb5b4f36cd63afb",
+  "options": {
+    "suppressActiveSection": true,
+    "suppressDisplay": true
+  },
+  "explorationState": {
+    "version": "1.0",
+    "activeSection": "1b27335f298c2d8e1a40",
+    "filters": {
+      "byName": {}
+    },
+    "sections": {
+      "1b27335f298c2d8e1a40": {
+        "visualContainers": {
+          "dde08453d8867fb01202": {
+            "singleVisual": {
+              "objects": {}
+            }
+          },
+          "b2e3541c3edc8883b455": {
+            "singleVisual": {
+              "objects": {}
+            }
+          },
+          "7e226262f3d53f567c4e": {
+            "singleVisual": {
+              "objects": {}
+            }
+          },
+          "baffcce08eb26dfcd29f": {
+            "singleVisual": {
+              "objects": {}
+            }
+          },
+          "2641407a9dbe3bfcc0e8": {
+            "singleVisual": {
+              "objects": {}
+            }
+          },
+          "9fbf2b1f7eef3c603928": {
+            "singleVisual": {
+              "objects": {}
+            }
+          },
+          "69225a0cb680f4a95dc6": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Values": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DimDate"
+                        }
+                      },
+                      "Property": "YearNumber"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "81cf938ba62cf6e78bb0": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Values": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DimProduct"
+                        }
+                      },
+                      "Property": "CategoryName"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "a5c4050ba40b4f294410": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Values": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DimCustomer"
+                        }
+                      },
+                      "Property": "CompanyName"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "516bda624223da1303ce": {
+            "singleVisual": {
+              "objects": {}
+            }
+          },
+          "32694ff2e09cc61c9d76": {
+            "singleVisual": {
+              "objects": {}
+            }
+          },
+          "7fa4a399d60664d48bc3": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Data": [
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "Ventas netas"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "9d640f7a4b2cec1aca11": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Data": [
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "Pedidos distintos"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "e9f13cae65434e70eeac": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Data": [
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "Unidades"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "815f86b4f3e1a73fef75": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Data": [
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Schema": "extension",
+                          "Entity": "DimCustomer"
+                        }
+                      },
+                      "Property": "Ticket promedio"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "236b30d71af484ec0fa0": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Data": [
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Schema": "extension",
+                          "Entity": "DimCustomer"
+                        }
+                      },
+                      "Property": "Descuento porcentual"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "3e94cd0640d8534ded56": {
+            "singleVisual": {
+              "objects": {},
+              "orderBy": [
+                {
+                  "Direction": 1,
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DimDate"
+                        }
+                      },
+                      "Property": "YearNumber"
+                    }
+                  }
+                },
+                {
+                  "Direction": 1,
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DimDate"
+                        }
+                      },
+                      "Property": "MonthNumber"
+                    }
+                  }
+                }
+              ],
+              "activeProjections": {
+                "Category": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DimDate"
+                        }
+                      },
+                      "Property": "YearNumber"
+                    }
+                  },
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DimDate"
+                        }
+                      },
+                      "Property": "MonthNumber"
+                    }
+                  }
+                ],
+                "Y": [
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "Ventas netas"
+                    }
+                  }
+                ]
+              },
+              "expansionStates": [
+                {
+                  "roles": [
+                    "Category"
+                  ],
+                  "levels": [
+                    {
+                      "queryRefs": [
+                        "DimDate.YearNumber"
+                      ]
+                    },
+                    {
+                      "queryRefs": [
+                        "DimDate.MonthNumber"
+                      ]
+                    }
+                  ],
+                  "root": {
+                    "identityValues": null,
+                    "isToggled": true
+                  }
+                }
+              ]
+            }
+          },
+          "6b122815f5d9fad2af8e": {
+            "singleVisual": {
+              "objects": {},
+              "orderBy": [
+                {
+                  "Direction": 2,
+                  "Expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "Ventas netas"
+                    }
+                  }
+                }
+              ],
+              "activeProjections": {
+                "Category": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DimProduct"
+                        }
+                      },
+                      "Property": "CategoryName"
+                    }
+                  }
+                ],
+                "Y": [
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "Ventas netas"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "1c0a3b4b659a34f5363a": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Data": [
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Schema": "extension",
+                          "Entity": "DimCustomer"
+                        }
+                      },
+                      "Property": "Insight comercial"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "4ce402823b0158644a53": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Data": [
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Schema": "extension",
+                          "Entity": "DimCustomer"
+                        }
+                      },
+                      "Property": "Insight de ticket y descuento"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "3ccd636da16888789cfa": {
+        "visualContainers": {
+          "25b99375066a8a027ef6": {
+            "singleVisual": {
+              "objects": {}
+            }
+          },
+          "e9fd06830c2d4ef5b920": {
+            "singleVisual": {
+              "objects": {}
+            }
+          },
+          "07202101b5834762e663": {
+            "singleVisual": {
+              "objects": {}
+            }
+          },
+          "e76434035ccb4a607788": {
+            "singleVisual": {
+              "objects": {}
+            }
+          },
+          "bf4a5feb0b36f4b59a84": {
+            "singleVisual": {
+              "objects": {}
+            }
+          },
+          "d2e360485fea5eb5a686": {
+            "singleVisual": {
+              "objects": {}
+            }
+          },
+          "5704f22937b9fa1415a3": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Values": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DimDate"
+                        }
+                      },
+                      "Property": "YearNumber"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "a2112bd197759d62ff5d": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Values": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DimProduct"
+                        }
+                      },
+                      "Property": "CategoryName"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "7530486e5f32d8f0acfa": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Values": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DimCustomer"
+                        }
+                      },
+                      "Property": "CompanyName"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "9de5b75801986eaf1dc7": {
+            "singleVisual": {
+              "objects": {}
+            }
+          },
+          "1f7eb92a6d025aeb74e1": {
+            "singleVisual": {
+              "objects": {}
+            }
+          },
+          "9447ca1a99c496a7cad8": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Values": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DimSupplier"
+                        }
+                      },
+                      "Property": "CompanyName"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "e207c1680525d1656bdd": {
+            "filters": {
+              "byName": {
+                "3e311613e44fce30afab": {
+                  "name": "3e311613e44fce30afab",
+                  "type": "Advanced",
+                  "filter": {
+                    "Version": 2,
+                    "From": [
+                      {
+                        "Name": "r",
+                        "Entity": "DimCustomer",
+                        "Schema": "extension",
+                        "Type": 0
+                      }
+                    ],
+                    "Where": [
+                      {
+                        "Condition": {
+                          "Comparison": {
+                            "ComparisonKind": 4,
+                            "Left": {
+                              "Measure": {
+                                "Expression": {
+                                  "SourceRef": {
+                                    "Source": "r"
+                                  }
+                                },
+                                "Property": "Rango producto"
+                              }
+                            },
+                            "Right": {
+                              "Literal": {
+                                "Value": "10L"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Schema": "extension",
+                          "Entity": "DimCustomer"
+                        }
+                      },
+                      "Property": "Rango producto"
+                    }
+                  }
+                }
+              }
+            },
+            "singleVisual": {
+              "objects": {},
+              "orderBy": [
+                {
+                  "Direction": 2,
+                  "Expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "Ventas netas"
+                    }
+                  }
+                }
+              ],
+              "activeProjections": {
+                "Category": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DimProduct"
+                        }
+                      },
+                      "Property": "ProductName"
+                    }
+                  }
+                ],
+                "Y": [
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "Ventas netas"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "2bbc61f5a2d56354f44a": {
+            "filters": {
+              "byName": {
+                "863e5aaf96f015abb9e3": {
+                  "name": "863e5aaf96f015abb9e3",
+                  "type": "Advanced",
+                  "filter": {
+                    "Version": 2,
+                    "From": [
+                      {
+                        "Name": "r",
+                        "Entity": "DimCustomer",
+                        "Schema": "extension",
+                        "Type": 0
+                      }
+                    ],
+                    "Where": [
+                      {
+                        "Condition": {
+                          "Comparison": {
+                            "ComparisonKind": 4,
+                            "Left": {
+                              "Measure": {
+                                "Expression": {
+                                  "SourceRef": {
+                                    "Source": "r"
+                                  }
+                                },
+                                "Property": "Rango cliente"
+                              }
+                            },
+                            "Right": {
+                              "Literal": {
+                                "Value": "10L"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Schema": "extension",
+                          "Entity": "DimCustomer"
+                        }
+                      },
+                      "Property": "Rango cliente"
+                    }
+                  }
+                }
+              }
+            },
+            "singleVisual": {
+              "objects": {},
+              "orderBy": [
+                {
+                  "Direction": 2,
+                  "Expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "Ventas netas"
+                    }
+                  }
+                }
+              ],
+              "activeProjections": {
+                "Category": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DimCustomer"
+                        }
+                      },
+                      "Property": "CompanyName"
+                    }
+                  }
+                ],
+                "Y": [
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "Ventas netas"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "9bfeae228330b5892d16": {
+            "singleVisual": {
+              "objects": {},
+              "orderBy": [
+                {
+                  "Direction": 2,
+                  "Expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Schema": "extension",
+                          "Entity": "DimCustomer"
+                        }
+                      },
+                      "Property": "Participación de categoría"
+                    }
+                  }
+                }
+              ],
+              "activeProjections": {
+                "Category": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DimProduct"
+                        }
+                      },
+                      "Property": "CategoryName"
+                    }
+                  }
+                ],
+                "Y": [
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Schema": "extension",
+                          "Entity": "DimCustomer"
+                        }
+                      },
+                      "Property": "Participación de categoría"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "298ac7daa472b786d64a": {
+            "singleVisual": {
+              "objects": {},
+              "orderBy": [
+                {
+                  "Direction": 2,
+                  "Expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "Ventas netas"
+                    }
+                  }
+                }
+              ],
+              "activeProjections": {
+                "Category": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DimCustomer"
+                        }
+                      },
+                      "Property": "Country"
+                    }
+                  }
+                ],
+                "Y": [
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "Ventas netas"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "bbe1d931b153c292fa1f": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Values": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DimProduct"
+                        }
+                      },
+                      "Property": "ProductName"
+                    }
+                  },
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "Ventas netas"
+                    }
+                  },
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "Unidades"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "d2b9225cd683238e2c18": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Data": [
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Schema": "extension",
+                          "Entity": "DimCustomer"
+                        }
+                      },
+                      "Property": "Insight comercial"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "5d2e911c8def9074a320": {
+            "singleVisual": {
+              "objects": {}
+            }
+          }
+        }
+      },
+      "d769037ca5b725ed8e5a": {
+        "visualContainers": {
+          "269595bf42596836270c": {
+            "singleVisual": {
+              "objects": {}
+            }
+          },
+          "b6b49c90dcb3a6470874": {
+            "singleVisual": {
+              "objects": {}
+            }
+          },
+          "ffe64d92bde38fe10927": {
+            "singleVisual": {
+              "objects": {}
+            }
+          },
+          "db38af61dbe7c7cc67ec": {
+            "singleVisual": {
+              "objects": {}
+            }
+          },
+          "129dc69380ac99ae1974": {
+            "singleVisual": {
+              "objects": {}
+            }
+          },
+          "e3cd3fa344ad5cc19397": {
+            "singleVisual": {
+              "objects": {}
+            }
+          },
+          "4682a330e269ca3231b2": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Values": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DimDate"
+                        }
+                      },
+                      "Property": "YearNumber"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "f30bb1b2b639045c3c11": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Values": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DimProduct"
+                        }
+                      },
+                      "Property": "CategoryName"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "6771fe83015b8d5236d8": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Values": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DimCustomer"
+                        }
+                      },
+                      "Property": "CompanyName"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "f12f4c6d1f7fa8cdda17": {
+            "singleVisual": {
+              "objects": {}
+            }
+          },
+          "8c7a1eff577dce334f8e": {
+            "singleVisual": {
+              "objects": {}
+            }
+          },
+          "db43c991bc7cf1820e1a": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Values": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "OrderID"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "4a6b7bbc97f0640e557c": {
+            "singleVisual": {
+              "objects": {}
+            }
+          },
+          "a963c2df817b6533c0c8": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Values": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DimShipper"
+                        }
+                      },
+                      "Property": "CompanyName"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "c83abd8bc651e0d5c246": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Data": [
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "Flete total"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "5fa8b5398e93ee5da860": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Data": [
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Schema": "extension",
+                          "Entity": "DimCustomer"
+                        }
+                      },
+                      "Property": "Flete promedio informado"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "e0bad8bf08764cda0dbb": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Data": [
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "Pedidos sin flete informado"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "2c44ca3916a0b9ca5bcf": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Data": [
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Schema": "extension",
+                          "Entity": "DimCustomer"
+                        }
+                      },
+                      "Property": "Pedidos sin fecha de envío"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "53df510103bdb383bd8d": {
+            "singleVisual": {
+              "objects": {},
+              "orderBy": [
+                {
+                  "Direction": 2,
+                  "Expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "Flete total"
+                    }
+                  }
+                }
+              ],
+              "activeProjections": {
+                "Category": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DimShipper"
+                        }
+                      },
+                      "Property": "CompanyName"
+                    }
+                  }
+                ],
+                "Y": [
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "Flete total"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "f72264f3bafd65341d30": {
+            "singleVisual": {
+              "objects": {},
+              "orderBy": [
+                {
+                  "Direction": 2,
+                  "Expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "Flete total"
+                    }
+                  }
+                }
+              ],
+              "activeProjections": {
+                "Category": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DimGeography"
+                        }
+                      },
+                      "Property": "ShipCountry"
+                    }
+                  }
+                ],
+                "Y": [
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "Flete total"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "d5fbef7e5e4dddf0e916": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Values": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DimGeography"
+                        }
+                      },
+                      "Property": "ShipCountry"
+                    }
+                  },
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DimGeography"
+                        }
+                      },
+                      "Property": "ShipCity"
+                    }
+                  },
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "Pedidos distintos"
+                    }
+                  },
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "Flete total"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "e179a959e1a7d087514f": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Values": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "OrderID"
+                    }
+                  },
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "Pedidos distintos"
+                    }
+                  },
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Schema": "extension",
+                          "Entity": "DimCustomer"
+                        }
+                      },
+                      "Property": "Líneas de pedido"
+                    }
+                  },
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "Unidades"
+                    }
+                  },
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "Ventas netas"
+                    }
+                  },
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactSales"
+                        }
+                      },
+                      "Property": "Flete total"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "884fed5e8871803e029c": {
+            "singleVisual": {
+              "objects": {},
+              "activeProjections": {
+                "Data": [
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Schema": "extension",
+                          "Entity": "DimCustomer"
+                        }
+                      },
+                      "Property": "Insight logístico"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "2a87cbce157cb2c9f0f7": {
+            "singleVisual": {
+              "objects": {}
+            }
+          }
+        }
+      }
+    }
+  }
+}

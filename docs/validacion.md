@@ -371,3 +371,47 @@ Fecha: 16 de octubre de 2026. Se implementó en el árbol de trabajo el modelo f
 | Cambios de texto | `git diff --check` sin errores de whitespace. |
 
 Los scripts de migración y retirada no se ejecutaron contra `Northwind` ni `Northwind_DW`, y no se publicaron cambios en esas bases. La aceptación runtime del nuevo ciclo completo, incluida la migración en copia cargada, repetición SSIS y corte del legado, queda pendiente de ejecutarse en las copias identificadas; los archivos de prueba correspondientes ya están adaptados.
+
+## Reparación de NorthwindBIJob — 21 de octubre de 2026
+
+La ejecución de las 23:05 falló en extracción con `VS_NEEDSNEWMETADATA`. El proyecto publicado en SSISDB seguía siendo del 12 de octubre y no contenía `Proveedor.dtsx`. Se guardó una copia del ISPAC anterior y de los pasos del job, se recompiló el proyecto actual y se publicó mediante `Publish-NorthwindETL.ps1` con el entorno `Northwind_Test`. El catálogo contiene ahora siete paquetes: el principal y los seis procesos de carga.
+
+Se ejecutó manualmente el propio `NorthwindBIJob`, con la identidad de SQL Server Agent. La ejecución iniciada a las 23:10:14 terminó correctamente en 17 segundos: paso 1 de carga correcto (SSIS ejecución 10061), paso 2 de procesamiento correcto y resultado global correcto (historial 2179–2181). Las conciliaciones posteriores OLTP/DW y DW/OLAP aprobaron: 2.155 líneas, 830 pedidos, 51.317 unidades y neto 1.265.792,76.
+
+Los destinos se conservaron: `Northwind_Test`, `Northwind_DW_Test` y `NorthwindOLAP_Test`. El job y su horario siguen deshabilitados para ejecución automática; puede iniciarse manualmente desde SSMS. Esta reparación no valida un despliegue del nuevo modelo en las bases principales.
+
+Evidencias locales en `evidencias/reparacion-job-20261021/`: `Northwind.ETL-antes.ispac`, `job-antes.xml`, `publicacion.txt`, `job-despues.xml`, `conciliacion-dw.txt`, `conciliacion-olap.txt` y el JSON de comparación OLAP. No se modificaron los pasos ni la programación del job.
+
+## Consultas de la guía paso a paso — 21 de octubre de 2026
+
+Se revisaron los ocho bloques SQL y los dos bloques DAX de `guia paso a paso.md`. Se corrigió la detección de los modelos anterior y actual en 07.1, se completaron las comprobaciones de migración y miembros técnicos en 07.4, y se actualizaron el detalle monetario de 10.1 y la conciliación de medidas de 12.3. Los nombres antiguos solo se usan para detectar el legado. Se corrigió también la comprobación de siete paquetes publicados.
+
+Los ocho bloques SQL se ejecutaron sustituyendo únicamente los nombres de las bases principales por `Northwind_Test` y `Northwind_DW_Test`, con comprobación de sus marcas y rollback, incluida la carga del calendario. Ambos bloques DAX se ejecutaron sobre `NorthwindOLAP_Test`. Todos terminaron correctamente. Se comprobaron los totales de referencia, seis procesos, tres líneas del pedido 10248, 708 días de calendario y 47.919,00 para Beverages en 1996. Las bases principales no se modificaron.
+
+Evidencia SQL local: `evidencias/consultas-guia-20261021/sql.json` y `sql-1.xml` a `sql-8.xml`. Los resultados DAX quedaron registrados en la salida de la comprobación.
+
+## Power BI — preparación parcial, 22 de octubre de 2026
+
+Power BI Desktop **2.159.883.0** instalado y abierto. La conexión en vivo a localhost llegó al diálogo de credenciales Windows y requiere que el usuario complete Connect. Todavía no se observaron las ocho tablas dentro de Desktop ni se verificaron medidas locales, páginas o archivos PBIX/PBIT.
+
+Las definiciones de `Northwind.PowerBI/medidas-informe.json` se evaluaron con medidas temporales DEFINE sobre `NorthwindOLAP_Test`, sin escribir en SSAS. Pasaron neto 1.265.792,76, 830 pedidos, 51.317 unidades, ticket 1.525,05, descuento 6,55 %, flete 64.942,69 y 21 pedidos sin fecha de envío; también Beverages/1996, pedido 10248 y ratios e insight sin datos. Resultados en `evidencias/power-bi/calculos-dax.json`. Es validación externa de cálculos, **no aceptación del dashboard en Power BI**. No se modificaron datos principales ni horarios del job.
+
+## Power BI — archivos y recorrido listos, 22 de octubre de 2026
+
+Este estado sustituye la preparación parcial anterior. Se guardó `Northwind.PowerBI/Northwind.pbix` desde Power BI Desktop 2.159.883.0, se cerró y reabrió. Conserva tres páginas, medidas de informe y conexión en vivo a `localhost/NorthwindOLAP`. La plantilla `Northwind.pbit` se exportó desde Desktop y abrió un informe nuevo con las tres páginas; ese informe se guardó como `Northwind-desde-plantilla-Test.pbix`. Tras la intervención manual confirmada por el usuario, se guardó y se comprobó su catálogo `NorthwindOLAP_Test` dentro del archivo. PBIX y PBIT principales conservan `NorthwindOLAP`; ninguno contiene DataModel importado.
+
+| Comprobación | Resultado y evidencia local |
+| --- | --- |
+| PBIX reabierto, resumen | Neto 1.265.792,76; pedidos 830; unidades 51.317; ticket 1.525,05; descuento 6,55 %. `evidencias/power-bi/resumen-pbix-reabierto.png` y `.txt`. |
+| Conciliación actual origen/DW y DW/SSAS principal | PASS. `conciliacion-dw-reapertura.txt`, `conciliacion-olap-reapertura.txt` y `comparacion-olap-20261022-144330-136.json`. |
+| Año y categoría | Beverages/1996 muestra 47.919,00. Fecha y categoría conservadas al pasar a productos: `filtros-sincronizados-pbix.png`. |
+| Cliente y ranking | Alfreds Futterkiste: 4.273,00 netos, 6 pedidos y 174 unidades en resumen; Top 10 de productos suma 4.255,00 sin recortar el total. `cliente-sincronizado-pbix.png` y `contraste-productos-cliente-proveedor.json`. |
+| Proveedor actual | Cooperativa de Quesos: Queso Cabrales 12.901,77/706 unidades y Queso Manchego La Pastora 12.257,66/344; suman 25.159,43/1.050. `proveedor-pbix.png` y contraste JSON. |
+| Logística | Referencia 64.942,69 de flete, promedio informado 78,24, cero sin flete y 21 sin fecha de envío. `logistica-pbix-reabierto.png` y `.txt`. Pedido 10248 comprobado de nuevo en Desktop: 1 pedido, 3 líneas, 27 unidades, neto 440,00 y flete 32,3800. |
+| Flete cero, NULL, varias líneas/proveedores y empate | Evidencia previa sobre copias marcadas: `calculos-fixtures.json`, `flete-proveedores-fixture.json`, capturas `flete-cero-desktop.png`, `flete-nulo-desktop.png`, `empate-desktop.png` y `seleccion-vacia-desktop.png`. Limpieza y conciliación: `fixture-remove.txt` y `conciliacion-pruebas-limpias.txt`. |
+| Restablecer | Selección del botón seguida de Ctrl+Enter devuelve totales de referencia y limpia filtros de cliente, fecha, categoría y proveedor. Navegación comprobada mediante pestañas. |
+| PBIT y destino alternativo | `plantilla-nuevo-informe.png`; la copia creada desde la plantilla se guardó y el catálogo alternativo se verificó en Connections. `archivos-entrega.json` registra destinos, páginas, medidas y hashes. |
+
+Se incorporó [11. Visualizar Power BI](11-visualizar-power-bi.md), enlazada desde las guías y ambos README. Las pruebas de uso compartido fueron locales; no se validó el equipo de un compañero. Durante esta continuación no se escribieron datos principales ni se alteró el job o su horario.
+
+Aceptación integrada final completada el 22 de octubre de 2026: 21/21 tareas. Se comprobaron referencia completa, Beverages/1996 y pedido 10248 contra DW/SSAS y Desktop; el año 1900 sin ventas se conservó al navegar por las tres páginas y dejó ratios, gráficos e insights sin valores anteriores. Restablecer recuperó la referencia y el PBIX quedó guardado sin filtros de prueba. El PBIT volvió a abrir un informe nuevo con tres páginas, conexión en vivo y cifras correctas. El job y su horario siguen deshabilitados; no se escribieron datos principales. La última consulta DAX inicialmente falló al conectar; su repetición confirmó 47.919,00 y BLANK para el período vacío. La verificación de uso compartido fue local, sin probar el equipo de otro integrante. Evidencia vigente y hashes en [aceptación final](evidencias/power-bi/aceptacion-final.md) y final-archivos.json; las referencias históricas anteriores pueden corresponder a archivos retirados durante la limpieza.

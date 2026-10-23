@@ -3,9 +3,9 @@ param(
     [string]$Server = 'localhost',
     [string]$AnalysisServer = 'localhost',
     [string]$WarehouseServer = 'localhost',
-    [ValidateSet('Northwind_DW_Test')]
+    [ValidateSet('Northwind_DW','Northwind_DW_Test')]
     [string]$WarehouseDatabase = 'Northwind_DW_Test',
-    [ValidateSet('NorthwindOLAP_Test')]
+    [ValidateSet('NorthwindOLAP','NorthwindOLAP_Test')]
     [string]$ModelDatabase = 'NorthwindOLAP_Test',
     [string]$LogDirectory = 'C:\ProgramData\NorthwindBI\Logs',
     [switch]$SkipCatalogCheck
@@ -15,6 +15,8 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $roleName = 'NorthwindBIJobProcessor'
 $roleMarker = 'Northwind practice processing role managed by Configure-NorthwindJobAccess.ps1.'
+$expectedModel=if($WarehouseDatabase -eq 'Northwind_DW'){'NorthwindOLAP'}else{'NorthwindOLAP_Test'}
+if($ModelDatabase -ne $expectedModel){throw 'Use Northwind_DW/NorthwindOLAP o Northwind_DW_Test/NorthwindOLAP_Test.'}
 
 function New-SqlConnection([string]$Database, [string]$DataSource) {
     $builder = [System.Data.SqlClient.SqlConnectionStringBuilder]::new()
@@ -73,15 +75,17 @@ finally { $accessCheck.Dispose() }
 
 $databaseCheck = @'
 DECLARE @targetDatabase sysname = @Database;
-IF DB_ID(@targetDatabase) IS NULL THROW 51311, 'No existe el almacén de prueba.', 1;
+IF DB_ID(@targetDatabase) IS NULL THROW 51311, 'No existe el almacén indicado.', 1;
 IF EXISTS (SELECT 1 FROM sys.databases WHERE name = @targetDatabase AND (is_trustworthy_on = 1 OR is_db_chaining_on = 1))
     THROW 51312, 'El almacén de prueba no conserva su aislamiento.', 1;
 DECLARE @marker nvarchar(128);
 DECLARE @sql nvarchar(max) = N'SELECT @marker = CONVERT(nvarchar(128), value) FROM '
     + QUOTENAME(@targetDatabase) + N'.sys.extended_properties WHERE class = 0 AND name = N''NorthwindPracticeTestDatabase'';';
 EXEC sys.sp_executesql @sql, N'@marker nvarchar(128) OUTPUT', @marker OUTPUT;
-IF @marker IS NULL OR @marker <> N'Northwind_DW'
+IF @targetDatabase=N'Northwind_DW_Test' AND (@marker IS NULL OR @marker <> N'Northwind_DW')
     THROW 51313, 'El almacén no es la copia marcada de práctica.', 1;
+IF @targetDatabase=N'Northwind_DW' AND @marker IS NOT NULL
+    THROW 51313, 'La base principal está marcada como copia; acceso rechazado.', 1;
 '@
 Invoke-Sql 'master' $WarehouseServer $databaseCheck @{ '@Database' = $WarehouseDatabase }
 
@@ -123,13 +127,14 @@ try {
         [void]$database.Model.Roles.Add($role)
     }
     $role.ModelPermission = [Microsoft.AnalysisServices.Tabular.ModelPermission]::Refresh
-    $role.Members.Clear()
     $principalSid = ([Security.Principal.NTAccount]::new($agentPrincipal)).Translate([Security.Principal.SecurityIdentifier]).Value
     $member = [Microsoft.AnalysisServices.Tabular.WindowsModelRoleMember]::new()
     $member.MemberName = $agentPrincipal
     $member.MemberId = $principalSid
-    [void]$role.Members.Add($member)
-    $database.Model.SaveChanges()
+    if(-not @($role.Members | Where-Object {$_.MemberId -eq $principalSid}).Count){
+        [void]$role.Members.Add($member)
+    }
+    [void]$database.Model.SaveChanges()
 }
 finally {
     if ($analysis.Connected) { $analysis.Disconnect() }

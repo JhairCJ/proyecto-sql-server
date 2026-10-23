@@ -21,3 +21,7 @@ En SSMS, revisa la carga en [06](06-cargar-datos.md).
 Publica SSIS en [08](08-publicar-ssis.md), implementa y consulta el modelo en [09](09-procesar-y-consultar-olap.md), y prueba el job de [10](10-ejecutar-job.md).
 
 **Destinos:** `NorthWind` (origen), `Northwind_DW` (almacén SQL), `NorthwindOLAP` (modelo de Analysis Services). No restaures ni reinicies las bases reales para repetir la práctica.
+
+## 5. Visualizar
+
+Abre el informe y comprueba sus tres páginas siguiendo [11. Visualizar Power BI](11-visualizar-power-bi.md).

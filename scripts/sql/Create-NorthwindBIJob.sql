@@ -98,6 +98,14 @@ WHERE f.name = @Folder
 IF @ReferenceCount <> 1 OR @EnvironmentReferenceId IS NULL
     THROW 51000, 'No unique owned SSIS project/environment/package reference was found. Publish Northwind.ETL first.', 1;
 
+IF (SELECT COUNT(*) FROM SSISDB.catalog.packages k
+    JOIN SSISDB.catalog.projects p ON p.project_id=k.project_id
+    JOIN SSISDB.catalog.folders f ON f.folder_id=p.folder_id
+    WHERE f.name=@Folder AND p.name=@Project AND k.name IN
+    (N'CargarNorthwind.dtsx',N'Cliente.dtsx',N'Empleado.dtsx',N'Proveedor.dtsx',
+     N'Producto.dtsx',N'Transportista.dtsx',N'Ventas.dtsx'))<>7
+    THROW 51000,'Publique los siete paquetes actuales de Northwind.ETL antes de crear el job.',1;
+
 SELECT
     @ConfiguredSourceDatabase = MAX(CASE WHEN v.name = N'SourceDatabase' THEN CONVERT(nvarchar(128), v.value) END),
     @ConfiguredWarehouseDatabase = MAX(CASE WHEN v.name = N'WarehouseDatabase' THEN CONVERT(nvarchar(128), v.value) END)
